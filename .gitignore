@@ -7,3 +7,4 @@ prototype/drum-preview.html
 test-results/
 playwright-report/
 .angular/
+tests/results.txt

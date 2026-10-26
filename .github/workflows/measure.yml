@@ -10,7 +10,7 @@ jobs:
   measure:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/toolchain
 
       - name: Build everything
@@ -30,7 +30,7 @@ jobs:
           node measure/code.mjs
           node measure/tables.mjs | tee "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: measurements
           path: tests/measure/results

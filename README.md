@@ -1,5 +1,7 @@
 # bümbap
 
+[![Build and test](https://github.com/tjrhodes/bumbap/actions/workflows/ci.yml/badge.svg)](https://github.com/tjrhodes/bumbap/actions/workflows/ci.yml)
+
 A 16-step drum sampler built on one shared Haxe engine, with the same UI
 written in Haxe (vanilla JS), React, Vue and Angular, then compared.
 Play it and see the results: [tomrhodes.it/en/work/bumbap](https://tomrhodes.it/en/work/bumbap/).

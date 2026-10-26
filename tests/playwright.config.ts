@@ -22,6 +22,11 @@ const BUILDS: Record<string, string> = {
 
 const builtOnes = Object.entries(BUILDS).filter(([, page]) => existsSync(REPO_ROOT + page));
 
+// Locally, a build not made yet is simply left out. In CI every build must be there: a build that
+// failed to appear must fail the run, not quietly drop out of it.
+const missing = Object.keys(BUILDS).filter((name) => !builtOnes.some(([built]) => built === name));
+if (process.env.CI && missing.length) throw new Error(`Builds missing in CI: ${missing.join(", ")}`);
+
 export default defineConfig({
 	testDir: ".",
 	timeout: 30_000,
