@@ -1,0 +1,9 @@
+# Engine tests on Node, with a fake Tone.js (no sound, no browser).
+# Run: haxe test.hxml   (from this folder)
+
+-cp src
+-cp test
+-D js-es=6
+-main TestMain
+-js test/bin/tests.cjs
+--cmd node test/bin/tests.cjs

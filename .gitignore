@@ -1,0 +1,9 @@
+node_modules/
+dist/
+engine/test/bin/
+__pycache__/
+prototype/drum-preview.html
+
+test-results/
+playwright-report/
+.angular/

@@ -1,0 +1,138 @@
+# bümbap
+
+A 16-step drum sampler built on one shared Haxe engine, with the same UI
+written in Haxe (vanilla JS), React, Vue and Angular, then compared.
+Play it and see the results: [tomrhodes.it/en/work/bumbap](https://tomrhodes.it/en/work/bumbap/).
+The plan, the rules and what gets measured are in [SPEC.md](SPEC.md).
+
+## Status
+
+- [x] Spec
+- [x] Shared engine (`engine/`): Haxe, tested on Node and in Chromium with real Tone.js
+- [x] Per-step velocity, nudge and reverse; drive and reverb (engine)
+- [x] Per-part pitch, length and real 808 knobs (all 68 recordings, loaded on demand)
+- [x] TR-808 kit (Michael Fischer's free sample set)
+- [x] UI signed off (prototype: "Bümbap"); shared stylesheet and Playwright suite
+- [x] Front ends: Haxe, React, Vue, Angular (each passes all 19 shared tests)
+- [x] Measurements: size, start-up, playhead, dragging, code and tooling ([RESULTS.md](RESULTS.md))
+- [x] Lab page on tomrhodes.it (`tools/export-to-site.py`)
+- [x] Public repo and CI (`.github/workflows/`: build and test on every push; measurements by hand)
+
+## Building everything
+
+```sh
+tools/build-all.sh     # engine (with its unit tests), the four front ends, the prototype
+```
+
+Needs Haxe 4.3 and Node 22.22+ (the Angular CLI's minimum). The CI workflow runs the same
+script, then the shared test suite against every build.
+
+## Engine
+
+```sh
+cd engine
+npm install            # Tone.js, for the smoke test and the front ends
+haxe test.hxml         # 186 unit checks on Node with a fake Tone.js
+haxe build.hxml        # → dist/drum-engine.js (ES module); types in drum-engine.d.ts
+cd .. && python3 engine/smoke/run.py   # real Tone.js + samples in headless Chromium
+```
+
+Needs Haxe 4.3 and Node 20+. The smoke test needs Python Playwright.
+No Haxe libraries are used.
+
+| File | What it does |
+|---|---|
+| `src/drum/DrumMachine.hx` | The one object front ends use: edits, play/stop, snapshots, playhead. |
+| `src/drum/Track.hx` | One row: steps, volume, mute. |
+| `src/drum/Step.hx` | Makes steps (on, velocity, nudge), checked and frozen. |
+| `src/drum/PatternCode.hx` | The pattern ↔ short URL code, for sharing (format 5: steps with velocity, nudge and direction, plus each part's sound settings). |
+| `src/drum/Timing.hx` | MPC-style swing and per-step nudge. |
+| `src/drum/Loudness.hx` | Velocity → gain (85 = part level, 8 points = 3 dB), volume fader → decibels. |
+| `src/drum/Kit.hx`, `Limits.hx`, `Range.hx` | The eight voices with their 808 knobs and file naming, the starter beat, every range. |
+| `src/drum/Listeners.hx`, `StepRow.hx`, `State.hx` | Subscriptions, `"X..x.o.."` rows, the snapshot types. |
+| `src/drum/audio/SampleBank.hx`, `Silence.hx` | One fader per voice; recordings load when first chosen (the last choice wins); reversed copies, silent tail cut first. |
+| `src/drum/audio/HitShape.hx` | Pure maths of one hit: pitch as playback rate, length as an early fade, reversed hits ending with their step. |
+| `src/drum/audio/MasterChain.hx`, `Saturation.hx` | Headroom → valve overdrive → tone filter → trim → safety clipper, with the reverb as a parallel send. |
+| `src/drum/audio/StepClock.hx`, `Latency.hx`, `ToneApi.hx` | The step clock on Tone's transport, playhead drawn when the sound reaches the speaker; a roomier audio buffer against phone crackles; Tone.js types. |
+| `src/drum/panel/PanelText.hx`, `SevenSegmentFont.hx` | Words and display text every front end shows, and the LED display's font: shared so the builds cannot drift apart. |
+| `drum-engine.d.ts` | TypeScript types, by hand; keep in step with the Haxe API. |
+| `tools/to-es-module.mjs` | Turns Haxe's script output into an ES module (runs from build.hxml). |
+
+Tone.js is passed in (`new DrumMachine({tone: Tone, …})`) rather than
+imported, so the engine works unchanged in any bundler and the tests can
+use a fake.
+
+## House rules
+
+Functions of at most 15 lines, DRY, names that tell the story, comments
+that explain why. Check: `python3 tools/check-lengths.py engine samples tools prototype tests apps`
+(Haxe, JavaScript, TypeScript, TSX and Vue files).
+
+## Prototype
+
+`prototype/` holds the panel prototype (published as "Bümbap"):
+plain JavaScript on the compiled engine, the reference for the UI and the DOM
+contract. Build it with `python3 prototype/build.py` after building the engine;
+it writes `prototype/drum-preview.html`, which opens straight from disk.
+
+## Samples
+
+The kit is Michael Fischer's free TR-808 sample set (1994); see
+`samples/CREDITS.md`. `python3 samples/prepare.py "/path/to/TR808WAV"` copies
+every variant of the eight parts (68 files, trimmed; needs numpy), keeping the
+set's names (BD2550.wav …). The engine picks the file from each part's 808
+knobs (`Kit.hx`) and loads it the first time it is needed.
+
+## Front ends
+
+Each app in `apps/` has its own `NOTES.md` (how it is built, what fought back,
+versions). All use `shared/bumbap.css` and the DOM contract in SPEC.md §4.
+
+```sh
+cd apps/haxe && haxe build.hxml
+cd apps/react && npm install && npm run build      # also apps/vue
+cd apps/angular && npm install && npx ng build     # Node 22.22+
+```
+
+## Tests and sizes
+
+```sh
+cd tests && npm install && npx playwright install chromium
+npx playwright test            # 19 tests against every build that exists
+node measure-sizes.mjs         # minified + gzipped scripts, per build
+node measure/playhead.mjs      # 200 BPM for 30 s: main-thread cost per step, frames, timing
+node measure/gestures.mjs      # cost per pointer move dragging a knob and a key
+node measure/startup.mjs       # Lighthouse mobile + time until Play is usable on slow 4G
+node measure/code.mjs          # UI lines, clean build time, install size (HAXE=…; Node 22.22+)
+node measure/tables.mjs        # the tables in RESULTS.md, from measure/results/*.json
+```
+
+Each measure runs on desktop and on a phone-sized window with the CPU slowed four times;
+`measure/baseline.html` (engine and a bare playhead, no UI) is the floor the builds are compared to.
+Results and what they mean: [RESULTS.md](RESULTS.md).
+
+| Build | Page scripts | UI + framework (less Tone.js and engine) |
+|---|---|---|
+| Haxe | 92.5 kB | 3.7 kB |
+| Vue | 112.0 kB | 23.2 kB |
+| Angular | 135.5 kB | 46.7 kB |
+| React | 153.7 kB | 64.9 kB |
+
+Tone.js is 81.0 kB and the engine 7.8 kB in every build.
+
+## On tomrhodes.it
+
+The Lab page plays the four builds side by side (`/en/work/bumbap/`). After building everything and
+measuring, copy the builds, the kit and the results into the site:
+
+```sh
+python3 tools/export-to-site.py ~/Nextcloud/project-work/portfolio/site
+```
+
+The site's own build (`python3 build.py` there) then redraws its charts from the new results. The
+exported pages load the site's self-hosted Fira fonts instead of Google Fonts.
+
+## Licence
+
+The code is MIT licensed (see LICENSE). The drum sounds are Michael Fischer's free TR-808 set,
+not covered by that licence; see `samples/CREDITS.md`.

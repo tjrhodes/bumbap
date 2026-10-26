@@ -1,0 +1,36 @@
+# On every push and pull request: the 15-line rule, the engine's unit tests, all four front ends
+# built, then the one Playwright suite run against every build (SPEC.md §2).
+name: Build and test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/toolchain
+
+      - name: Functions of at most 15 lines
+        run: python3 tools/check-lengths.py engine samples tools prototype tests apps/haxe/src apps/react/src apps/vue/src apps/angular/src
+
+      - name: Build the engine, the four front ends and the prototype
+        run: tools/build-all.sh
+
+      - name: Install the test runner and Chromium
+        working-directory: tests
+        run: npm ci && npx playwright install --with-deps chromium
+
+      - name: The shared suite, against every build
+        working-directory: tests
+        run: npx playwright test
+
+      - name: Keep the test report if anything failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: tests/test-results

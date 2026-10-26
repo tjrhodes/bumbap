@@ -1,0 +1,106 @@
+{
+	"preset": "Lighthouse mobile (simulated slow 4G, 4x CPU slowdown), Google Fonts blocked; playable: slow 4G + 4x CPU, throttled for real",
+	"runs": 5,
+	"results": {
+		"haxe": {
+			"score": 91,
+			"firstPaintMs": 1893.6,
+			"largestPaintMs": 1893.6,
+			"speedIndexMs": 1893.6,
+			"blockingMs": 335,
+			"scriptBootMs": 789.7,
+			"mainThreadMs": 1498.3,
+			"totalBytes": 498623,
+			"allRunsScores": [
+				90,
+				91,
+				91,
+				95,
+				96
+			],
+			"playableMs": 3786.4,
+			"allRunsPlayableMs": [
+				3458.4,
+				4095.6,
+				3460.9,
+				3786.4,
+				3882
+			]
+		},
+		"react": {
+			"score": 71,
+			"firstPaintMs": 2024.7,
+			"largestPaintMs": 4674.1,
+			"speedIndexMs": 2024.7,
+			"blockingMs": 436,
+			"scriptBootMs": 816.5,
+			"mainThreadMs": 1481.1,
+			"totalBytes": 563287,
+			"allRunsScores": [
+				69,
+				71,
+				71,
+				74,
+				85
+			],
+			"playableMs": 4326,
+			"allRunsPlayableMs": [
+				4362.3,
+				4167.8,
+				4223.1,
+				4326,
+				4619.8
+			]
+		},
+		"vue": {
+			"score": 74,
+			"firstPaintMs": 1883.6,
+			"largestPaintMs": 4810.5,
+			"speedIndexMs": 1883.6,
+			"blockingMs": 319,
+			"scriptBootMs": 850.6,
+			"mainThreadMs": 1468.8,
+			"totalBytes": 520332,
+			"allRunsScores": [
+				72,
+				73,
+				74,
+				76,
+				76
+			],
+			"playableMs": 3598.6,
+			"allRunsPlayableMs": [
+				3658.1,
+				3598.6,
+				3589.3,
+				3481.3,
+				4023.3
+			]
+		},
+		"angular": {
+			"score": 75,
+			"firstPaintMs": 1879.5,
+			"largestPaintMs": 4795.7,
+			"speedIndexMs": 1879.5,
+			"blockingMs": 313,
+			"scriptBootMs": 798,
+			"mainThreadMs": 1379.4,
+			"totalBytes": 544994,
+			"allRunsScores": [
+				73,
+				75,
+				75,
+				76,
+				77
+			],
+			"playableMs": 3957.6,
+			"allRunsPlayableMs": [
+				4229.5,
+				3872.7,
+				3767.5,
+				3957.6,
+				4264.1
+			]
+		}
+	}
+}

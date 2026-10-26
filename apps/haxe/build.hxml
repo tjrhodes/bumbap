@@ -1,0 +1,17 @@
+# bümbap, Haxe front end. Build from this folder: haxe build.hxml
+# Needs engine/node_modules (cd ../../engine && npm install) for Tone.js and esbuild.
+# Output: dist/ (index.html, app.js, tone.js, bumbap.css); samples come from ../../../samples/
+
+-cp src
+-cp ../../engine/src
+-main Main
+-D js-es=6
+-dce full
+-js dist/app.js
+
+--cmd cp index.html ../../shared/bumbap.css dist/
+--cmd cp ../../engine/node_modules/tone/build/Tone.js dist/tone.js
+
+# Haxe writes readable, unminified JavaScript; production builds of the other front ends are
+# minified by their own tooling, so this one is minified too (esbuild, no bundling).
+--cmd ../../engine/node_modules/.bin/esbuild dist/app.js --minify --allow-overwrite --outfile=dist/app.js --log-level=warning

@@ -1,0 +1,14 @@
+# Shared engine → one ES module (dist/drum-engine.js) for the React, Vue
+# and Angular builds. The Haxe front end compiles src/ in directly instead.
+# Build: haxe build.hxml   (from this folder; needs Node for the last step)
+
+-cp src
+-D js-es=6
+-dce full
+-js dist/drum-engine.haxe.js
+drum.DrumMachine
+drum.panel.PanelText
+drum.panel.SevenSegmentFont
+
+# Haxe writes a classic script; this turns it into an ES module.
+--cmd node tools/to-es-module.mjs dist/drum-engine.haxe.js dist/drum-engine.js

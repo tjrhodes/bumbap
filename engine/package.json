@@ -1,0 +1,24 @@
+{
+  "name": "bumbap-engine",
+  "version": "1.0.0",
+  "description": "The shared bümbap drum machine engine, written in Haxe, used by every front end in this repo.",
+  "type": "module",
+  "main": "dist/drum-engine.js",
+  "types": "drum-engine.d.ts",
+  "files": [
+    "dist/drum-engine.js",
+    "drum-engine.d.ts"
+  ],
+  "peerDependencies": {
+    "tone": "^15.0.0"
+  },
+  "scripts": {
+    "build": "haxe build.hxml",
+    "test": "haxe test.hxml"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "tone": "^15.1.22"
+  }
+}

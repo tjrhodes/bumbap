@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+	<title>bümbap · Haxe</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Condensed:wght@500;600;700&family=Fira+Sans:wght@400;500&display=swap">
+	<link rel="stylesheet" href="bumbap.css">
+</head>
+<body>
+<main class="dm">
+	<div class="dm-panel">
+		<header class="dm-head">
+			<span class="dm-wordmark">bümbap</span>
+			<span class="dm-print">16 step · 8 part · Haxe engine</span>
+		</header>
+
+		<section class="dm-deck" aria-label="Controls">
+			<div class="dm-window">
+				<svg id="display" class="dm-display" viewBox="0 0 250 100" aria-hidden="true"></svg>
+				<p id="status" class="dm-print dm-status" role="status">Loading the kit</p>
+			</div>
+			<div class="dm-unit dm-tempo">
+				<span class="dm-print">Tempo</span>
+				<div id="tempo" class="dm-knob" role="slider" tabindex="0" aria-label="Tempo, beats per minute"><span class="dm-knob-cap"></span></div>
+			</div>
+			<div class="dm-unit dm-swing">
+				<span class="dm-print">Swing</span>
+				<div id="swing" class="dm-knob" role="slider" tabindex="0" aria-label="Swing, percent"><span class="dm-knob-cap"></span></div>
+			</div>
+			<div class="dm-unit dm-drive">
+				<span class="dm-print">Drive</span>
+				<div id="drive" class="dm-knob" role="slider" tabindex="0" aria-label="Drive, percent"><span class="dm-knob-cap"></span></div>
+			</div>
+			<div class="dm-unit dm-reverb">
+				<span class="dm-print">Reverb</span>
+				<div id="reverb" class="dm-knob" role="slider" tabindex="0" aria-label="Reverb, percent"><span class="dm-knob-cap"></span></div>
+			</div>
+			<div class="dm-unit dm-play-unit">
+				<span class="dm-print"><span id="play-led" class="dm-led"></span>Play</span>
+				<button id="play" class="dm-rubber dm-rubber-play" aria-pressed="false" aria-label="Play" disabled><span class="dm-icon"></span></button>
+			</div>
+			<div class="dm-unit dm-clear-unit">
+				<span class="dm-print">Clear</span>
+				<button id="clear" class="dm-rubber" aria-label="Clear every step"></button>
+			</div>
+		</section>
+
+		<section class="dm-part" aria-label="Part">
+			<h2 class="dm-print dm-rule">Part</h2>
+			<div class="dm-strip">
+				<div class="dm-unit">
+					<span class="dm-print">Level</span>
+					<div id="level" class="dm-knob" role="slider" tabindex="0" aria-label="Part level, percent"><span class="dm-knob-cap"></span></div>
+				</div>
+				<div class="dm-unit">
+					<span class="dm-print">Pitch</span>
+					<div id="pitch" class="dm-knob" role="slider" tabindex="0" aria-label="Part pitch, semitones"><span class="dm-knob-cap"></span></div>
+				</div>
+				<div class="dm-unit">
+					<span class="dm-print">Length</span>
+					<div id="length" class="dm-knob" role="slider" tabindex="0" aria-label="Part length, percent"><span class="dm-knob-cap"></span></div>
+				</div>
+				<div class="dm-dials">
+					<span class="dm-print dm-dials-label">808</span>
+					<div class="dm-unit">
+						<span class="dm-print">Tone</span>
+						<div id="dial-0" class="dm-knob dm-knob-808" role="slider" tabindex="0" aria-label="808 knob"><span class="dm-knob-cap"></span></div>
+					</div>
+					<div class="dm-unit">
+						<span class="dm-print">Decay</span>
+						<div id="dial-1" class="dm-knob dm-knob-808" role="slider" tabindex="0" aria-label="808 knob"><span class="dm-knob-cap"></span></div>
+					</div>
+				</div>
+			</div>
+			<div id="pills" class="dm-pills" role="group" aria-label="Part"></div>
+		</section>
+
+		<section class="dm-steps" aria-label="Steps">
+			<h2 class="dm-print dm-rule">Steps</h2>
+			<div id="keys" class="dm-keys"></div>
+		</section>
+	</div>
+
+</main>
+<script src="tone.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

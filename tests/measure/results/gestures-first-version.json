@@ -1,0 +1,357 @@
+{
+	"moves": 400,
+	"pixelsPerMove": 4,
+	"runs": 3,
+	"results": {
+		"prototype": {
+			"desktop": {
+				"knob": {
+					"perMoveMs": {
+						"script": 0.657,
+						"style": 0.193,
+						"layout": 1.305,
+						"busy": 4.507
+					},
+					"valueChanges": 400,
+					"moves": 400,
+					"allRunsBusyMs": [
+						4.441,
+						4.507,
+						4.655
+					],
+					"medianOfRuns": 4.507
+				},
+				"key": {
+					"perMoveMs": {
+						"script": 0.634,
+						"style": 0.274,
+						"layout": 2.381,
+						"busy": 5.833
+					},
+					"valueChanges": 399,
+					"moves": 400,
+					"allRunsBusyMs": [
+						5.815,
+						5.833,
+						6.364
+					],
+					"medianOfRuns": 5.833
+				}
+			},
+			"phone": {
+				"knob": {
+					"perMoveMs": {
+						"script": 2.657,
+						"style": 0.52,
+						"layout": 5.833,
+						"busy": 17.345
+					},
+					"valueChanges": 400,
+					"moves": 400,
+					"allRunsBusyMs": [
+						17.152,
+						17.345,
+						18.102
+					],
+					"medianOfRuns": 17.345
+				},
+				"key": {
+					"perMoveMs": {
+						"script": 2.551,
+						"style": 1.428,
+						"layout": 10.598,
+						"busy": 24.86
+					},
+					"valueChanges": 399,
+					"moves": 400,
+					"allRunsBusyMs": [
+						24.12,
+						24.86,
+						25.791
+					],
+					"medianOfRuns": 24.86
+				}
+			}
+		},
+		"haxe": {
+			"desktop": {
+				"knob": {
+					"perMoveMs": {
+						"script": 0.608,
+						"style": 0.183,
+						"layout": 1.179,
+						"busy": 4.355
+					},
+					"valueChanges": 400,
+					"moves": 400,
+					"allRunsBusyMs": [
+						4.22,
+						4.355,
+						4.671
+					],
+					"medianOfRuns": 4.355
+				},
+				"key": {
+					"perMoveMs": {
+						"script": 0.605,
+						"style": 0.268,
+						"layout": 2.292,
+						"busy": 5.838
+					},
+					"valueChanges": 399,
+					"moves": 400,
+					"allRunsBusyMs": [
+						5.412,
+						5.838,
+						6.396
+					],
+					"medianOfRuns": 5.838
+				}
+			},
+			"phone": {
+				"knob": {
+					"perMoveMs": {
+						"script": 2.804,
+						"style": 0.738,
+						"layout": 5.891,
+						"busy": 18.637
+					},
+					"valueChanges": 400,
+					"moves": 400,
+					"allRunsBusyMs": [
+						18.53,
+						18.637,
+						19.304
+					],
+					"medianOfRuns": 18.637
+				},
+				"key": {
+					"perMoveMs": {
+						"script": 2.229,
+						"style": 1.111,
+						"layout": 10.058,
+						"busy": 23.716
+					},
+					"valueChanges": 399,
+					"moves": 400,
+					"allRunsBusyMs": [
+						23.057,
+						23.716,
+						24.959
+					],
+					"medianOfRuns": 23.716
+				}
+			}
+		},
+		"react": {
+			"desktop": {
+				"knob": {
+					"perMoveMs": {
+						"script": 1.053,
+						"style": 0.185,
+						"layout": 0.039,
+						"busy": 3.568
+					},
+					"valueChanges": 400,
+					"moves": 400,
+					"allRunsBusyMs": [
+						3.546,
+						3.568,
+						3.79
+					],
+					"medianOfRuns": 3.568
+				},
+				"key": {
+					"perMoveMs": {
+						"script": 1.04,
+						"style": 0.273,
+						"layout": 0.499,
+						"busy": 4.003
+					},
+					"valueChanges": 399,
+					"moves": 400,
+					"allRunsBusyMs": [
+						3.866,
+						4.003,
+						4.205
+					],
+					"medianOfRuns": 4.003
+				}
+			},
+			"phone": {
+				"knob": {
+					"perMoveMs": {
+						"script": 4.677,
+						"style": 0.716,
+						"layout": 0.157,
+						"busy": 13.157
+					},
+					"valueChanges": 400,
+					"moves": 400,
+					"allRunsBusyMs": [
+						12.503,
+						13.157,
+						14.272
+					],
+					"medianOfRuns": 13.157
+				},
+				"key": {
+					"perMoveMs": {
+						"script": 4.12,
+						"style": 0.865,
+						"layout": 2.142,
+						"busy": 14.146
+					},
+					"valueChanges": 399,
+					"moves": 400,
+					"allRunsBusyMs": [
+						14.01,
+						14.146,
+						14.151
+					],
+					"medianOfRuns": 14.146
+				}
+			}
+		},
+		"vue": {
+			"desktop": {
+				"knob": {
+					"perMoveMs": {
+						"script": 0.271,
+						"style": 0.138,
+						"layout": 0.029,
+						"busy": 3.616
+					},
+					"valueChanges": 400,
+					"moves": 400,
+					"allRunsBusyMs": [
+						3.362,
+						3.616,
+						3.78
+					],
+					"medianOfRuns": 3.616
+				},
+				"key": {
+					"perMoveMs": {
+						"script": 0.178,
+						"style": 0.269,
+						"layout": 0.455,
+						"busy": 3.938
+					},
+					"valueChanges": 399,
+					"moves": 400,
+					"allRunsBusyMs": [
+						3.873,
+						3.938,
+						3.949
+					],
+					"medianOfRuns": 3.938
+				}
+			},
+			"phone": {
+				"knob": {
+					"perMoveMs": {
+						"script": 0.958,
+						"style": 0.791,
+						"layout": 0.152,
+						"busy": 12.249
+					},
+					"valueChanges": 400,
+					"moves": 400,
+					"allRunsBusyMs": [
+						11.698,
+						12.249,
+						13.577
+					],
+					"medianOfRuns": 12.249
+				},
+				"key": {
+					"perMoveMs": {
+						"script": 0.703,
+						"style": 0.981,
+						"layout": 1.974,
+						"busy": 14.34
+					},
+					"valueChanges": 399,
+					"moves": 400,
+					"allRunsBusyMs": [
+						12.899,
+						14.34,
+						16.588
+					],
+					"medianOfRuns": 14.34
+				}
+			}
+		},
+		"angular": {
+			"desktop": {
+				"knob": {
+					"perMoveMs": {
+						"script": 0.908,
+						"style": 0.188,
+						"layout": 0.033,
+						"busy": 3.183
+					},
+					"valueChanges": 400,
+					"moves": 400,
+					"allRunsBusyMs": [
+						3.085,
+						3.183,
+						3.52
+					],
+					"medianOfRuns": 3.183
+				},
+				"key": {
+					"perMoveMs": {
+						"script": 0.862,
+						"style": 0.252,
+						"layout": 0.454,
+						"busy": 3.648
+					},
+					"valueChanges": 399,
+					"moves": 400,
+					"allRunsBusyMs": [
+						3.569,
+						3.648,
+						3.863
+					],
+					"medianOfRuns": 3.648
+				}
+			},
+			"phone": {
+				"knob": {
+					"perMoveMs": {
+						"script": 3.451,
+						"style": 0.809,
+						"layout": 0.187,
+						"busy": 11.653
+					},
+					"valueChanges": 400,
+					"moves": 400,
+					"allRunsBusyMs": [
+						10.2,
+						11.653,
+						16.324
+					],
+					"medianOfRuns": 11.653
+				},
+				"key": {
+					"perMoveMs": {
+						"script": 3.064,
+						"style": 1.33,
+						"layout": 2.351,
+						"busy": 14.468
+					},
+					"valueChanges": 399,
+					"moves": 400,
+					"allRunsBusyMs": [
+						14.041,
+						14.468,
+						19.195
+					],
+					"medianOfRuns": 14.468
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,49 @@
+<!doctype html>
+<!--
+  Smoke test for the built engine with the real Tone.js and the real
+  samples. Serve the repo root (python3 -m http.server) and open
+  /engine/smoke/, or run smoke/run.py to do it headless. Press Play;
+  the log shows the playhead, the output level, and any errors.
+-->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Drum engine smoke test</title>
+	<script src="../node_modules/tone/build/Tone.js"></script>
+</head>
+<body>
+	<button id="play">Play / Stop</button>
+	<pre id="log"></pre>
+	<script type="module">
+		import { DrumMachine } from "../dist/drum-engine.js";
+
+		const SECOND_BAR_STEPS = 32;
+		const log = (line) => (document.querySelector("#log").textContent += line + "\n");
+		const report = (window.smokeReport = { steps: [], drawnAtMs: [], peakDb: -Infinity, errors: [] });
+
+		const machine = new DrumMachine({ tone: Tone, samplesUrl: "../../samples/" });
+		const outputMeter = new Tone.Meter();
+		Tone.getDestination().connect(outputMeter);
+
+		/** When each step reached the screen; at 100 BPM they should be ~150 ms apart. */
+		function recordStep(step) {
+			report.steps.push(step);
+			report.drawnAtMs.push(performance.now());
+			if (report.steps.length === SECOND_BAR_STEPS) log(`two bars drawn: ${report.steps.join(" ")}`);
+		}
+
+		function watchOutputLevel() {
+			report.peakDb = Math.max(report.peakDb, outputMeter.getValue());
+			requestAnimationFrame(watchOutputLevel);
+		}
+
+		machine.onStep(recordStep);
+		machine.subscribe((state) => log(`state: ${state.status}, playing ${state.playing}, code ${state.code}`));
+		document.querySelector("#play").addEventListener("click", () => machine.togglePlay());
+		window.addEventListener("error", (event) => report.errors.push(event.message));
+		window.machine = machine;
+		watchOutputLevel();
+		machine.load().then(() => (report.loaded = true));
+	</script>
+</body>
+</html>

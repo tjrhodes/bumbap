@@ -1,0 +1,39 @@
+<!doctype html>
+<!--
+	The floor for the comparison: the same engine, Tone.js and kit as every build, with the least
+	UI that still shows a playhead (sixteen plain keys, one class moved per step) and no styles.
+	What a build costs above this is the cost of its panel and its framework.
+	It answers to the same controls the measuring scripts use (#tempo, the play button).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>bümbap baseline</title>
+</head>
+<body>
+<div id="tempo" tabindex="0">tempo</div>
+<div class="dm-play-unit"><button disabled>Play</button></div>
+<div class="dm-steps"></div>
+<script src="../../engine/node_modules/tone/build/Tone.js"></script>
+<script type="module">
+	import { DrumMachine } from "../../engine/dist/drum-engine.js";
+
+	const machine = new DrumMachine({ tone: Tone, samplesUrl: "../../samples/" });
+	const steps = document.querySelector(".dm-steps");
+	const keys = Array.from({ length: 16 }, () => steps.appendChild(document.createElement("div")));
+	keys.forEach((key) => key.className = "dm-key");
+
+	const playButton = document.querySelector(".dm-play-unit button");
+	playButton.addEventListener("click", () => machine.togglePlay());
+	document.querySelector("#tempo").addEventListener("keydown", (event) => event.key === "End" && machine.setTempo(200));
+
+	let lit = null;
+	machine.onStep((step) => {
+		lit?.classList.remove("is-current");
+		lit = keys[step] ?? null;
+		lit?.classList.add("is-current");
+	});
+	machine.load().then(() => playButton.disabled = false);
+</script>
+</body>
+</html>

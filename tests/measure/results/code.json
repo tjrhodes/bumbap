@@ -1,0 +1,30 @@
+{
+	"haxe": {
+		"uiFiles": 9,
+		"uiCodeLines": 568,
+		"buildSeconds": 0.4,
+		"installMB": 41.3,
+		"topLevelPackages": 7
+	},
+	"react": {
+		"uiFiles": 15,
+		"uiCodeLines": 486,
+		"buildSeconds": 1.1,
+		"installMB": 74.7,
+		"topLevelPackages": 30
+	},
+	"vue": {
+		"uiFiles": 15,
+		"uiCodeLines": 382,
+		"buildSeconds": 3.5,
+		"installMB": 97.2,
+		"topLevelPackages": 53
+	},
+	"angular": {
+		"uiFiles": 15,
+		"uiCodeLines": 440,
+		"buildSeconds": 5.7,
+		"installMB": 211.2,
+		"topLevelPackages": 218
+	}
+}

@@ -1,0 +1,271 @@
+{
+	"tempo": 200,
+	"listenSeconds": 30,
+	"runs": 3,
+	"results": {
+		"baseline": {
+			"desktop": {
+				"steps": 400,
+				"perStepMs": {
+					"script": 1.561,
+					"style": 0,
+					"layout": 0,
+					"busy": 2.296
+				},
+				"framesDropped": 0,
+				"frames": 1800,
+				"timing": {
+					"averageMs": 10.65,
+					"worstMs": 29.1,
+					"withinAFrame": 86
+				},
+				"allRunsBusyMs": [
+					2.286,
+					2.296,
+					2.355
+				]
+			},
+			"phone": {
+				"steps": 399,
+				"perStepMs": {
+					"script": 6.069,
+					"style": 0,
+					"layout": 0,
+					"busy": 8.219
+				},
+				"framesDropped": 7,
+				"frames": 1793,
+				"timing": {
+					"averageMs": 10.53,
+					"worstMs": 50.9,
+					"withinAFrame": 85.4
+				},
+				"allRunsBusyMs": [
+					7.873,
+					8.219,
+					8.816
+				]
+			}
+		},
+		"prototype": {
+			"desktop": {
+				"steps": 398,
+				"perStepMs": {
+					"script": 1.533,
+					"style": 0.354,
+					"layout": 0,
+					"busy": 4.24
+				},
+				"framesDropped": 6,
+				"frames": 1795,
+				"timing": {
+					"averageMs": 10.75,
+					"worstMs": 43.5,
+					"withinAFrame": 85.6
+				},
+				"allRunsBusyMs": [
+					4.238,
+					4.24,
+					4.248
+				]
+			},
+			"phone": {
+				"steps": 400,
+				"perStepMs": {
+					"script": 6.537,
+					"style": 1.655,
+					"layout": 0,
+					"busy": 17.994
+				},
+				"framesDropped": 1,
+				"frames": 1800,
+				"timing": {
+					"averageMs": 10.04,
+					"worstMs": 26.7,
+					"withinAFrame": 85.7
+				},
+				"allRunsBusyMs": [
+					17.788,
+					17.994,
+					18.339
+				]
+			}
+		},
+		"haxe": {
+			"desktop": {
+				"steps": 400,
+				"perStepMs": {
+					"script": 1.657,
+					"style": 0.406,
+					"layout": 0,
+					"busy": 4.573
+				},
+				"framesDropped": 0,
+				"frames": 1800,
+				"timing": {
+					"averageMs": 10.6,
+					"worstMs": 25.5,
+					"withinAFrame": 86
+				},
+				"allRunsBusyMs": [
+					4.406,
+					4.573,
+					4.686
+				]
+			},
+			"phone": {
+				"steps": 400,
+				"perStepMs": {
+					"script": 6.423,
+					"style": 1.602,
+					"layout": 0,
+					"busy": 17.62
+				},
+				"framesDropped": 3,
+				"frames": 1799,
+				"timing": {
+					"averageMs": 10.1,
+					"worstMs": 40.9,
+					"withinAFrame": 87
+				},
+				"allRunsBusyMs": [
+					17.118,
+					17.62,
+					17.806
+				]
+			}
+		},
+		"react": {
+			"desktop": {
+				"steps": 399,
+				"perStepMs": {
+					"script": 1.999,
+					"style": 0.338,
+					"layout": 0,
+					"busy": 4.992
+				},
+				"framesDropped": 1,
+				"frames": 1800,
+				"timing": {
+					"averageMs": 10.67,
+					"worstMs": 41.6,
+					"withinAFrame": 86.2
+				},
+				"allRunsBusyMs": [
+					4.767,
+					4.992,
+					5.05
+				]
+			},
+			"phone": {
+				"steps": 400,
+				"perStepMs": {
+					"script": 8.555,
+					"style": 1.82,
+					"layout": 0,
+					"busy": 21.411
+				},
+				"framesDropped": 1,
+				"frames": 1799,
+				"timing": {
+					"averageMs": 10.37,
+					"worstMs": 34.5,
+					"withinAFrame": 86
+				},
+				"allRunsBusyMs": [
+					20.843,
+					21.411,
+					22.89
+				]
+			}
+		},
+		"vue": {
+			"desktop": {
+				"steps": 399,
+				"perStepMs": {
+					"script": 1.634,
+					"style": 0.393,
+					"layout": 0,
+					"busy": 4.67
+				},
+				"framesDropped": 4,
+				"frames": 1796,
+				"timing": {
+					"averageMs": 10.79,
+					"worstMs": 41.5,
+					"withinAFrame": 85.2
+				},
+				"allRunsBusyMs": [
+					4.592,
+					4.67,
+					5.14
+				]
+			},
+			"phone": {
+				"steps": 399,
+				"perStepMs": {
+					"script": 6.775,
+					"style": 1.705,
+					"layout": 0,
+					"busy": 19.15
+				},
+				"framesDropped": 9,
+				"frames": 1792,
+				"timing": {
+					"averageMs": 10.61,
+					"worstMs": 136.3,
+					"withinAFrame": 87.7
+				},
+				"allRunsBusyMs": [
+					19.07,
+					19.15,
+					19.488
+				]
+			}
+		},
+		"angular": {
+			"desktop": {
+				"steps": 400,
+				"perStepMs": {
+					"script": 1.789,
+					"style": 0.455,
+					"layout": 0,
+					"busy": 5.239
+				},
+				"framesDropped": 0,
+				"frames": 1800,
+				"timing": {
+					"averageMs": 10.63,
+					"worstMs": 26.7,
+					"withinAFrame": 85.7
+				},
+				"allRunsBusyMs": [
+					4.953,
+					5.239,
+					5.307
+				]
+			},
+			"phone": {
+				"steps": 400,
+				"perStepMs": {
+					"script": 7.528,
+					"style": 1.605,
+					"layout": 0,
+					"busy": 20.138
+				},
+				"framesDropped": 1,
+				"frames": 1799,
+				"timing": {
+					"averageMs": 10.44,
+					"worstMs": 49.1,
+					"withinAFrame": 86.2
+				},
+				"allRunsBusyMs": [
+					20.134,
+					20.138,
+					20.738
+				]
+			}
+		}
+	}
+}

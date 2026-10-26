@@ -1,0 +1,105 @@
+<title>Bümbap</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans+Condensed:wght@500;600;700&family=Fira+Sans:wght@400;500&display=swap">
+<style>
+__STYLE__
+</style>
+
+<main class="dm">
+	<div class="dm-panel">
+		<header class="dm-head">
+			<span class="dm-wordmark">bümbap</span>
+			<span class="dm-print">16 step · 8 part · Haxe engine</span>
+		</header>
+
+		<section class="dm-deck" aria-label="Controls">
+			<div class="dm-window">
+				<svg id="display" class="dm-display" viewBox="0 0 250 100" aria-hidden="true"></svg>
+				<p id="status" class="dm-print dm-status" role="status">Loading the kit</p>
+			</div>
+			<div class="dm-unit dm-tempo">
+				<span class="dm-print">Tempo</span>
+				<div id="tempo" class="dm-knob" role="slider" tabindex="0" aria-label="Tempo, beats per minute"><span class="dm-knob-cap"></span></div>
+			</div>
+			<div class="dm-unit dm-swing">
+				<span class="dm-print">Swing</span>
+				<div id="swing" class="dm-knob" role="slider" tabindex="0" aria-label="Swing, percent"><span class="dm-knob-cap"></span></div>
+			</div>
+			<div class="dm-unit dm-drive">
+				<span class="dm-print">Drive</span>
+				<div id="drive" class="dm-knob" role="slider" tabindex="0" aria-label="Drive, percent"><span class="dm-knob-cap"></span></div>
+			</div>
+			<div class="dm-unit dm-reverb">
+				<span class="dm-print">Reverb</span>
+				<div id="reverb" class="dm-knob" role="slider" tabindex="0" aria-label="Reverb, percent"><span class="dm-knob-cap"></span></div>
+			</div>
+			<div class="dm-unit dm-play-unit">
+				<span class="dm-print"><span id="play-led" class="dm-led"></span>Play</span>
+				<button id="play" class="dm-rubber dm-rubber-play" aria-pressed="false" aria-label="Play" disabled><span class="dm-icon"></span></button>
+			</div>
+			<div class="dm-unit dm-clear-unit">
+				<span class="dm-print">Clear</span>
+				<button id="clear" class="dm-rubber" aria-label="Clear every step"></button>
+			</div>
+		</section>
+
+		<section class="dm-part" aria-label="Part">
+			<h2 class="dm-print dm-rule">Part</h2>
+			<div class="dm-strip">
+				<div class="dm-unit">
+					<span class="dm-print">Level</span>
+					<div id="level" class="dm-knob" role="slider" tabindex="0" aria-label="Part level, percent"><span class="dm-knob-cap"></span></div>
+				</div>
+				<div class="dm-unit">
+					<span class="dm-print">Pitch</span>
+					<div id="pitch" class="dm-knob" role="slider" tabindex="0" aria-label="Part pitch, semitones"><span class="dm-knob-cap"></span></div>
+				</div>
+				<div class="dm-unit">
+					<span class="dm-print">Length</span>
+					<div id="length" class="dm-knob" role="slider" tabindex="0" aria-label="Part length, percent"><span class="dm-knob-cap"></span></div>
+				</div>
+				<div class="dm-dials">
+					<span class="dm-print dm-dials-label">808</span>
+					<div class="dm-unit">
+						<span class="dm-print">Tone</span>
+						<div id="dial-0" class="dm-knob dm-knob-808" role="slider" tabindex="0" aria-label="808 knob"><span class="dm-knob-cap"></span></div>
+					</div>
+					<div class="dm-unit">
+						<span class="dm-print">Decay</span>
+						<div id="dial-1" class="dm-knob dm-knob-808" role="slider" tabindex="0" aria-label="808 knob"><span class="dm-knob-cap"></span></div>
+					</div>
+				</div>
+			</div>
+			<div id="pills" class="dm-pills" role="group" aria-label="Part"></div>
+		</section>
+
+		<section class="dm-steps" aria-label="Steps">
+			<h2 class="dm-print dm-rule">Steps</h2>
+			<div id="keys" class="dm-keys"></div>
+		</section>
+	</div>
+
+	<footer class="dm-notes">
+		<p>Pick a part, then tap its keys to switch steps on and off. The small LED on each part flashes when it plays.</p>
+		<p>Drag a key up or down to set how hard it hits (a new step starts at 85, so it can go louder or much quieter). Drag it sideways to push it slightly early or late: at most 1/24 of a beat. The small tab above a key plays that step backwards: it swells in and ends exactly as the next step begins.</p>
+		<p>Each part has its own Level, Pitch (±12 semitones; higher also plays shorter, like a sampler) and Length (how soon it fades out). Parts the 808 set recorded at several settings also get their real 808 knobs: Tone and Decay on the kick, Tone and Snappy on the snare, Decay on the open hat, Tuning on the toms. Each click of those knobs is a different recording; the display shows its 808 setting, e.g. 2550. The M tab above each part mutes it.</p>
+		<p>Knobs: drag up or down, scroll, or use the arrow keys; double-tap to reset. Keyboard: space plays and stops, 1–8 pick a part, arrows on a focused key change its level and nudge.</p>
+		<p>No sound on an iPhone? Turn the ring/silent switch off; Safari mutes web audio with it.</p>
+		<p>Engine: Haxe compiled to JavaScript · Audio: Tone.js 15 · Kit: Roland TR-808 samples by Michael Fischer (Technopolis, 1994), shared free.</p>
+	</footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/tone@15.1.22/build/Tone.js"></script>
+<script>
+/* The shared engine exactly as `haxe build.hxml` compiles it (before the ES-module step);
+   it defines window.DrumMachine. */
+__ENGINE__
+</script>
+<script>
+/* The eight placeholder samples, base64 WAV, keyed by file name. */
+const EMBEDDED_SAMPLES = __SAMPLES__;
+</script>
+<script>
+__APP__
+</script>

@@ -1,0 +1,15 @@
+{
+  "name": "bumbap-tests",
+  "private": true,
+  "type": "module",
+  "description": "One Playwright suite, run against every bümbap build.",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "chrome-launcher": "^1.2.2",
+    "esbuild": "^0.28.2",
+    "lighthouse": "^13.5.0"
+  }
+}

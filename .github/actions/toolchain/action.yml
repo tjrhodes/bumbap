@@ -1,0 +1,19 @@
+# The tools every workflow needs, set up the same way in each: Node 24 (the Angular CLI needs 22.22
+# or newer, and one Node for all four builds keeps the comparison fair) and Haxe 4.3.7.
+name: Toolchain
+description: Node 24 and Haxe 4.3.7 on the PATH
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 24
+
+    - name: Haxe 4.3.7, from the Haxe Foundation's own release
+      shell: bash
+      run: |
+        curl -fsSL https://github.com/HaxeFoundation/haxe/releases/download/4.3.7/haxe-4.3.7-linux64.tar.gz | tar xz -C "$RUNNER_TEMP"
+        haxe_dir=$(ls -d "$RUNNER_TEMP"/haxe_*)
+        echo "$haxe_dir" >> "$GITHUB_PATH"
+        echo "HAXE_STD_PATH=$haxe_dir/std" >> "$GITHUB_ENV"
+        "$haxe_dir/haxe" --version

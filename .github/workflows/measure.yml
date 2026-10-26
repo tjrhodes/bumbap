@@ -1,0 +1,36 @@
+# The measurements (SPEC.md §6), run by hand from the Actions tab. Shared runners are noisy
+# neighbours, so these numbers are for spotting a change, not for the published results, which
+# come from one quiet machine (RESULTS.md). The results are kept as a downloadable artifact.
+name: Measure
+
+on:
+  workflow_dispatch:
+
+jobs:
+  measure:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/toolchain
+
+      - name: Build everything
+        run: tools/build-all.sh
+
+      - name: Install the measuring tools and Chromium
+        working-directory: tests
+        run: npm ci && npx playwright install --with-deps chromium
+
+      - name: Size, playhead, dragging, start-up, code
+        working-directory: tests
+        run: |
+          node measure-sizes.mjs
+          node measure/playhead.mjs
+          node measure/gestures.mjs
+          node measure/startup.mjs
+          node measure/code.mjs
+          node measure/tables.mjs | tee "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: measurements
+          path: tests/measure/results

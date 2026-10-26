@@ -1,0 +1,199 @@
+/* bümbap: the one stylesheet every build uses (the prototype and all five front ends).
+   The markup it styles is the DOM contract in SPEC.md §4. */
+/* Layout: one faceplate, read top to bottom like the hardware it borrows from.
+   The deck holds the whole machine's controls; the part section the selected part's
+   own knobs, then the part buttons; the step keys of the selected part sit right under
+   them. Phones stack everything and show two beats of keys per row; wider screens put
+   the deck in a line and all sixteen keys in a row. */
+:root {
+	/* The Norwegian rock palette */
+	--rock: #1b2848;
+	--crevice: #151a2b;
+	--slate: #3a5382;
+	--lichen: #e9c93a;
+	--flame: #e07f11;
+	--stone: #dbd2b9;
+	--sand: #a89775;
+	/* Materials of the panel, all derived from the palette */
+	--window: #0a0d16;
+	--hairline: rgba(219, 210, 185, .2);
+	--brass-light: #ddd1ad;
+	--brass: #b6a780;
+	--brass-dark: #9c8e6c;
+	--brass-shadow: #4a4232;
+	--ink: #2b261c;
+	--led-ring: #efe9d8;
+	--rubber-light: #e6e0d2;
+	--rubber: #c6bea9;
+	--rubber-shadow: #7d7564;
+	--screw: #0b0e17 0 3px, #2b3450 3.5px 5px, transparent 5.5px;
+	--display: "Fira Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+	--body: "Fira Sans", system-ui, sans-serif;
+	color-scheme: dark;
+}
+body { background: var(--rock); color: var(--stone); font-family: var(--body); font-size: 15px; line-height: 1.45; }
+.dm { max-width: 1000px; margin: 0 auto; padding-block: 20px 32px; display: grid; gap: 18px;
+	padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* ── The faceplate ─────────────────────────────────────────────── */
+.dm-panel { display: grid; gap: 24px; padding: 26px 16px 22px; border-radius: 12px;
+	background:
+		radial-gradient(circle at 14px 14px, var(--screw)),
+		radial-gradient(circle at calc(100% - 14px) 14px, var(--screw)),
+		radial-gradient(circle at 14px calc(100% - 14px), var(--screw)),
+		radial-gradient(circle at calc(100% - 14px) calc(100% - 14px), var(--screw)),
+		linear-gradient(170deg, #1b2136, var(--crevice) 45%, #11141f);
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .05), 0 14px 34px rgba(0, 0, 0, .4); }
+.dm-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; padding-inline: 8px; }
+.dm-wordmark { font: 700 1.55rem/1 var(--display); color: var(--lichen); letter-spacing: -.01em; }
+
+/* Printed panel lettering: small, condensed, spaced capitals */
+.dm-print { display: flex; align-items: center; gap: 6px; margin: 0; font: 600 .72rem/1 var(--display);
+	letter-spacing: .12em; text-transform: uppercase; color: var(--stone); }
+.dm-rule { display: flex; align-items: center; gap: 10px; justify-self: stretch; }
+.dm-rule::after { content: ""; flex: 1; height: 1px; background: var(--hairline); }
+.dm-unit { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+
+/* ── The deck: display, the machine's knobs, play and clear ───────── */
+.dm-deck { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px 4px; justify-items: center;
+	grid-template-areas:
+		"window window window window window window window window window window window window"
+		"tempo tempo tempo swing swing swing drive drive drive reverb reverb reverb"
+		"play play play play play play clear clear clear clear clear clear"; }
+.dm-window { grid-area: window; width: 100%; max-width: 300px; padding: 12px 14px 9px; border-radius: 6px;
+	background: var(--window); box-shadow: inset 0 2px 7px rgba(0, 0, 0, .85), 0 0 0 1px rgba(255, 255, 255, .06); }
+.dm-display { display: block; width: 100%; height: auto; filter: drop-shadow(0 0 5px rgba(224, 127, 17, .45)); }
+.dm-seg { fill: var(--flame); opacity: .08; }
+.dm-seg.is-lit { opacity: 1; }
+.dm-status { margin-top: 7px; color: var(--sand); font-size: .66rem; min-height: 1em; }
+.dm-tempo { grid-area: tempo; }
+.dm-swing { grid-area: swing; }
+.dm-drive { grid-area: drive; }
+.dm-reverb { grid-area: reverb; }
+.dm-play-unit { grid-area: play; }
+.dm-clear-unit { grid-area: clear; }
+
+/* ── The part section: the selected part's knobs, then the part buttons ── */
+.dm-part { display: grid; gap: 22px; }
+.dm-strip { display: flex; flex-wrap: wrap; justify-content: center; align-items: end; gap: 24px 22px; }
+.dm-dials { position: relative; display: flex; gap: 22px; padding: 16px 16px 12px;
+	border: 1px solid var(--hairline); border-radius: 8px; }
+.dm-dials-label { position: absolute; top: -6px; left: 50%; translate: -50% 0; padding-inline: 6px;
+	background: var(--crevice); color: var(--lichen); }
+.dm-unit.is-unused { opacity: .3; }
+.dm-unit.is-unused .dm-knob { cursor: default; }
+
+/* ── Knobs: knurled body that turns, printed scale that does not ─── */
+.dm-knob { --size: 58px; position: relative; width: var(--size); height: var(--size); border-radius: 50%;
+	touch-action: none; cursor: ns-resize; }
+.dm-knob-808 { --ticks: 67.5deg; }   /* five detents, the positions the 808 set was recorded at */
+.dm-knob::before { content: ""; position: absolute; inset: -10px; border-radius: 50%;
+	background: repeating-conic-gradient(from -136deg, var(--stone) 0 2deg, transparent 2deg var(--ticks, 27deg));
+	-webkit-mask: radial-gradient(circle closest-side, transparent 0 82%, #000 83% 97%, transparent 98%),
+		conic-gradient(from -137deg, #000 0 274deg, transparent 274deg);
+	-webkit-mask-composite: source-in; mask-composite: intersect; opacity: .7; }
+.dm-knob-cap { position: absolute; inset: 0; border-radius: 50%; transform: rotate(var(--turn, -135deg));
+	background: radial-gradient(circle closest-side, #353d53 0 60%, #1c2130 62% 68%, transparent 70%),
+		repeating-conic-gradient(#10131c 0 5deg, #2c3243 5deg 10deg);
+	box-shadow: 0 3px 0 #06080d, 0 7px 14px rgba(0, 0, 0, .55); }
+.dm-knob-cap::after { content: ""; position: absolute; left: 50%; top: 4px; width: 3px; height: 38%;
+	translate: -50% 0; border-radius: 2px; background: var(--stone); }
+
+/* ── Rubber buttons, label printed above like the hardware ───────── */
+.dm-rubber { width: 62px; height: 46px; border: 0; border-radius: 7px; display: grid; place-items: center; cursor: pointer;
+	background: linear-gradient(var(--rubber-light), var(--rubber));
+	box-shadow: 0 3px 0 var(--rubber-shadow), 0 6px 12px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .6);
+	transition: transform 60ms, box-shadow 60ms; }
+.dm-rubber:active { transform: translateY(2px);
+	box-shadow: 0 1px 0 var(--rubber-shadow), 0 3px 6px rgba(0, 0, 0, .4), inset 0 1px 0 rgba(255, 255, 255, .5); }
+.dm-rubber:disabled { opacity: .5; cursor: wait; }
+.dm-rubber-play { --rubber-light: #f3e7a8; --rubber: #dcc456; --rubber-shadow: #86721f; }
+.dm-icon { width: 15px; height: 16px; background: var(--ink); transition: clip-path 120ms;
+	clip-path: polygon(0 0, 100% 50%, 100% 50%, 0 100%); }
+[aria-pressed="true"] > .dm-icon { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+
+/* ── LEDs ─────────────────────────────────────────────────────────── */
+.dm-led { position: relative; width: 8px; height: 8px; flex: none; border-radius: 50%; background: #2a1d10;
+	box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(255, 255, 255, .08); }
+.dm-led.is-on { background: var(--flame); box-shadow: 0 0 8px 1px var(--flame); }
+.dm-led-glow { position: absolute; inset: 0; border-radius: 50%; opacity: 0;
+	background: var(--lichen); box-shadow: 0 0 9px 2px var(--lichen); }
+
+/* ── Part buttons: select on the pill, mute on the M tab above it ─── */
+.dm-pills { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 6px; }
+.dm-pill-wrap { min-width: 0; display: grid; gap: 5px; }
+.dm-pill { display: flex; align-items: center; gap: 5px; min-width: 0; min-height: 46px; padding: 5px 7px; border-radius: 9px;
+	border: 1.5px solid rgba(219, 210, 185, .4); background: transparent; color: var(--stone); cursor: pointer;
+	font: 700 .7rem/1.05 var(--display); letter-spacing: .03em; text-transform: uppercase; text-align: left; }
+.dm-pill[aria-pressed="true"] { background: var(--lichen); border-color: var(--lichen); color: var(--crevice); }
+.dm-pill.is-muted { text-decoration: line-through; }
+.dm-pill.is-muted .dm-led { background: #7a4410; }
+.dm-mute { color: var(--ink); font: 700 .64rem/1 var(--display); letter-spacing: .08em; }
+.dm-mute[aria-pressed="true"] { background: linear-gradient(#f6b56a, var(--flame));
+	box-shadow: 0 2px 0 #7a4410, 0 0 10px rgba(224, 127, 17, .6), inset 0 1px 0 rgba(255, 255, 255, .5); }
+
+/* ── Step keys: brass, LED near the top, number at the foot.
+      --level (0–1) fills the key from the bottom and sets the LED's brightness;
+      --nudge (-1 to 1) moves the key a hair early (left) or late (right), and its LED a hair further. ── */
+.dm-steps { display: grid; gap: 20px; }
+.dm-keys { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.dm-beat { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-flow: column;
+	grid-template-rows: auto auto; gap: 6px; padding-bottom: 20px; }
+.dm-beat::after { content: "Beat " attr(data-beat); position: absolute; inset: auto 0 0; padding-top: 4px;
+	border-top: 1px solid var(--hairline); text-align: center; color: var(--sand);
+	font: 600 .62rem/1 var(--display); letter-spacing: .14em; text-transform: uppercase; }
+.dm-key { --level: .75; --nudge: 0; position: relative; overflow: hidden; aspect-ratio: 5 / 7; max-width: 100%;
+	padding: 0; border: 0; border-radius: 4px; cursor: pointer; touch-action: none;
+	translate: calc(var(--nudge) * 3px) 0;
+	background: linear-gradient(165deg, var(--brass-light), var(--brass) 55%, var(--brass-dark));
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25), 0 2px 0 var(--brass-shadow), 0 4px 9px rgba(0, 0, 0, .5);
+	transition: transform 50ms, translate 80ms; }
+.dm-key:active { transform: translateY(1px); }
+.dm-key-fill { position: absolute; inset: auto 0 0; height: 0;
+	background: linear-gradient(to top, rgba(233, 201, 58, .6), rgba(233, 201, 58, .3));
+	box-shadow: inset 0 1px 0 rgba(255, 247, 207, .85); }
+.dm-key[aria-pressed="true"] .dm-key-fill { height: calc(var(--level) * 100%); }
+.dm-key-led { position: absolute; top: 13%; left: 50%; width: 30%; aspect-ratio: 1; border-radius: 50%;
+	translate: calc(-50% + var(--nudge) * 4px) 0; transition: translate 80ms;
+	background: radial-gradient(circle at 50% 40%, #4a3d2a, #1d1810 70%);
+	box-shadow: 0 0 0 2px var(--led-ring), 0 0 0 3px rgba(0, 0, 0, .25), inset 0 1px 2px #000; }
+.dm-key[aria-pressed="true"] .dm-key-led { filter: brightness(calc(.5 + var(--level) * .65));
+	background: radial-gradient(circle at 50% 40%, #fff7cf, var(--lichen) 55%, #a8861a);
+	box-shadow: 0 0 0 2px var(--led-ring), 0 0 calc(4px + var(--level) * 12px) calc(var(--level) * 4px) rgba(233, 201, 58, .75); }
+.dm-key.is-current .dm-key-led { background: radial-gradient(circle at 50% 40%, #ffd9a6, var(--flame) 60%, #9a5306);
+	box-shadow: 0 0 0 2px var(--led-ring), 0 0 12px 3px rgba(224, 127, 17, .8); }
+.dm-key[aria-pressed="true"].is-current .dm-key-led { filter: none;
+	background: radial-gradient(circle at 50% 40%, #fff, #ffd28c 50%, var(--flame));
+	box-shadow: 0 0 0 2px #fff, 0 0 18px 5px rgba(255, 190, 90, .9); }
+.dm-key-number { position: absolute; left: 0; right: 0; bottom: 9%; color: var(--ink); font: 700 .74rem/1 var(--display); }
+.dm-key.is-reversed .dm-key-number { scale: -1 1; }   /* a reversed step prints its number back to front */
+
+/* ── Tabs: small rubber buttons above a key (flip: play backwards) or a part (M: mute) ── */
+.dm-tab { height: 18px; padding: 0; border: 0; border-radius: 4px; display: grid; place-items: center; cursor: pointer;
+	background: linear-gradient(var(--rubber-light), var(--rubber));
+	box-shadow: 0 2px 0 var(--rubber-shadow), 0 3px 6px rgba(0, 0, 0, .4), inset 0 1px 0 rgba(255, 255, 255, .6); }
+.dm-tab:active { translate: 0 1px; box-shadow: 0 1px 0 var(--rubber-shadow), inset 0 1px 0 rgba(255, 255, 255, .5); }
+.dm-flip[aria-pressed="true"] { background: linear-gradient(#f3e7a8, var(--lichen));
+	box-shadow: 0 2px 0 #86721f, 0 0 10px rgba(233, 201, 58, .55), inset 0 1px 0 rgba(255, 255, 255, .6); }
+.dm-flip-icon { width: 10px; height: 8px; background: var(--ink); opacity: .75;
+	clip-path: polygon(100% 0, 0 50%, 100% 100%, 100% 70%, 45% 50%, 100% 30%); }
+.dm-flip[aria-pressed="true"] .dm-flip-icon { opacity: 1; clip-path: polygon(100% 0, 0 50%, 100% 100%); }
+
+button:focus-visible, .dm-knob:focus-visible { outline: 2px solid var(--lichen); outline-offset: 4px; }
+.dm-knob:focus-visible { outline-offset: 12px; }
+
+.dm-notes { color: var(--sand); font-size: .82rem; display: grid; gap: 4px; }
+.dm-notes p { margin: 0; max-width: 70ch; }
+
+/* ── Wider screens: the deck in a line, a whole bar of keys in one row ── */
+@media (min-width: 760px) {
+	.dm-panel { padding: 32px 36px 26px; }
+	.dm-deck { grid-template-columns: minmax(200px, 250px) repeat(6, auto); justify-content: space-between;
+		align-items: end; column-gap: 20px; grid-template-areas: "window tempo swing drive reverb play clear"; }
+	.dm-strip { justify-content: flex-start; column-gap: 34px; }
+	.dm-pills { gap: 8px; }
+	.dm-pill { gap: 7px; padding: 6px 10px; font-size: .78rem; letter-spacing: .05em; }
+	.dm-keys { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 759px) { .dm-deck .dm-knob { --size: 50px; } }
+@media (prefers-reduced-motion: reduce) { .dm-rubber, .dm-key, .dm-key-led, .dm-icon { transition: none; } }
