@@ -14,7 +14,7 @@ class MachineTests {
 	static inline final RIM = 7;
 
 	public static function all():Array<Check.Test> {
-		return withoutSound().concat(stepEdits()).concat(withSound()).concat(soundControls()).concat(sharingAndTidying());
+		return withoutSound().concat(masterChain()).concat(stepEdits()).concat(withSound()).concat(soundControls()).concat(sharingAndTidying());
 	}
 
 	static function withoutSound():Array<Check.Test> {
@@ -24,11 +24,19 @@ class MachineTests {
 			test("snapshots cannot be changed by a front end", snapshotsAreFrozen),
 			test("edits to tracks that do not exist are ignored", strayEditsIgnored),
 			test("tempo and swing are clamped and reach the clock", tempoAndSwing),
-			test("drive and reverb reach the master chain", driveAndReverb),
-			test("drive and reverb at zero cost nothing: no curve, no send", effectsOffCostNothing),
 			test("the machine asks for smooth playback before making anything", smoothPlaybackFirst),
 			later("the playhead lights as the sound reaches the speakers", playheadWaitsForSpeakers),
 			later("the playhead ignores a tick that arrives after Stop", lateTickIgnored)
+		];
+	}
+
+	/** Drive and reverb, after the faders: what each setting does to the shared part of the audio graph. */
+	static function masterChain():Array<Check.Test> {
+		return [
+			test("drive and reverb reach the master chain", driveAndReverb),
+			test("drive and reverb at zero cost nothing: no curve, no send", effectsOffCostNothing),
+			test("drive back at zero passes the sound through, never a null curve", driveBackToZero),
+			test("a shared pattern at drive 0 leaves the overdrive alone", sharedPatternKeepsSound)
 		];
 	}
 
@@ -158,9 +166,25 @@ class MachineTests {
 		final setup = newMachine();
 		Check.equal(setup.tone.first("WaveShaper").curve, null, "no overdrive curve at drive 0");
 		Check.near(setup.tone.first("Gain").gain.value, 0, "nothing sent to the reverb");
+	}
+
+	/** Setting a Tone.js WaveShaper's curve back to null silences it in the browser, so drive 0 is a straight line. */
+	static function driveBackToZero() {
+		final setup = newMachine();
 		setup.machine.setDrive(30);
 		setup.machine.setDrive(0);
-		Check.equal(setup.tone.first("WaveShaper").curve, null, "back to no curve");
+		final overdrive = setup.tone.first("WaveShaper");
+		Check.equal('${overdrive.curve[0]} ${overdrive.curve[1]} ${overdrive.curve.length}', "-1 1 2", "a straight line: sound out as it came in");
+		Check.equal(overdrive.oversample, "none", "with no oversampling, so it costs next to nothing");
+	}
+
+	/** Loading a pattern sets every setting again; at drive 0 the untouched overdrive must stay untouched. */
+	static function sharedPatternKeepsSound() {
+		final setup = newMachine();
+		final overdrive = setup.tone.first("WaveShaper");
+		overdrive.curve = "untouched";
+		setup.machine.loadCode(setup.machine.getState().code);
+		Check.equal(overdrive.curve, "untouched", "the overdrive's curve is not set again");
 	}
 
 	static function smoothPlaybackFirst() {

@@ -11,7 +11,7 @@ import drum.audio.ToneApi;
  * The overdrive comes before the reverb so the tail stays clean. The reverb
  * is a send, fully wet, added to the dry kit: when the send is at zero the
  * browser stops running the reverb altogether. Likewise the overdrive passes
- * the sound straight through at drive 0. The safety clipper comes last:
+ * the sound straight through at drive 0 (see shapeOverdrive). The safety clipper comes last:
  * drums are almost all attack, which a compressor-style limiter lets straight
  * through, so a soft clip is what keeps loud accents from passing full scale.
  */
@@ -25,6 +25,8 @@ class MasterChain {
 	 * when accents (+6 dB) and several drums land together, the clipper rounds them.
 	 */
 	static inline final MIX_LEVEL_DB = -4.0;
+	/** A straight line from -1 to 1: every sample comes out exactly as it went in. */
+	static final PASS_THROUGH = new js.lib.Float32Array([-1.0, 1.0]);
 
 	/** Where every drum fader plugs in. */
 	public final input:ToneNode;
@@ -36,10 +38,12 @@ class MasterChain {
 	final reverbSend:ToneGain;
 	final reverb:ToneReverb;
 	final clipper:ToneWaveShaper;
+	/** The drive the overdrive is set to; setting the same value again touches nothing. */
+	var drivePercent = Limits.DRIVE.initial;
 
 	public function new(tone:ToneApi) {
 		headroom = ToneNodes.create(tone.Volume, -Saturation.HEADROOM_DB);
-		overdrive = shaper(tone, overdriveCurve(Limits.DRIVE.initial), "2x");
+		overdrive = shaper(tone, null, "2x"); // starts at drive 0: no curve at all, so the browser does no work
 		toneFilter = ToneNodes.create(tone.Filter, {type: "lowpass", rolloff: -12, Q: 0.5, frequency: Saturation.cutoffHz(Limits.DRIVE.initial)});
 		trim = ToneNodes.create(tone.Volume, trimDecibels(Limits.DRIVE.initial));
 		reverbSend = ToneNodes.create(tone.Gain, 0);
@@ -52,9 +56,23 @@ class MasterChain {
 	}
 
 	public function setDrive(percent:Int) {
-		overdrive.curve = overdriveCurve(percent);
+		if (percent == drivePercent) return;
+		drivePercent = percent;
+		shapeOverdrive(percent);
 		toneFilter.frequency.value = Saturation.cutoffHz(percent);
 		trim.volume.value = trimDecibels(percent);
+	}
+
+	/**
+	 * Drive 0 gets the straight-line curve, with oversampling off, so the sound
+	 * passes through unchanged and nearly free. The curve is never set back to
+	 * null: a Tone.js WaveShaper whose curve is set to null after it is made goes
+	 * silent (found in the browser: the wrapper under Tone's nodes mishandles it).
+	 * A shared pattern at drive 0 used to switch the whole machine off this way.
+	 */
+	function shapeOverdrive(percent:Int) {
+		overdrive.curve = percent == 0 ? PASS_THROUGH : Saturation.curve(percent);
+		overdrive.oversample = percent == 0 ? "none" : "2x";
 	}
 
 	public function setReverb(percent:Int) {
@@ -64,11 +82,6 @@ class MasterChain {
 	public function dispose() {
 		final everyNode:Array<ToneNode> = [headroom, overdrive, toneFilter, trim, reverbSend, reverb, clipper];
 		for (node in everyNode) node.dispose();
-	}
-
-	/** No curve at drive 0: the sound passes straight through and costs nothing. */
-	static function overdriveCurve(percent:Int):Null<js.lib.Float32Array> {
-		return percent == 0 ? null : Saturation.curve(percent);
 	}
 
 	/**
