@@ -1,7 +1,7 @@
 # Samples
 
 The kit is the **Roland TR-808 Rhythm Composer Sound Sample Set 1.0.0**
-by Michael Fischer, Technopolis (1994), released free of charge. Each sound
+by Michael Fischer, Technopolis (1994), released free of charge. The sounds are not covered by the MIT licence of the code in this repo. Each sound
 was sampled from a real TR-808 at 16-bit, 44.1 kHz, at five positions of each
 of its knobs.
 

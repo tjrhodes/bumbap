@@ -2,23 +2,43 @@
 
 [![Build and test](https://github.com/tjrhodes/bumbap/actions/workflows/ci.yml/badge.svg)](https://github.com/tjrhodes/bumbap/actions/workflows/ci.yml)
 
-A 16-step drum sampler built on one shared Haxe engine, with the same UI
-written in Haxe (vanilla JS), React, Vue and Angular, then compared.
-Play it and see the results: [tomrhodes.it/en/work/bumbap](https://tomrhodes.it/en/work/bumbap/).
-The plan, the rules and what gets measured are in [SPEC.md](SPEC.md).
+A playable TR-808 drum machine with one sound engine written in Haxe, and the same front end built
+four times: plain DOM code in Haxe, React, Vue and Angular. All four share one stylesheet, one markup
+contract and one test suite, so any difference you can measure comes from the framework.
 
-## Status
+**Play it and see the full write-up: [tomrhodes.it/en/work/bumbap](https://tomrhodes.it/en/work/bumbap/)**
 
-- [x] Spec
-- [x] Shared engine (`engine/`): Haxe, tested on Node and in Chromium with real Tone.js
-- [x] Per-step velocity, nudge and reverse; drive and reverb (engine)
-- [x] Per-part pitch, length and real 808 knobs (all 68 recordings, loaded on demand)
-- [x] TR-808 kit (Michael Fischer's free sample set)
-- [x] UI signed off (prototype: "Bümbap"); shared stylesheet and Playwright suite
-- [x] Front ends: Haxe, React, Vue, Angular (each passes all 19 shared tests)
-- [x] Measurements: size, start-up, playhead, dragging, code and tooling ([RESULTS.md](RESULTS.md))
-- [x] Lab page on tomrhodes.it (`tools/export-to-site.py`)
-- [x] Public repo and CI (`.github/workflows/`: build and test on every push; measurements by hand)
+![The bümbap panel: a display, tempo, swing, drive and reverb knobs, eight part buttons and sixteen step keys](docs/bumbap-panel.jpg)
+
+## Results at a glance
+
+Headless Chrome; "phone" is a phone-sized window with the CPU slowed four times. Lower is better.
+Full tables and how each number was measured: [RESULTS.md](RESULTS.md).
+
+| | Haxe | Vue | Angular | React |
+|---|---|---|---|---|
+| Code added on top of Tone.js and the engine (min + gzip) | **3.7 kB** | 23.2 kB | 46.7 kB | 64.9 kB |
+| Panel on screen, slow 4G phone | **1.9 s** | 4.8 s | 4.8 s | 4.7 s |
+| Extra script per playhead step, phone | **0.0 ms** | 0.7 ms | 1.5 ms | 2.5 ms |
+| Work per pointer move while dragging, phone | **10.5 ms** | 13.3 ms | 13.1 ms | 13.7 ms |
+| Packages installed | **7** | 53 | 218 | 30 |
+
+Plain DOM code is the lightest and quickest, as long as it is written with care: the first Haxe
+version was the slowest to drag (21 ms per move), because it rewrote unchanged text on every change
+and the browser redid the page layout each time. Frameworks skip that for you. Among the frameworks,
+Vue was the lightest and needed the least code.
+
+## What's here
+
+| Folder | What it holds |
+|---|---|
+| `engine/` | The shared engine in Haxe: pattern, timing, sound through Tone.js, sharing codes. 190 unit checks. |
+| `apps/haxe`, `apps/react`, `apps/vue`, `apps/angular` | The four front ends, each with a `NOTES.md` on how building it went. |
+| `shared/` | The one stylesheet every build uses. |
+| `tests/` | The Playwright suite run against every build, and the measuring scripts (`tests/measure/`). |
+| `prototype/` | The plain-JavaScript prototype the UI was designed in. |
+| `samples/` | The TR-808 kit (see Licence below). |
+| `SPEC.md`, `RESULTS.md` | The plan and rules; the results and what they mean. |
 
 ## Building everything
 
@@ -34,7 +54,7 @@ script, then the shared test suite against every build.
 ```sh
 cd engine
 npm install            # Tone.js, for the smoke test and the front ends
-haxe test.hxml         # 186 unit checks on Node with a fake Tone.js
+haxe test.hxml         # 190 unit checks on Node with a fake Tone.js
 haxe build.hxml        # → dist/drum-engine.js (ES module); types in drum-engine.d.ts
 cd .. && python3 engine/smoke/run.py   # real Tone.js + samples in headless Chromium
 ```
@@ -128,13 +148,16 @@ The Lab page plays the four builds side by side (`/en/work/bumbap/`). After buil
 measuring, copy the builds, the kit and the results into the site:
 
 ```sh
-python3 tools/export-to-site.py ~/Nextcloud/project-work/portfolio/site
+python3 tools/export-to-site.py <path to the site folder>
 ```
 
 The site's own build (`python3 build.py` there) then redraws its charts from the new results. The
 exported pages load the site's self-hosted Fira fonts instead of Google Fonts.
 
-## Licence
+## Credits and licence
 
-The code is MIT licensed (see LICENSE). The drum sounds are Michael Fischer's free TR-808 set,
-not covered by that licence; see `samples/CREDITS.md`.
+Design, spec and code rules by Tom Rhodes. The engine and front ends were written with Claude, an AI
+coding assistant, to that design, spec and those rules.
+
+The code is MIT licensed (see LICENSE). The drum sounds are Michael Fischer's free TR-808 sample set
+(1994) and are not covered by that licence; see `samples/CREDITS.md`.
