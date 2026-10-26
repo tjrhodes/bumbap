@@ -36,8 +36,34 @@ class MachineTests {
 			test("drive and reverb reach the master chain", driveAndReverb),
 			test("drive and reverb at zero cost nothing: no curve, no send", effectsOffCostNothing),
 			test("drive back at zero passes the sound through, never a null curve", driveBackToZero),
-			test("a shared pattern at drive 0 leaves the overdrive alone", sharedPatternKeepsSound)
+			test("a shared pattern at drive 0 leaves the overdrive alone", sharedPatternKeepsSound),
+			later("Play applies the levels again once the audio runs", playAppliesLevelsAgain)
 		];
+	}
+
+	/**
+	 * Levels set before the browser lets the audio run can fail to reach the sound (a loaded drive played
+	 * without its trim). The fake's levels are scribbled over to stand for that; Play must put them back.
+	 */
+	static function playAppliesLevelsAgain():Promise<Any> {
+		final setup = newMachine();
+		setup.machine.loadCode(withDriveReverbAndKickLevel(60, 40, 30));
+		final trim = setup.tone.nodes.filter(node -> node.kind == "Volume")[1];
+		final send = setup.tone.first("Gain");
+		trim.volume.value = send.gain.value = 99;
+		return playing(setup).then(_ -> {
+			Check.near(trim.volume.value, -4 + Saturation.trimDecibels(60), "the drive's level trim is back");
+			Check.near(send.gain.value, 0.6 * 0.4, "the reverb send is back");
+		});
+	}
+
+	/** A pattern code with these settings, made by a second machine as a sharing visitor would. */
+	static function withDriveReverbAndKickLevel(drive:Int, reverb:Int, kickLevel:Int):String {
+		final sharer = newMachine().machine;
+		sharer.setDrive(drive);
+		sharer.setReverb(reverb);
+		sharer.setVolume(KICK, kickLevel);
+		return sharer.getState().code;
 	}
 
 	static function stepEdits():Array<Check.Test> {

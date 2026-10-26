@@ -109,6 +109,7 @@ class DrumMachine {
 		if (playing || status != Ready) return Promise.resolve();
 		playing = true;
 		return tone.start().then(_ -> {
+			applyMixerAgain();
 			if (playing) clock.start(); // the user may have pressed Stop meanwhile
 			changed();
 		}, _ -> {
@@ -300,6 +301,17 @@ class DrumMachine {
 
 	function applyVolumesToSamples() {
 		for (track in tracks) samples.setVolume(track.voice.id, track.volume);
+	}
+
+	/**
+	 * Levels set before the browser lets the audio run (a pattern loaded from the
+	 * address, say) do not all reach the sound: a loaded drive played without its
+	 * level trim, louder and harsher than the same drive set on the knob. So once
+	 * the audio runs, the faders, drive and reverb are applied again as they stand.
+	 */
+	function applyMixerAgain() {
+		applyVolumesToSamples();
+		master.applyAgain();
 	}
 
 	function setStatus(newStatus:LoadStatus) {

@@ -40,6 +40,7 @@ class MasterChain {
 	final clipper:ToneWaveShaper;
 	/** The drive the overdrive is set to; setting the same value again touches nothing. */
 	var drivePercent = Limits.DRIVE.initial;
+	var reverbPercent = Limits.REVERB.initial;
 
 	public function new(tone:ToneApi) {
 		headroom = ToneNodes.create(tone.Volume, -Saturation.HEADROOM_DB);
@@ -59,8 +60,19 @@ class MasterChain {
 		if (percent == drivePercent) return;
 		drivePercent = percent;
 		shapeOverdrive(percent);
+		setDriveLevels(percent);
+	}
+
+	/** The tone filter and the level trim that go with a drive setting. */
+	function setDriveLevels(percent:Int) {
 		toneFilter.frequency.value = Saturation.cutoffHz(percent);
 		trim.volume.value = trimDecibels(percent);
+	}
+
+	/** Sets the levels again as they stand, once the browser's audio is running (see DrumMachine.applyMixerAgain). */
+	public function applyAgain() {
+		setDriveLevels(drivePercent);
+		setReverb(reverbPercent);
 	}
 
 	/**
@@ -76,6 +88,7 @@ class MasterChain {
 	}
 
 	public function setReverb(percent:Int) {
+		reverbPercent = percent;
 		reverbSend.gain.value = MOST_REVERB_SEND * percent / 100;
 	}
 
