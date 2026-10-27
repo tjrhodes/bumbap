@@ -64,11 +64,13 @@ Tom.
 
 Haxe 4.3.7 · Tone.js 15.1.22
 
-## Version 2: the pattern buttons
+## Version 2: the sequence
 
-- 74 lines: the eight buttons as static markup in `index.html` (14 lines), a `PatternButtons` class that
-  draws them from each snapshot and forwards three events to the engine's `PatternPad`, and one helper.
+- 97 lines: the buttons and the three tools as static markup in `index.html` (19 lines), a
+  `PatternButtons` class that draws them from each snapshot and passes taps to the engine's
+  `PatternPad`, and one helper.
 - The helper is `Dom.setAttribute`, which skips writes that change nothing: the lesson from version 1's
   `setText`, applied before measuring this time rather than after.
-- Passed the shared tests on the first build, apart from the one engine bug they found (a shared link
-  asked for `CP0000.wav`), which was fixed in the engine for every build at once.
+- The most lines of the four, because its markup is written out in the page; the frameworks write theirs
+  in templates that loop. It passed the shared tests on its first build, apart from the one engine bug
+  they found (a shared link asked for `CP0000.wav`), fixed in the engine for every build at once.

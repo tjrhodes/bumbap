@@ -62,3 +62,12 @@ Tom.
 ## Versions
 
 Angular 22.2 · TypeScript 6.0 · Node 24 · Tone.js 15.1.22
+
+## Version 2: the sequence
+
+- 60 lines in one new component, `pattern-buttons.ts`. Angular has the neatest answer for the window
+  listeners: `host: { "(window:pointerup)": … }`, with no clean-up to write.
+- The component is the group itself (`div[bmPatternButtons]` with the group's class and role on its host),
+  so no extra element gets between the strip and the buttons.
+- Passed the shared tests on its first build. `npm install` of the rebuilt engine rewrote `package.json`
+  (it re-encoded the "ü" in the description); that change was left out.

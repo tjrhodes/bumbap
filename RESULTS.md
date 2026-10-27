@@ -1,29 +1,34 @@
 # bümbap: results
 
-The same drum machine, one shared Haxe engine, four front ends. Measured 26 October 2026.
+The same drum machine, one shared Haxe engine, four front ends. The tables are version 2 (eight
+patterns and a sequence), measured 27 October 2026; version 1, measured the day before, came out
+within the same run-to-run noise (its numbers are in the history, at commit a28930d).
 How each number is made is in `tests/measure/` (one script per measure); the raw numbers are in
 `tests/measure/results/*.json`, and `node measure/tables.mjs` prints the tables below from them.
 
 ## In short
 
-- **Size:** the Haxe build ships 3.8 kB of its own on top of the shared engine and Tone.js;
-  Vue adds 23 kB, Angular 47 kB, React 65 kB. On every page, Tone.js (81 kB) is most of the weight.
-- **Start-up:** Haxe paints the whole panel at 1.9 s on a slow phone; the frameworks take about
-  4.7 s, because they draw the panel from JavaScript while Haxe's markup is already in the page.
-  Play is usable after 3.6–4.3 s in all four builds: downloading the drum kit decides that.
+- **Size:** the Haxe build ships 4.2 kB of its own on top of the shared engine and Tone.js;
+  Vue adds 24 kB, Angular 48 kB, React 66 kB. On every page, Tone.js (81 kB) is most of the weight.
+- **Start-up:** Haxe paints the whole panel at 2.0 s on a slow phone; the frameworks take 4.8 to
+  5.0 s, because they draw the panel from JavaScript while Haxe's markup is already in the page.
+  Play is usable after 3.7–4.3 s in all four builds: downloading the drum kit decides that.
 - **Playhead:** every build keeps up easily. On the slowed phone, the extra script per step over
-  a bare page with no framework is about 0 ms for Haxe, 0.7 ms for Vue, 1.5 ms for Angular and
-  2.5 ms for React. React re-runs the render of all sixteen keys each step; Vue and Angular
-  re-check only what reads the playhead; Haxe moves one class by hand.
+  a bare page with no framework is under 1 ms for Haxe and Vue, 1.6 ms for Angular and 2.5 ms for
+  React. React re-runs the render of all sixteen keys each step; Vue and Angular re-check only what
+  reads the playhead; Haxe moves one class by hand. Differences under about 0.5 ms are noise.
 - **Dragging:** after one fix (below), Haxe is the cheapest build per pointer move on the phone
-  (10.5 ms), with Angular, Vue and React between 11.7 and 14.5 ms.
+  (about 11 ms), with Angular, React and Vue between 11.5 and 14 ms.
 - **The surprise:** the first Haxe version was the *slowest* to drag (up to 24 ms per move on
   the phone). It rewrote two pieces of text on every change, even when they had not changed,
   and each rewrite made the browser redo the page layout. Frameworks skip unchanged writes for
   you; hand-written DOM code has to do it itself. A three-line helper fixed it.
-- **Tooling:** Haxe builds in 0.4 s from 7 packages; Angular takes 5.7 s and installs 218.
+- **One new feature (version 2):** eight patterns and a sequence cost 53 lines of front-end code in
+  Vue, 60 in Angular, 76 in React and 97 in Haxe, and 0.4–0.6 kB in each build; the engine took the
+  real work (557 lines, 2.6 kB), once for all four. Details below.
+- **Tooling:** Haxe builds in 0.5 s from 7 packages; Angular takes 5.6 s and installs 218.
 - **Timing:** sound is scheduled by the shared engine in every build, so it is identical. The
-  drawn playhead lands within a frame of the beat about 86 % of the time in every build,
+  drawn playhead lands within a frame of the beat about 87 % of the time in every build,
   including the bare baseline: that spread comes from frame timing, not from the frameworks.
 
 ## How it was measured
@@ -44,12 +49,12 @@ How each number is made is in `tests/measure/` (one script per measure); the raw
 
 ## Size (minified and gzipped scripts)
 
-| Build | Page scripts kB | Own share kB (less Tone.js 81.0 and engine 8.3) |
+| Build | Page scripts kB | Own share kB (less Tone.js 81.0 and engine 10.9) |
 | --- | --- | --- |
-| Haxe | 93.0 | 3.8 |
-| Vue | 112.8 | 23.5 |
-| Angular | 136.3 | 47.1 |
-| React | 154.3 | 65.1 |
+| Haxe | 96.0 | 4.2 |
+| Vue | 115.8 | 24.0 |
+| Angular | 139.5 | 47.7 |
+| React | 157.3 | 65.5 |
 
 ## Start-up (slow 4G phone)
 
@@ -59,10 +64,10 @@ Lighthouse's mobile preset.
 
 | Build | Play usable after ms | Lighthouse score | First paint ms | Largest paint ms | Blocking ms | Script boot ms | Page weight kB |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Haxe | 3786 | 91 | 1894 | 1894 | 335 | 790 | 487 |
-| React | 4326 | 71 | 2025 | 4674 | 436 | 817 | 550 |
-| Vue | 3599 | 74 | 1884 | 4811 | 319 | 851 | 508 |
-| Angular | 3958 | 75 | 1880 | 4796 | 313 | 798 | 532 |
+| Haxe | 3736 | 91 | 2012 | 2012 | 303 | 832 | 492 |
+| React | 4301 | 71 | 2144 | 4767 | 398 | 792 | 555 |
+| Vue | 3664 | 74 | 1877 | 4821 | 343 | 842 | 513 |
+| Angular | 4195 | 72 | 1915 | 5014 | 347 | 828 | 537 |
 
 - Haxe's high score is mostly its largest paint: its panel is plain markup in the HTML, so it
   appears as soon as the page and stylesheet arrive. A framework build could get the same result
@@ -75,21 +80,21 @@ Lighthouse's mobile preset.
 
 | Build | Main thread ms/step | over baseline | Script ms/step | over baseline | Frames dropped (30 s) | Steps within a frame of 75 ms | Worst step error ms |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Baseline (engine, bare playhead) | 2.3 | 0 | 1.6 | 0 | 0 | 86 % | 29.1 |
-| Prototype (plain JS) | 4.3 | 2.0 | 1.5 | 0.0 | 0 | 85.7 % | 29.7 |
-| Haxe | 4.2 | 1.9 | 1.6 | 0.0 | 3 | 86.7 % | 74.8 |
-| React | 5.0 | 2.7 | 2.0 | 0.4 | 1 | 86.2 % | 41.6 |
-| Vue | 4.7 | 2.4 | 1.6 | 0.1 | 4 | 85.2 % | 41.5 |
-| Angular | 5.2 | 2.9 | 1.8 | 0.2 | 0 | 85.7 % | 26.7 |
+| Baseline (engine, bare playhead) | 2.4 | 0 | 1.6 | 0 | 1 | 87 % | 26.4 |
+| Prototype (plain JS) | 4.8 | 2.4 | 1.7 | 0.1 | 0 | 88 % | 25.5 |
+| Haxe | 4.4 | 2.0 | 1.5 | -0.1 | 6 | 87.4 % | 76.7 |
+| React | 5.1 | 2.8 | 2.0 | 0.4 | 0 | 88 % | 27.9 |
+| Vue | 4.6 | 2.2 | 1.6 | 0.0 | 2 | 87.5 % | 29.2 |
+| Angular | 5.1 | 2.7 | 1.9 | 0.2 | 0 | 86.7 % | 26.6 |
 
 | Build | Main thread ms/step | over baseline | Script ms/step | over baseline | Frames dropped (30 s) | Steps within a frame of 75 ms | Worst step error ms |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Baseline (engine, bare playhead) | 8.2 | 0 | 6.1 | 0 | 7 | 85.4 % | 50.9 |
-| Prototype (plain JS) | 17.0 | 8.8 | 6.2 | 0.1 | 2 | 87 % | 43.4 |
-| Haxe | 16.0 | 7.8 | 6.0 | 0.0 | 3 | 87 % | 27.8 |
-| React | 21.4 | 13.2 | 8.6 | 2.5 | 1 | 86 % | 34.5 |
-| Vue | 19.1 | 10.9 | 6.8 | 0.7 | 9 | 87.7 % | 136 |
-| Angular | 20.1 | 11.9 | 7.5 | 1.5 | 1 | 86.2 % | 49.1 |
+| Baseline (engine, bare playhead) | 8.1 | 0 | 6.1 | 0 | 2 | 87.2 % | 30 |
+| Prototype (plain JS) | 17.3 | 9.1 | 6.2 | 0.0 | 5 | 86.2 % | 56.3 |
+| Haxe | 17.8 | 9.7 | 6.7 | 0.6 | 1 | 88.2 % | 28.6 |
+| React | 21.6 | 13.5 | 8.6 | 2.5 | 0 | 84 % | 33.3 |
+| Vue | 18.6 | 10.5 | 6.5 | 0.3 | 0 | 87.2 % | 30.8 |
+| Angular | 21.1 | 12.9 | 7.7 | 1.6 | 1 | 84.8 % | 28.9 |
 
 - Every build's per-step cost is small next to the 75 ms between steps, even on the slowed phone.
 - The main-thread time over the baseline is mostly the shared panel's styles and paint, the same
@@ -98,25 +103,25 @@ Lighthouse's mobile preset.
   step. A version that updates the key from a ref would be a separate, labelled measurement.
 - Frame drops are a handful in 1,800 frames in every build, the baseline included, so they are
   noise on this machine rather than a difference between builds. The same goes for "worst step
-  error": it is one late frame in a 30-second run (Vue's 136 ms on the phone was a single hiccup).
+  error": it is one late frame in a 30-second run (Haxe's 77 ms on desktop was a single hiccup).
 
 ## Dragging (400 pointer moves, each changing the value)
 
 | Build | Knob: main thread ms/move | Knob: script ms/move | Key: main thread ms/move | Key: script ms/move |
 | --- | --- | --- | --- | --- |
-| Prototype (plain JS) | 3.2 | 0.7 | 3.5 | 0.6 |
-| Haxe | 3.1 | 0.6 | 3.7 | 0.6 |
-| React | 3.6 | 1.1 | 4.0 | 1.0 |
-| Vue | 3.6 | 0.3 | 3.9 | 0.2 |
-| Angular | 3.2 | 0.9 | 3.6 | 0.9 |
+| Prototype (plain JS) | 5.8 | 0.9 | 7.2 | 0.9 |
+| Haxe | 3.3 | 0.7 | 3.5 | 0.6 |
+| React | 3.8 | 1.2 | 4.4 | 1.2 |
+| Vue | 4.0 | 0.3 | 4.0 | 0.2 |
+| Angular | 3.8 | 1.1 | 4.0 | 1.0 |
 
 | Build | Knob: main thread ms/move | Knob: script ms/move | Key: main thread ms/move | Key: script ms/move |
 | --- | --- | --- | --- | --- |
-| Prototype (plain JS) | 10.2 | 2.7 | 11.5 | 2.1 |
-| Haxe | 10.5 | 2.5 | 10.5 | 1.8 |
-| React | 13.2 | 4.7 | 14.1 | 4.1 |
-| Vue | 12.2 | 1.0 | 14.3 | 0.7 |
-| Angular | 11.7 | 3.5 | 14.5 | 3.1 |
+| Prototype (plain JS) | 20.8 | 3.0 | 30.5 | 3.3 |
+| Haxe | 11.2 | 2.9 | 10.7 | 1.9 |
+| React | 12.4 | 4.8 | 13.4 | 4.2 |
+| Vue | 12.8 | 1.1 | 13.9 | 0.7 |
+| Angular | 11.5 | 3.3 | 12.0 | 2.4 |
 
 - Vue does the least script per move: it patches only the attributes that changed. Haxe redraws
   every attribute of the panel on each change, which is simple and still cheap, but costs more
@@ -125,14 +130,40 @@ Lighthouse's mobile preset.
   phone. The fix (`Dom.setText`: only write text that differs) took the phone figures down to
   10.5 ms. Those numbers are kept in `results/*-first-version.json`.
 
+## Version 2: what one feature cost
+
+Version 2 added eight patterns, a sequence to play them in, and Select, Copy and Clear tools to every
+build (SPEC.md §1). `node measure/feature-cost.mjs` compares each front end with version 1 (git's own
+line counts) and the code each one ships (`size.json`, before and after).
+
+| Build | Front-end lines added / removed | Files touched | Own code added kB |
+| --- | --- | --- | --- |
+| Haxe | +97 / −0 | 4 | +0.4 |
+| React | +76 / −1 | 2 | +0.4 |
+| Vue | +53 / −1 | 2 | +0.5 |
+| Angular | +60 / −2 | 2 | +0.6 |
+
+Shared by all four, written once: the engine (+557 lines, +2.6 kB shipped), its unit tests (+421), the
+browser tests every build runs (+138) and the stylesheet (+47).
+
+- The engine did the real work: the sequence, the switch at the end of the bar, what each tool does
+  with a tap, links that carry all eight patterns (and still open version 1's), and even the buttons'
+  gestures (`PatternPad`). So each front end only draws the buttons and passes on their taps.
+- Vue needed the fewest lines again. Haxe needed the most because its markup is written out in its
+  HTML page, where the frameworks loop in a template, and because it added `Dom.setAttribute`, which
+  skips unchanged writes (version 1's lesson, applied before measuring this time).
+- Nothing broke in any framework. The shared browser tests found one bug, in the engine (a shared
+  link asked for `CP0000.wav`, a clap recording that does not exist), so one fix mended all four.
+- Speed did not change beyond the noise: the playhead, drag and start-up tables are version 2's.
+
 ## Code, build and install
 
 | Build | UI code lines | UI files | Clean build s | Installed MB | Packages installed |
 | --- | --- | --- | --- | --- | --- |
-| Haxe | 568 | 9 | 0.4 | 41.3 | 7 |
-| React | 486 | 15 | 1.1 | 74.7 | 30 |
-| Vue | 382 | 15 | 3.5 | 97.2 | 53 |
-| Angular | 440 | 15 | 5.7 | 211 | 218 |
+| Haxe | 670 | 11 | 0.5 | 41.3 | 7 |
+| React | 567 | 17 | 1.1 | 103 | 32 |
+| Vue | 447 | 17 | 3.5 | 97.2 | 53 |
+| Angular | 525 | 18 | 5.6 | 233 | 218 |
 
 - **UI code lines** count lines with code in them (not blank, not only a comment) in each app's
   own source and page. The shared engine and stylesheet are not counted.

@@ -1,30 +1,30 @@
 {
 	"haxe": {
-		"uiFiles": 9,
-		"uiCodeLines": 568,
-		"buildSeconds": 0.4,
+		"uiFiles": 11,
+		"uiCodeLines": 670,
+		"buildSeconds": 0.5,
 		"installMB": 41.3,
 		"topLevelPackages": 7
 	},
 	"react": {
-		"uiFiles": 15,
-		"uiCodeLines": 486,
+		"uiFiles": 17,
+		"uiCodeLines": 567,
 		"buildSeconds": 1.1,
-		"installMB": 74.7,
-		"topLevelPackages": 30
+		"installMB": 103.4,
+		"topLevelPackages": 32
 	},
 	"vue": {
-		"uiFiles": 15,
-		"uiCodeLines": 382,
+		"uiFiles": 17,
+		"uiCodeLines": 447,
 		"buildSeconds": 3.5,
 		"installMB": 97.2,
 		"topLevelPackages": 53
 	},
 	"angular": {
-		"uiFiles": 15,
-		"uiCodeLines": 440,
-		"buildSeconds": 5.7,
-		"installMB": 211.2,
+		"uiFiles": 18,
+		"uiCodeLines": 525,
+		"buildSeconds": 5.6,
+		"installMB": 233,
 		"topLevelPackages": 218
 	}
 }

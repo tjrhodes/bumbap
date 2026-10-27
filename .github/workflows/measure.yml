@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0   # the feature-cost measure compares with version 1 in the history
       - uses: ./.github/actions/toolchain
 
       - name: Build everything
@@ -24,6 +26,7 @@ jobs:
         working-directory: tests
         run: |
           node measure-sizes.mjs
+          node measure/feature-cost.mjs
           node measure/playhead.mjs
           node measure/gestures.mjs
           node measure/startup.mjs

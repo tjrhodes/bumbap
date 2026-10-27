@@ -6,6 +6,9 @@ A playable TR-808 drum machine with one sound engine written in Haxe, and the sa
 four times: plain DOM code in Haxe, React, Vue and Angular. All four share one stylesheet, one markup
 contract and one test suite, so any difference you can measure comes from the framework.
 
+Version 2 adds eight patterns and a sequence to play them in (with Select, Copy and Clear tools), and
+measures what that one new feature cost each front end. Version 1 is commit `a28930d`.
+
 **Play it and see the full write-up: [tomrhodes.it/en/work/bumbap](https://tomrhodes.it/en/work/bumbap/)**
 
 ![The bümbap panel: a display, tempo, swing, drive and reverb knobs, eight part buttons and sixteen step keys](docs/bumbap-panel.jpg)
@@ -17,22 +20,24 @@ Full tables and how each number was measured: [RESULTS.md](RESULTS.md).
 
 | | Haxe | Vue | Angular | React |
 |---|---|---|---|---|
-| Code added on top of Tone.js and the engine (min + gzip) | **3.8 kB** | 23.5 kB | 47.1 kB | 65.1 kB |
-| Panel on screen, slow 4G phone | **1.9 s** | 4.8 s | 4.8 s | 4.7 s |
-| Extra script per playhead step, phone | **0.0 ms** | 0.7 ms | 1.5 ms | 2.5 ms |
-| Work per pointer move while dragging, phone | **10.5 ms** | 13.3 ms | 13.1 ms | 13.7 ms |
-| Packages installed | **7** | 53 | 218 | 30 |
+| Code added on top of Tone.js and the engine (min + gzip) | **4.2 kB** | 24.0 kB | 47.7 kB | 65.5 kB |
+| Panel on screen, slow 4G phone | **2.0 s** | 4.8 s | 5.0 s | 4.8 s |
+| Extra script per playhead step, phone | 0.6 ms | **0.3 ms** | 1.6 ms | 2.5 ms |
+| Work per pointer move while dragging, phone | **10.9 ms** | 13.4 ms | 11.8 ms | 12.9 ms |
+| Packages installed | **7** | 53 | 218 | 32 |
+| Version 2's feature: front-end lines added | 97 | **53** | 60 | 76 |
 
-Plain DOM code is the lightest and quickest, as long as it is written with care: the first Haxe
+Differences under about 0.5 ms are within run-to-run noise. Plain DOM code is the lightest and quickest, as long as it is written with care: the first Haxe
 version was the slowest to drag (21 ms per move), because it rewrote unchanged text on every change
 and the browser redid the page layout each time. Frameworks skip that for you. Among the frameworks,
-Vue was the lightest and needed the least code.
+Vue was the lightest and needed the least code, and it needed the fewest lines again to take
+version 2's feature, most of which went into the shared engine.
 
 ## What's here
 
 | Folder | What it holds |
 |---|---|
-| `engine/` | The shared engine in Haxe: pattern, timing, sound through Tone.js, sharing codes. 193 unit checks. |
+| `engine/` | The shared engine in Haxe: pattern, timing, sound through Tone.js, sharing codes. 259 unit checks. |
 | `apps/haxe`, `apps/react`, `apps/vue`, `apps/angular` | The four front ends, each with a `NOTES.md` on how building it went. |
 | `shared/` | The one stylesheet every build uses. |
 | `tests/` | The Playwright suite run against every build, and the measuring scripts (`tests/measure/`). |
@@ -54,7 +59,7 @@ script, then the shared test suite against every build.
 ```sh
 cd engine
 npm install            # Tone.js, for the smoke test and the front ends
-haxe test.hxml         # 193 unit checks on Node with a fake Tone.js
+haxe test.hxml         # 259 unit checks on Node with a fake Tone.js
 haxe build.hxml        # → dist/drum-engine.js (ES module); types in drum-engine.d.ts
 cd .. && python3 engine/smoke/run.py   # real Tone.js + samples in headless Chromium
 ```
@@ -120,7 +125,7 @@ cd apps/angular && npm install && npx ng build     # Node 22.22+
 
 ```sh
 cd tests && npm install && npx playwright install chromium
-npx playwright test            # 20 tests against every build that exists
+npx playwright test            # 30 tests against every build that exists
 node measure-sizes.mjs         # minified + gzipped scripts, per build
 node measure/playhead.mjs      # 200 BPM for 30 s: main-thread cost per step, frames, timing
 node measure/gestures.mjs      # cost per pointer move dragging a knob and a key
@@ -131,16 +136,17 @@ node measure/tables.mjs        # the tables in RESULTS.md, from measure/results/
 
 Each measure runs on desktop and on a phone-sized window with the CPU slowed four times;
 `measure/baseline.html` (engine and a bare playhead, no UI) is the floor the builds are compared to.
-Results and what they mean: [RESULTS.md](RESULTS.md).
+`node measure/feature-cost.mjs` measures what version 2's feature cost each front end (it needs the
+git history). Results and what they mean: [RESULTS.md](RESULTS.md).
 
 | Build | Page scripts | UI + framework (less Tone.js and engine) |
 |---|---|---|
-| Haxe | 93.0 kB | 3.8 kB |
-| Vue | 112.8 kB | 23.5 kB |
-| Angular | 136.3 kB | 47.1 kB |
-| React | 154.3 kB | 65.1 kB |
+| Haxe | 96.0 kB | 4.2 kB |
+| Vue | 115.8 kB | 24.0 kB |
+| Angular | 139.5 kB | 47.7 kB |
+| React | 157.3 kB | 65.5 kB |
 
-Tone.js is 81.0 kB and the engine 8.3 kB in every build.
+Tone.js is 81.0 kB and the engine 10.9 kB in every build.
 
 ## On tomrhodes.it
 

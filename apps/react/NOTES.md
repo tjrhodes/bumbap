@@ -57,3 +57,11 @@ Tom.
 ## Versions
 
 React 19.3 · Vite 8.3 · TypeScript 7.0 · Tone.js 15.1.22
+
+## Version 2: the sequence
+
+- 76 lines in one new file, `PatternButtons.tsx` (the group, its title row with the tools, the buttons and
+  the hint, as four small components), plus its place in `PartSection`.
+- `useMemo` keeps one `PatternPad` per machine; the window's pointer-up and cancel listeners need a
+  `useEffect` with its own clean-up, the most ceremony of the four for that part.
+- The first version broke the fifteen-line rule (16 lines of JSX), so the hint became its own component.

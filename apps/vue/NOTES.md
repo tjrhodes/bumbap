@@ -56,3 +56,9 @@ Tom.
 ## Versions
 
 Vue 3.5 · Vite 8.3 · vue-tsc 3.3 · TypeScript 6.0 · Tone.js 15.1.22
+
+## Version 2: the sequence
+
+- 53 lines, the fewest again: one single-file component, with the tools and the buttons as two `v-for`s
+  in the template and the window listeners in `onMounted` / `onUnmounted`.
+- Passed the shared tests on its first build.
