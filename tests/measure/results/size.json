@@ -1,24 +1,24 @@
 {
 	"sharedKB": {
 		"tone": 81,
-		"engine": 11.1
+		"engine": 12.6
 	},
 	"results": {
 		"haxe": {
-			"pageKB": 96.3,
-			"ownKB": 4.2
+			"pageKB": 97.7,
+			"ownKB": 4.1
 		},
 		"react": {
-			"pageKB": 157.6,
+			"pageKB": 159.2,
 			"ownKB": 65.6
 		},
 		"vue": {
-			"pageKB": 116.1,
-			"ownKB": 24
+			"pageKB": 117.7,
+			"ownKB": 24.1
 		},
 		"angular": {
-			"pageKB": 139.8,
-			"ownKB": 47.8
+			"pageKB": 141.7,
+			"ownKB": 48.1
 		}
 	}
 }

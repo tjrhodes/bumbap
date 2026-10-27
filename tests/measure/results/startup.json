@@ -3,103 +3,103 @@
 	"runs": 5,
 	"results": {
 		"haxe": {
-			"score": 93,
-			"firstPaintMs": 1836.8,
-			"largestPaintMs": 1836.8,
-			"speedIndexMs": 1836.8,
-			"blockingMs": 270,
-			"scriptBootMs": 653.3,
-			"mainThreadMs": 1377.5,
-			"totalBytes": 503971,
+			"score": 91,
+			"firstPaintMs": 1927,
+			"largestPaintMs": 1927,
+			"speedIndexMs": 1927,
+			"blockingMs": 310,
+			"scriptBootMs": 678.5,
+			"mainThreadMs": 1329.1,
+			"totalBytes": 505865,
 			"allRunsScores": [
-				88,
 				90,
-				93,
-				94,
-				94
+				91,
+				91,
+				91,
+				93
 			],
-			"playableMs": 4005.5,
+			"playableMs": 3937.5,
 			"allRunsPlayableMs": [
-				3976.8,
-				4011.7,
-				3973.4,
-				4022.8,
-				4005.5
+				3729.6,
+				4052.1,
+				3506.2,
+				3987,
+				3937.5
 			]
 		},
 		"react": {
-			"score": 69,
-			"firstPaintMs": 2036.4,
-			"largestPaintMs": 4673.6,
-			"speedIndexMs": 2036.4,
-			"blockingMs": 498,
-			"scriptBootMs": 878.1,
-			"mainThreadMs": 1692.1,
-			"totalBytes": 568108,
+			"score": 72,
+			"firstPaintMs": 2035.9,
+			"largestPaintMs": 4674.4,
+			"speedIndexMs": 2035.9,
+			"blockingMs": 403,
+			"scriptBootMs": 789.6,
+			"mainThreadMs": 1460.3,
+			"totalBytes": 569822,
 			"allRunsScores": [
-				68,
-				69,
-				69,
-				70,
-				72
+				65,
+				67,
+				72,
+				73,
+				86
 			],
-			"playableMs": 4334.1,
+			"playableMs": 4298.9,
 			"allRunsPlayableMs": [
-				4334.1,
-				4325,
-				4373,
-				4693.9,
-				4319.6
+				4353.9,
+				4274.2,
+				4298.9,
+				4351.7,
+				4221.9
 			]
 		},
 		"vue": {
-			"score": 74,
-			"firstPaintMs": 1866.8,
-			"largestPaintMs": 4809.7,
-			"speedIndexMs": 1866.8,
-			"blockingMs": 341,
-			"scriptBootMs": 821.7,
-			"mainThreadMs": 1405.5,
-			"totalBytes": 525278,
+			"score": 73,
+			"firstPaintMs": 1800.5,
+			"largestPaintMs": 4895.8,
+			"speedIndexMs": 1800.5,
+			"blockingMs": 345,
+			"scriptBootMs": 814,
+			"mainThreadMs": 1441.9,
+			"totalBytes": 527055,
 			"allRunsScores": [
-				74,
-				74,
-				74,
-				74,
-				75
+				69,
+				73,
+				73,
+				76,
+				76
 			],
-			"playableMs": 3984.2,
+			"playableMs": 4063.1,
 			"allRunsPlayableMs": [
-				3518.9,
-				4010.6,
-				4044.6,
-				3984.2,
-				3759.8
+				4064.2,
+				3959.6,
+				4128.1,
+				4063.1,
+				3553.2
 			]
 		},
 		"angular": {
-			"score": 72,
-			"firstPaintMs": 1869,
-			"largestPaintMs": 4986.5,
-			"speedIndexMs": 1869,
-			"blockingMs": 365,
-			"scriptBootMs": 914.1,
-			"mainThreadMs": 1545.1,
-			"totalBytes": 550168,
+			"score": 75,
+			"firstPaintMs": 1808.1,
+			"largestPaintMs": 4869.1,
+			"speedIndexMs": 1808.1,
+			"blockingMs": 307,
+			"scriptBootMs": 726.7,
+			"mainThreadMs": 1418.3,
+			"totalBytes": 552150,
 			"allRunsScores": [
-				69,
-				71,
-				72,
+				73,
 				74,
-				74
+				75,
+				75,
+				75
 			],
-			"playableMs": 4177.8,
+			"playableMs": 4151,
 			"allRunsPlayableMs": [
-				3877.5,
-				4226.1,
-				4177.8,
-				3718,
-				4245
+				3866.1,
+				4151,
+				4155.3,
+				4088,
+				4308.2
 			]
 		}
 	}

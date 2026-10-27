@@ -1,60 +1,60 @@
 {
 	"since": "a28930d",
-	"engineKBAdded": 2.8,
+	"engineKBAdded": 4.3,
 	"shared": {
 		"engine": {
-			"added": 603,
-			"removed": 66,
-			"files": 11
+			"added": 883,
+			"removed": 80,
+			"files": 17
 		},
 		"engineTests": {
-			"added": 442,
-			"removed": 25,
-			"files": 4
+			"added": 546,
+			"removed": 26,
+			"files": 6
 		},
 		"browserTests": {
-			"added": 153,
+			"added": 177,
 			"removed": 1,
 			"files": 2
 		},
 		"stylesheet": {
-			"added": 49,
-			"removed": 2,
+			"added": 65,
+			"removed": 7,
 			"files": 1
 		}
 	},
 	"results": {
 		"haxe": {
 			"lines": {
-				"added": 99,
-				"removed": 0,
+				"added": 114,
+				"removed": 1,
 				"files": 4
 			},
-			"ownKBAdded": 0.4
+			"ownKBAdded": 0.3
 		},
 		"react": {
 			"lines": {
-				"added": 76,
-				"removed": 1,
-				"files": 2
+				"added": 105,
+				"removed": 4,
+				"files": 4
 			},
 			"ownKBAdded": 0.5
 		},
 		"vue": {
 			"lines": {
-				"added": 53,
-				"removed": 1,
-				"files": 2
+				"added": 66,
+				"removed": 4,
+				"files": 4
 			},
-			"ownKBAdded": 0.5
+			"ownKBAdded": 0.6
 		},
 		"angular": {
 			"lines": {
-				"added": 60,
-				"removed": 2,
-				"files": 2
+				"added": 75,
+				"removed": 5,
+				"files": 4
 			},
-			"ownKBAdded": 0.7
+			"ownKBAdded": 1
 		}
 	}
 }

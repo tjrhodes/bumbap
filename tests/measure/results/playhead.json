@@ -7,87 +7,87 @@
 			"desktop": {
 				"steps": 400,
 				"perStepMs": {
-					"script": 1.519,
+					"script": 1.402,
 					"style": 0,
 					"layout": 0,
-					"busy": 2.214
+					"busy": 2.017
 				},
-				"framesDropped": 0,
-				"frames": 1801,
+				"framesDropped": 1,
+				"frames": 1800,
 				"timing": {
-					"averageMs": 10.68,
-					"worstMs": 25.5,
-					"withinAFrame": 86
+					"averageMs": 10.75,
+					"worstMs": 32.7,
+					"withinAFrame": 85.7
 				},
 				"allRunsBusyMs": [
-					2.128,
-					2.214,
-					2.226
+					1.977,
+					2.017,
+					2.213
 				]
 			},
 			"phone": {
 				"steps": 400,
 				"perStepMs": {
-					"script": 6.31,
+					"script": 5.931,
 					"style": 0,
 					"layout": 0,
-					"busy": 8.406
+					"busy": 7.842
 				},
-				"framesDropped": 1,
+				"framesDropped": 0,
 				"frames": 1800,
 				"timing": {
-					"averageMs": 10.08,
-					"worstMs": 27.2,
-					"withinAFrame": 87.5
+					"averageMs": 10.39,
+					"worstMs": 37.5,
+					"withinAFrame": 87
 				},
 				"allRunsBusyMs": [
-					8.19,
-					8.406,
-					8.532
+					7.686,
+					7.842,
+					7.926
 				]
 			}
 		},
 		"prototype": {
 			"desktop": {
-				"steps": 400,
+				"steps": 399,
 				"perStepMs": {
-					"script": 1.597,
-					"style": 0.397,
+					"script": 1.514,
+					"style": 0.364,
 					"layout": 0,
-					"busy": 4.441
+					"busy": 4.19
 				},
-				"framesDropped": 1,
-				"frames": 1799,
+				"framesDropped": 2,
+				"frames": 1798,
 				"timing": {
-					"averageMs": 10.66,
-					"worstMs": 25.9,
+					"averageMs": 10.75,
+					"worstMs": 41.8,
 					"withinAFrame": 85.7
 				},
 				"allRunsBusyMs": [
-					4.297,
-					4.441,
-					4.608
+					4.154,
+					4.19,
+					4.258
 				]
 			},
 			"phone": {
 				"steps": 400,
 				"perStepMs": {
-					"script": 6.269,
-					"style": 1.602,
+					"script": 6.219,
+					"style": 1.705,
 					"layout": 0,
-					"busy": 17.648
+					"busy": 17.779
 				},
 				"framesDropped": 0,
 				"frames": 1801,
 				"timing": {
-					"averageMs": 10.43,
-					"worstMs": 27.2,
-					"withinAFrame": 86
+					"averageMs": 10.39,
+					"worstMs": 27.7,
+					"withinAFrame": 86.2
 				},
 				"allRunsBusyMs": [
-					17.18,
-					17.648,
-					17.73
+					17.704,
+					17.779,
+					19.23
 				]
 			}
 		},
@@ -95,43 +95,43 @@
 			"desktop": {
 				"steps": 400,
 				"perStepMs": {
-					"script": 1.612,
-					"style": 0.38,
+					"script": 1.506,
+					"style": 0.323,
 					"layout": 0,
-					"busy": 4.44
+					"busy": 4.094
 				},
 				"framesDropped": 0,
-				"frames": 1801,
+				"frames": 1800,
 				"timing": {
-					"averageMs": 10.68,
-					"worstMs": 28.2,
-					"withinAFrame": 85.2
-				},
-				"allRunsBusyMs": [
-					4.388,
-					4.44,
-					4.51
-				]
-			},
-			"phone": {
-				"steps": 400,
-				"perStepMs": {
-					"script": 6.149,
-					"style": 1.42,
-					"layout": 0,
-					"busy": 17.021
-				},
-				"framesDropped": 1,
-				"frames": 1799,
-				"timing": {
-					"averageMs": 10.35,
-					"worstMs": 37.9,
+					"averageMs": 10.57,
+					"worstMs": 25.9,
 					"withinAFrame": 86.2
 				},
 				"allRunsBusyMs": [
-					16.414,
-					17.021,
-					17.116
+					4.047,
+					4.094,
+					4.149
+				]
+			},
+			"phone": {
+				"steps": 399,
+				"perStepMs": {
+					"script": 6.424,
+					"style": 1.731,
+					"layout": 0,
+					"busy": 17.734
+				},
+				"framesDropped": 4,
+				"frames": 1796,
+				"timing": {
+					"averageMs": 10.28,
+					"worstMs": 74,
+					"withinAFrame": 87.9
+				},
+				"allRunsBusyMs": [
+					16.983,
+					17.734,
+					18.25
 				]
 			}
 		},
@@ -139,131 +139,131 @@
 			"desktop": {
 				"steps": 399,
 				"perStepMs": {
-					"script": 2.102,
-					"style": 0.39,
+					"script": 1.995,
+					"style": 0.352,
 					"layout": 0,
-					"busy": 5.332
+					"busy": 5.093
 				},
-				"framesDropped": 2,
-				"frames": 1798,
+				"framesDropped": 3,
+				"frames": 1797,
 				"timing": {
-					"averageMs": 10.79,
-					"worstMs": 42.2,
+					"averageMs": 10.7,
+					"worstMs": 41.5,
 					"withinAFrame": 85.4
 				},
 				"allRunsBusyMs": [
-					5.275,
-					5.332,
-					5.591
+					5.048,
+					5.093,
+					5.436
 				]
 			},
 			"phone": {
 				"steps": 400,
 				"perStepMs": {
-					"script": 8.262,
-					"style": 1.383,
+					"script": 7.793,
+					"style": 1.381,
 					"layout": 0,
-					"busy": 20.163
+					"busy": 19.702
 				},
-				"framesDropped": 1,
-				"frames": 1800,
+				"framesDropped": 0,
+				"frames": 1801,
 				"timing": {
-					"averageMs": 9.91,
-					"worstMs": 29.8,
-					"withinAFrame": 86
+					"averageMs": 10.4,
+					"worstMs": 35,
+					"withinAFrame": 84.2
 				},
 				"allRunsBusyMs": [
-					18.85,
-					20.163,
-					20.546
+					19.421,
+					19.702,
+					19.773
 				]
 			}
 		},
 		"vue": {
 			"desktop": {
-				"steps": 400,
+				"steps": 399,
 				"perStepMs": {
-					"script": 1.638,
-					"style": 0.348,
+					"script": 1.537,
+					"style": 0.357,
 					"layout": 0,
-					"busy": 4.779
+					"busy": 4.599
 				},
-				"framesDropped": 0,
-				"frames": 1800,
+				"framesDropped": 3,
+				"frames": 1798,
 				"timing": {
-					"averageMs": 10.3,
-					"worstMs": 25.9,
-					"withinAFrame": 88
+					"averageMs": 10.34,
+					"worstMs": 41.7,
+					"withinAFrame": 87.9
 				},
 				"allRunsBusyMs": [
-					4.748,
-					4.779,
-					4.886
+					4.577,
+					4.599,
+					4.694
 				]
 			},
 			"phone": {
-				"steps": 400,
+				"steps": 401,
 				"perStepMs": {
-					"script": 6.33,
-					"style": 1.475,
+					"script": 6.051,
+					"style": 1.368,
 					"layout": 0,
-					"busy": 18.149
+					"busy": 18.086
 				},
 				"framesDropped": 1,
 				"frames": 1800,
 				"timing": {
-					"averageMs": 10.32,
-					"worstMs": 31.6,
-					"withinAFrame": 87.5
+					"averageMs": 10.47,
+					"worstMs": 27.8,
+					"withinAFrame": 86
 				},
 				"allRunsBusyMs": [
-					17.29,
-					18.149,
-					18.941
+					17.679,
+					18.086,
+					18.099
 				]
 			}
 		},
 		"angular": {
 			"desktop": {
-				"steps": 400,
+				"steps": 399,
 				"perStepMs": {
-					"script": 1.789,
-					"style": 0.374,
+					"script": 1.729,
+					"style": 0.36,
 					"layout": 0,
-					"busy": 4.97
+					"busy": 4.816
+				},
+				"framesDropped": 2,
+				"frames": 1798,
+				"timing": {
+					"averageMs": 10.76,
+					"worstMs": 75.5,
+					"withinAFrame": 86.2
+				},
+				"allRunsBusyMs": [
+					4.764,
+					4.816,
+					5.001
+				]
+			},
+			"phone": {
+				"steps": 401,
+				"perStepMs": {
+					"script": 7.181,
+					"style": 1.651,
+					"layout": 0,
+					"busy": 20.057
 				},
 				"framesDropped": 0,
 				"frames": 1801,
 				"timing": {
-					"averageMs": 10.62,
-					"worstMs": 28.3,
-					"withinAFrame": 86
+					"averageMs": 10.49,
+					"worstMs": 30.3,
+					"withinAFrame": 84.8
 				},
 				"allRunsBusyMs": [
-					4.899,
-					4.97,
-					5.155
-				]
-			},
-			"phone": {
-				"steps": 400,
-				"perStepMs": {
-					"script": 6.656,
-					"style": 1.557,
-					"layout": 0,
-					"busy": 18.704
-				},
-				"framesDropped": 1,
-				"frames": 1800,
-				"timing": {
-					"averageMs": 10.04,
-					"worstMs": 36.9,
-					"withinAFrame": 87
-				},
-				"allRunsBusyMs": [
-					17.811,
-					18.704,
-					21.277
+					19.619,
+					20.057,
+					21.062
 				]
 			}
 		}
