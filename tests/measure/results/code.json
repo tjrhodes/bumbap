@@ -1,29 +1,29 @@
 {
 	"haxe": {
 		"uiFiles": 11,
-		"uiCodeLines": 670,
-		"buildSeconds": 0.5,
+		"uiCodeLines": 671,
+		"buildSeconds": 0.4,
 		"installMB": 41.3,
 		"topLevelPackages": 7
 	},
 	"react": {
 		"uiFiles": 17,
 		"uiCodeLines": 567,
-		"buildSeconds": 1.1,
+		"buildSeconds": 1,
 		"installMB": 103.4,
 		"topLevelPackages": 32
 	},
 	"vue": {
 		"uiFiles": 17,
 		"uiCodeLines": 447,
-		"buildSeconds": 3.5,
+		"buildSeconds": 3.7,
 		"installMB": 97.2,
 		"topLevelPackages": 53
 	},
 	"angular": {
 		"uiFiles": 18,
 		"uiCodeLines": 525,
-		"buildSeconds": 5.6,
+		"buildSeconds": 6.4,
 		"installMB": 233,
 		"topLevelPackages": 218
 	}

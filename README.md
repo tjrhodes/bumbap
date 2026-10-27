@@ -20,14 +20,15 @@ Full tables and how each number was measured: [RESULTS.md](RESULTS.md).
 
 | | Haxe | Vue | Angular | React |
 |---|---|---|---|---|
-| Code added on top of Tone.js and the engine (min + gzip) | **4.2 kB** | 24.0 kB | 47.7 kB | 65.5 kB |
-| Panel on screen, slow 4G phone | **2.0 s** | 4.8 s | 5.0 s | 4.8 s |
-| Extra script per playhead step, phone | 0.6 ms | **0.3 ms** | 1.6 ms | 2.5 ms |
-| Work per pointer move while dragging, phone | **10.9 ms** | 13.4 ms | 11.8 ms | 12.9 ms |
+| Code added on top of Tone.js and the engine (min + gzip) | **4.2 kB** | 24.0 kB | 47.8 kB | 65.6 kB |
+| Panel on screen, slow 4G phone | **1.8 s** | 4.8 s | 5.0 s | 4.7 s |
+| Extra script per playhead step, phone | **0.0 ms** | **0.0 ms** | 0.3 ms | 1.9 ms |
+| Work per pointer move while dragging, phone | 11.8 ms | 12.0 ms | **11.5 ms** | 13.8 ms |
 | Packages installed | **7** | 53 | 218 | 32 |
-| Version 2's feature: front-end lines added | 97 | **53** | 60 | 76 |
+| Version 2's feature: front-end lines added | 99 | **53** | 60 | 76 |
 
-Differences under about 0.5 ms are within run-to-run noise. Plain DOM code is the lightest and quickest, as long as it is written with care: the first Haxe
+Differences under about 0.5 ms per step or 1 ms per move are run-to-run noise, so Haxe, Vue and Angular
+tie on dragging. Plain DOM code is the lightest and quickest to appear, as long as it is written with care: the first Haxe
 version was the slowest to drag (21 ms per move), because it rewrote unchanged text on every change
 and the browser redid the page layout each time. Frameworks skip that for you. Among the frameworks,
 Vue was the lightest and needed the least code, and it needed the fewest lines again to take
@@ -141,12 +142,12 @@ git history). Results and what they mean: [RESULTS.md](RESULTS.md).
 
 | Build | Page scripts | UI + framework (less Tone.js and engine) |
 |---|---|---|
-| Haxe | 96.0 kB | 4.2 kB |
-| Vue | 115.8 kB | 24.0 kB |
-| Angular | 139.5 kB | 47.7 kB |
-| React | 157.3 kB | 65.5 kB |
+| Haxe | 96.3 kB | 4.2 kB |
+| Vue | 116.1 kB | 24.0 kB |
+| Angular | 139.8 kB | 47.8 kB |
+| React | 157.6 kB | 65.6 kB |
 
-Tone.js is 81.0 kB and the engine 10.9 kB in every build.
+Tone.js is 81.0 kB and the engine 11.1 kB in every build.
 
 ## On tomrhodes.it
 

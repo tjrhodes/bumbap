@@ -66,7 +66,7 @@ Haxe 4.3.7 · Tone.js 15.1.22
 
 ## Version 2: the sequence
 
-- 97 lines: the buttons and the three tools as static markup in `index.html` (19 lines), a
+- 99 lines: the buttons and the three tools as static markup in `index.html` (19 lines), a
   `PatternButtons` class that draws them from each snapshot and passes taps to the engine's
   `PatternPad`, and one helper.
 - The helper is `Dom.setAttribute`, which skips writes that change nothing: the lesson from version 1's
