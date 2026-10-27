@@ -1,9 +1,10 @@
-// The selected part's own knobs (Level, Pitch, Length, and its 808 knobs), then the part buttons.
+// The selected part's own knobs (Level, Pitch, Length, and its 808 knobs), the pattern buttons, then the part buttons.
 import { DrumMachine, PanelText, type MachineState } from "bumbap-engine";
 import { selectedTrack, usePanel, type PanelTools } from "../context";
 import { Knob } from "./Knob";
 import { KnobUnit } from "./KnobUnit";
 import { PartButtons } from "./PartButtons";
+import { PatternButtons } from "./PatternButtons";
 
 /** The 808 group has room for the most knobs any part has. */
 const DIAL_SLOTS = [0, 1];
@@ -15,6 +16,7 @@ export function PartSection() {
 			<div className="dm-strip">
 				<PartKnobs />
 				<DialGroup />
+				<PatternButtons />
 			</div>
 			<PartButtons />
 		</section>
