@@ -64,12 +64,12 @@ body { background: var(--rock); color: var(--stone); font-family: var(--body); f
 .dm-rule::after { content: ""; flex: 1; height: 1px; background: var(--hairline); }
 .dm-unit { display: flex; flex-direction: column; align-items: center; gap: 14px; }
 
-/* ── The deck: display, the machine's knobs, play and clear ───────── */
+/* ── The deck: display, the machine's knobs, play, clear and download ── */
 .dm-deck { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px 4px; justify-items: center;
 	grid-template-areas:
 		"window window window window window window window window window window window window"
 		"tempo tempo tempo swing swing swing drive drive drive reverb reverb reverb"
-		"play play play play play play clear clear clear clear clear clear"; }
+		"play play play play clear clear clear clear save save save save"; }
 .dm-window { grid-area: window; width: 100%; max-width: 300px; padding: 12px 14px 9px; border-radius: 6px;
 	background: var(--window); box-shadow: inset 0 2px 7px rgba(0, 0, 0, .85), 0 0 0 1px rgba(255, 255, 255, .06); }
 .dm-display { display: block; width: 100%; height: auto; filter: drop-shadow(0 0 5px rgba(224, 127, 17, .45)); }
@@ -82,6 +82,8 @@ body { background: var(--rock); color: var(--stone); font-family: var(--body); f
 .dm-reverb { grid-area: reverb; }
 .dm-play-unit { grid-area: play; }
 .dm-clear-unit { grid-area: clear; }
+.dm-save-unit { grid-area: save; }
+.dm-download-icon { width: 20px; height: 20px; fill: none; stroke: var(--ink); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ── The part section: the selected part's knobs, then the part buttons ── */
 .dm-part { display: grid; gap: 22px; }
@@ -109,6 +111,11 @@ body { background: var(--rock); color: var(--stone); font-family: var(--body); f
 .dm-tool[aria-pressed="true"] { background: linear-gradient(#f3e7a8, var(--lichen));
 	box-shadow: 0 2px 0 #86721f, 0 0 10px rgba(233, 201, 58, .55), inset 0 1px 0 rgba(255, 255, 255, .6); }
 .dm-tool:focus-visible { outline: 2px solid var(--stone); outline-offset: 2px; }
+.dm-tool:disabled { opacity: .45; cursor: default; translate: none; }
+
+/* The Steps row: its rule, then Copy and Paste for the selected part's steps */
+.dm-steps-head { display: flex; align-items: center; gap: 6px; }
+.dm-steps-head .dm-rule { flex: 1; margin-right: 6px; }
 .dm-pattern-row { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
 .dm-pattern { --lit: rgba(233, 201, 58, .38); display: grid; place-content: center; gap: 2px; min-width: 0; height: 40px;
 	padding: 0; border-radius: 8px; cursor: pointer;
@@ -241,8 +248,6 @@ button:focus-visible, .dm-knob:focus-visible { outline: 2px solid var(--lichen);
 @media (min-width: 760px) {
 	.dm-panel { padding: 32px 36px 26px; }
 	.dm-head { grid-template-columns: auto 1fr auto auto; grid-template-areas: "mark print note share"; }
-	.dm-deck { grid-template-columns: minmax(200px, 250px) repeat(6, auto); justify-content: space-between;
-		align-items: end; column-gap: 20px; grid-template-areas: "window tempo swing drive reverb play clear"; }
 	.dm-strip { justify-content: flex-start; align-items: stretch; column-gap: 34px; }
 	.dm-strip > .dm-unit { justify-content: flex-end; }
 	.dm-patterns { flex: 1 1 280px; }
@@ -250,7 +255,13 @@ button:focus-visible, .dm-knob:focus-visible { outline: 2px solid var(--lichen);
 	.dm-pill { gap: 7px; padding: 6px 10px; font-size: .78rem; letter-spacing: .05em; }
 	.dm-keys { grid-template-columns: repeat(4, 1fr); }
 }
-@media (max-width: 759px) { .dm-deck .dm-knob { --size: 50px; } }
+/* The deck goes into one line only when all seven controls fit beside the display */
+@media (min-width: 920px) {
+	.dm-deck { grid-template-columns: minmax(180px, 250px) repeat(7, auto); justify-content: space-between;
+		align-items: end; column-gap: 14px; grid-template-areas: "window tempo swing drive reverb play clear save"; }
+}
+@media (max-width: 919px) { .dm-deck .dm-knob { --size: 50px; } }
+@media (max-width: 459px) { .dm-save-unit .dm-print { letter-spacing: .04em; } }
 @media (prefers-reduced-motion: reduce) {
 	.dm-rubber, .dm-key, .dm-key-led, .dm-icon, .dm-pattern { transition: none; }
 	.dm-pattern.is-next { animation: none; border-style: dashed; border-color: var(--lichen); }

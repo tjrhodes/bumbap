@@ -36,6 +36,7 @@ export default defineConfig({
 	webServer: { command: `node ../tools/serve.mjs ${PORT}`, port: PORT, reuseExistingServer: true },
 	use: {
 		...devices["Desktop Chrome"],
+		acceptDownloads: true,
 		launchOptions: { args: ["--autoplay-policy=no-user-gesture-required"] }
 	},
 	projects: builtOnes.map(([name, page]) => ({ name, use: { baseURL: `http://localhost:${PORT}/${page}` } }))

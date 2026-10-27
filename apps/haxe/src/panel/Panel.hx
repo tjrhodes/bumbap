@@ -5,6 +5,7 @@ import drum.Kit;
 import drum.Range;
 import drum.State.MachineState;
 import drum.State.TrackState;
+import drum.panel.LoopFile;
 import drum.panel.PanelText;
 import js.Browser.document;
 import js.Browser.window;
@@ -121,6 +122,8 @@ class Panel {
 		Dom.setPressed(play, state.playing);
 		play.setAttribute("aria-label", state.playing ? "Stop" : "Play");
 		Dom.byId("play-led").classList.toggle("is-on", state.playing);
+		(cast Dom.byId("save") : js.html.ButtonElement).disabled = state.status != Ready || state.exporting;
+		(cast Dom.byId("paste-steps") : js.html.ButtonElement).disabled = !state.stepsCopied;
 		Dom.setText(Dom.byId("status"), PanelText.status(state));
 		display.showResting(PanelText.resting(state));
 	}
@@ -161,6 +164,9 @@ class Panel {
 	function listen() {
 		Dom.byId("play").addEventListener("click", () -> machine.togglePlay());
 		Dom.byId("clear").addEventListener("click", () -> machine.clear());
+		Dom.byId("save").addEventListener("click", () -> LoopFile.download(machine));
+		Dom.byId("copy-steps").addEventListener("click", () -> machine.copySteps(selectedPart));
+		Dom.byId("paste-steps").addEventListener("click", () -> machine.pasteSteps(selectedPart));
 		Dom.byId("pills").addEventListener("click", onPillsClick);
 		new ShareButton(Dom.byId("share"), Dom.byId("share-note"), machine);
 		document.addEventListener("keydown", onShortcut);

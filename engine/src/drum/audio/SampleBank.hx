@@ -1,6 +1,7 @@
 package drum.audio;
 
 import drum.Kit.Voice;
+import drum.State.StepSettings;
 import drum.audio.HitShape.HitPlan;
 import drum.audio.ToneApi;
 import js.lib.Promise;
@@ -12,6 +13,12 @@ typedef LoadedSample = {
 	final backwards:ToneAudioBuffer;
 	/** How long it actually sounds, without the silent tail. */
 	final soundSeconds:Float;
+}
+
+/** A part's two sound controls a hit needs (a Track, or a pattern's saved TrackState). */
+typedef HitPart = {
+	final pitch:Int;
+	final length:Int;
 }
 
 /** What the machine asks for when a step comes round. */
@@ -40,6 +47,8 @@ class SampleBank {
 	final faders = new Map<String, ToneVolume>();
 	final loads = new Map<String, Promise<LoadedSample>>();
 	final current = new Map<String, LoadedSample>();
+	/** Every recording downloaded and decoded so far, by name. */
+	final decoded = new Map<String, LoadedSample>();
 	final wanted = new Map<String, String>();
 	final everyLoaded:Array<LoadedSample> = [];
 
@@ -70,9 +79,34 @@ class SampleBank {
 		return fetch(sampleName).then(_ -> null);
 	}
 
-	/** Plays one hit; a voice whose recording has not loaded yet stays silent. */
+	/** The request for one step of one part, starting at `startTime`; `gain` is its velocity's, times any level. */
+	public static function request(part:HitPart, hit:StepSettings, startTime:Float, stepSeconds:Float, gain:Float):HitRequest {
+		return {
+			startTime: startTime,
+			gain: gain,
+			rate: HitShape.playbackRate(part.pitch),
+			lengthShare: part.length / 100,
+			reversed: hit.reversed,
+			stepSeconds: stepSeconds
+		};
+	}
+
+	/** Plays one hit on the voice's current recording; a voice whose recording has not loaded yet stays silent. */
 	public function play(voiceId:String, hit:HitRequest) {
-		final sample = current[voiceId];
+		playSample(voiceId, current[voiceId], hit);
+	}
+
+	/** Plays one hit on a named recording (a pattern not on the keys may use another), if it has loaded. */
+	public function playRecording(voiceId:String, sampleName:String, hit:HitRequest) {
+		playSample(voiceId, decoded[sampleName], hit);
+	}
+
+	/** Takes over every recording another bank has decoded, to play them in another audio context. */
+	public function borrow(other:SampleBank) {
+		for (name => sample in other.decoded) decoded[name] = sample;
+	}
+
+	function playSample(voiceId:String, sample:Null<LoadedSample>, hit:HitRequest) {
 		if (sample == null) return;
 		final plan = hit.reversed
 			? HitShape.backwards(sample.soundSeconds, hit.rate, hit.lengthShare, hit.stepSeconds)
@@ -97,7 +131,7 @@ class SampleBank {
 	function fetch(sampleName:String):Promise<LoadedSample> {
 		if (!loads.exists(sampleName)) {
 			final buffer:ToneAudioBuffer = ToneNodes.create(tone.ToneAudioBuffer);
-			loads[sampleName] = buffer.load('$folderUrl$sampleName.wav').then(prepare);
+			loads[sampleName] = buffer.load('$folderUrl$sampleName.wav').then(prepare).then(sample -> decoded[sampleName] = sample);
 		}
 		return loads[sampleName];
 	}

@@ -6,12 +6,14 @@ import drum.State.Pattern;
 import drum.State.SavedMachine;
 import drum.State.SequenceTool;
 import drum.State.StepSettings;
-import drum.audio.HitShape;
+import drum.audio.Bounce;
 import drum.audio.Latency;
 import drum.audio.MasterChain;
 import drum.audio.SampleBank;
+import drum.audio.SampleBank.HitPart;
 import drum.audio.StepClock;
 import drum.audio.ToneApi;
+import drum.audio.WavFile;
 import js.lib.Promise;
 
 /** What a front end hands the machine when it builds one. */
@@ -82,6 +84,10 @@ class DrumMachine {
 	var tool:SequenceTool = Off;
 	var copyFrom = Sequence.NONE;
 	var selectStartsAgain = true;
+	/** Steps copied with the Steps row's Copy button, ready to paste; null before anything is copied. */
+	var copiedSteps:Null<Array<StepSettings>> = null;
+	/** A loop is being rendered for download. */
+	var exporting = false;
 
 	public function new(options:MachineOptions) {
 		tone = options.tone;
@@ -124,7 +130,7 @@ class DrumMachine {
 
 	/** Must be called from a click or key press: browsers only unlock audio then. */
 	public function play():Promise<Void> {
-		if (playing || status != Ready) return Promise.resolve();
+		if (playing || status != Ready || exporting) return Promise.resolve();
 		sequence.start();
 		applySounds();
 		barsStarted = 0;
@@ -173,6 +179,20 @@ class DrumMachine {
 	/** Flips one step between playing its sample forwards and backwards. A step that is off is switched on, reversed. */
 	public function toggleStepReverse(trackIndex:Int, step:Int) {
 		editTrack(trackIndex, track -> track.toggleReverse(step));
+	}
+
+	/** Copies one part's sixteen steps (levels, nudges, flips) from the pattern on the keys. */
+	public function copySteps(trackIndex:Int) {
+		final track = bank.tracks(edited)[trackIndex];
+		if (track == null) return;
+		copiedSteps = track.copySteps();
+		changed();
+	}
+
+	/** Pastes the copied steps into one part of the pattern on the keys (any part, any pattern). */
+	public function pasteSteps(trackIndex:Int) {
+		final copied = copiedSteps;
+		if (copied != null) editTrack(trackIndex, track -> track.pasteSteps(copied));
 	}
 
 	/** Empties the grid of the pattern on the keys; tempo, swing, effects and the mix are kept. */
@@ -295,6 +315,23 @@ class DrumMachine {
 		changed();
 	}
 
+	/**
+	 * Renders one pass of the sequence, loop-ready, as a WAV file (see Bounce). Playback stops first: while
+	 * Tone works out the offline reverb, every new sound would go into the render instead of the speakers.
+	 */
+	public function exportLoop():Promise<js.html.Blob> {
+		if (status != Ready || exporting) return Promise.reject("not ready to export");
+		stop();
+		setExporting(true);
+		return Promise.all(preloadEveryPatternsSamples()).then(_ -> Bounce.render(tone, bouncePlan(), samples)).then(channels -> {
+			setExporting(false);
+			return new js.html.Blob([WavFile.encode(channels, Std.int(tone.getContext().sampleRate))], {type: "audio/wav"});
+		}, error -> {
+			setExporting(false);
+			return Promise.reject(error);
+		});
+	}
+
 	/** Restores a shared machine; returns false (and changes nothing) if the code is invalid. */
 	public function loadCode(code:String):Bool {
 		final saved = PatternCode.decode(code);
@@ -337,14 +374,8 @@ class DrumMachine {
 
 	/** A nudge moves the whole hit; a reversed hit also needs to know how long its step lasts, to end with it. */
 	function soundHit(track:Track, hit:StepSettings, startTime:Float, stepSeconds:Float) {
-		samples.play(track.voice.id, {
-			startTime: startTime,
-			gain: Loudness.velocityGain(hit.velocity),
-			rate: HitShape.playbackRate(track.pitch),
-			lengthShare: track.length / 100,
-			reversed: hit.reversed,
-			stepSeconds: stepSeconds
-		});
+		final part:HitPart = {pitch: track.pitch, length: track.length};
+		samples.play(track.voice.id, SampleBank.request(part, hit, startTime, stepSeconds, Loudness.velocityGain(hit.velocity)));
 	}
 
 	/** Each bar after the first plays the sequence's next pattern; the buttons change when that bar is heard. */
@@ -467,6 +498,15 @@ class DrumMachine {
 		master.applyAgain();
 	}
 
+	function bouncePlan():BouncePlan {
+		return {tempo: tempo, swing: swing, drive: drive, reverb: reverb, bars: [for (index in sequence.patterns) bank.snapshot(index)]};
+	}
+
+	function setExporting(now:Bool) {
+		exporting = now;
+		changed();
+	}
+
 	function setStatus(newStatus:LoadStatus) {
 		status = newStatus;
 		changed();
@@ -485,7 +525,7 @@ class DrumMachine {
 			tempo: tempo, swing: swing, drive: drive, reverb: reverb, tracks: bank.snapshot(edited),
 			pattern: edited, playingPattern: playing ? sequence.playing : Sequence.NONE, sequence: sequence.patterns.copy(),
 			sequencePlace: sequence.position, nextPattern: comingNext(), patternHasSteps: everyPattern.map(Patterns.hasSteps),
-			tool: tool, copyFrom: copyFrom
+			tool: tool, copyFrom: copyFrom, stepsCopied: copiedSteps != null, exporting: exporting
 		});
 	}
 

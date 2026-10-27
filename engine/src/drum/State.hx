@@ -97,4 +97,8 @@ typedef MachineState = MachineSettings & {
 	final tool:SequenceTool;
 	/** With Copy on, the pattern picked to copy, or -1 before one is. */
 	final copyFrom:Int;
+	/** Steps have been copied, so Paste can paste them. */
+	final stepsCopied:Bool;
+	/** A loop is being rendered for download. */
+	final exporting:Bool;
 }

@@ -2,6 +2,7 @@
 // framework build is done when this whole file passes against it.
 
 import { expect, test as base } from "@playwright/test";
+import { readFileSync } from "node:fs";
 import { Panel } from "./panel";
 
 /** A link as bümbap 1 wrote it: the starter beat with the kick on step 3 too. */
@@ -300,6 +301,29 @@ test.describe("the sequence's tools (v2)", () => {
 		await expect(panel.key(1)).toHaveAttribute("aria-pressed", "false");
 		await expect(panel.pattern(1)).toHaveAttribute("aria-label", "Pattern 1, on the keys, empty");
 		await expect(panel.tool("clear")).toHaveAttribute("aria-pressed", "false");
+	});
+});
+
+test.describe("getting a beat out", () => {
+	test("Copy takes the part's steps; Paste puts them into another part", async ({ panel, page }) => {
+		const paste = page.locator(".dm-steps-head button", { hasText: "Paste" });
+		await expect(paste).toBeDisabled();
+		const kickSteps = await page.locator(".dm-key").evaluateAll((keys) => keys.map((key) => key.getAttribute("aria-pressed")));
+		await page.locator(".dm-steps-head button", { hasText: "Copy" }).click();
+		await panel.pill("Clap").click();
+		await expect(panel.key(1)).toHaveAttribute("aria-pressed", "false");
+		await paste.click();
+		await expect.poll(() => page.locator(".dm-key").evaluateAll((keys) => keys.map((key) => key.getAttribute("aria-pressed")))).toEqual(kickSteps);
+	});
+
+	test("Download saves the sequence as a WAV loop, one pass long", async ({ panel, page }) => {
+		const [download] = await Promise.all([page.waitForEvent("download"), page.locator(".dm-save-unit button").click()]);
+		expect(download.suggestedFilename()).toBe("bumbap-100bpm-1bar.wav");
+		const file = readFileSync((await download.path())!);
+		expect(file.subarray(0, 4).toString()).toBe("RIFF");
+		const seconds = file.readUInt32LE(40) / 4 / file.readUInt32LE(24);
+		expect(seconds).toBeCloseTo(2.4, 2);   // one bar at 100 BPM
+		await expect(panel.status).toHaveText(/ready/i);
 	});
 });
 

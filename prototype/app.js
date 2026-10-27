@@ -291,7 +291,6 @@ function buildKey(step) {
 
 /* ── Drawing a snapshot ───────────────────────────────────────────────────────────── */
 
-const STATUS_TEXT = { loading: "Loading the kit", ready: "Ready", failed: "Samples failed to load: reload to retry" };
 
 /** Every snapshot redraws the panel, then remembers the pattern in the address. */
 function draw(state) {
@@ -310,7 +309,9 @@ function drawTransport(state) {
 	play.setAttribute("aria-pressed", String(state.playing));
 	play.setAttribute("aria-label", state.playing ? "Stop" : "Play");
 	element("play-led").classList.toggle("is-on", state.playing);
-	setText(element("status"), state.playing ? "Playing" : STATUS_TEXT[state.status]);
+	element("save").disabled = state.status !== "ready" || state.exporting;
+	element("paste-steps").disabled = !state.stepsCopied;
+	setText(element("status"), PanelText.status(state));
 	showResting(restingText(state));
 }
 
@@ -531,6 +532,9 @@ function shareBeat() {
 function listen() {
 	const machine = panel.machine;
 	element("share").addEventListener("click", shareBeat);
+	element("save").addEventListener("click", () => LoopFile.download(machine));
+	element("copy-steps").addEventListener("click", () => machine.copySteps(panel.selectedPart));
+	element("paste-steps").addEventListener("click", () => machine.pasteSteps(panel.selectedPart));
 	listenToPatterns(new PatternPad(machine));
 	element("play").addEventListener("click", () => machine.togglePlay());
 	element("clear").addEventListener("click", () => machine.clear());

@@ -20,7 +20,12 @@ const keyStyle = (step: StepState) => ({ "--level": step.velocity / 100, "--nudg
 
 <template>
 	<section class="dm-steps" aria-label="Steps">
-		<h2 class="dm-print dm-rule">Steps</h2>
+		<div class="dm-steps-head">
+			<h2 class="dm-print dm-rule">Steps</h2>
+			<button id="copy-steps" type="button" class="dm-tool" aria-label="Copy these steps" @click="tools.machine.copySteps(tools.selectedPart.value)">Copy</button>
+			<button id="paste-steps" type="button" class="dm-tool" aria-label="Paste the copied steps" :disabled="!tools.state.value.stepsCopied"
+				@click="tools.machine.pasteSteps(tools.selectedPart.value)">Paste</button>
+		</div>
 		<div id="keys" class="dm-keys">
 			<div v-for="beat in BEATS" :key="beat" class="dm-beat" :data-beat="beat + 1">
 				<template v-for="index in stepsOfBeat(beat)" :key="index">

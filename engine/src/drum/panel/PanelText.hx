@@ -35,6 +35,7 @@ class PanelText {
 
 	/** The status line under the display. */
 	public static function status(state:MachineState):String {
+		if (state.exporting) return "Rendering the loop";
 		if (state.playing) return "Playing";
 		return switch (state.status) {
 			case Loading: "Loading the kit";

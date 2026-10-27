@@ -44,6 +44,10 @@ __STYLE__
 				<span class="dm-print">Clear</span>
 				<button id="clear" class="dm-rubber" aria-label="Clear every step"></button>
 			</div>
+			<div class="dm-unit dm-save-unit">
+				<span class="dm-print">Download</span>
+				<button id="save" class="dm-rubber" type="button" aria-label="Download the sequence as a WAV loop" disabled><svg class="dm-download-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></svg></button>
+			</div>
 		</section>
 
 		<section class="dm-part" aria-label="Part">
@@ -96,7 +100,11 @@ __STYLE__
 		</section>
 
 		<section class="dm-steps" aria-label="Steps">
-			<h2 class="dm-print dm-rule">Steps</h2>
+			<div class="dm-steps-head">
+				<h2 class="dm-print dm-rule">Steps</h2>
+				<button id="copy-steps" type="button" class="dm-tool" aria-label="Copy these steps">Copy</button>
+				<button id="paste-steps" type="button" class="dm-tool" aria-label="Paste the copied steps" disabled>Paste</button>
+			</div>
 			<div id="keys" class="dm-keys"></div>
 		</section>
 	</div>

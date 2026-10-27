@@ -1,5 +1,5 @@
-// The deck: the display and the whole machine's controls (tempo, swing, drive, reverb, play, clear).
-import { DrumMachine, PanelText } from "bumbap-engine";
+// The deck: the display and the whole machine's controls (tempo, swing, drive, reverb, play, clear, download).
+import { DrumMachine, LoopFile, PanelText } from "bumbap-engine";
 import { usePanel } from "../context";
 import { KnobUnit } from "./KnobUnit";
 import { SevenSegment } from "./SevenSegment";
@@ -16,6 +16,7 @@ export function Deck({ displayText }: { displayText: string }) {
 			<KnobUnit id="reverb" name="Reverb" label="Reverb, percent" unitClass="dm-reverb" range={limits.reverb} read={(s) => s.reverb} set={(v) => machine.setReverb(v)} />
 			<PlayButton />
 			<ClearButton />
+			<DownloadButton />
 		</section>
 	);
 }
@@ -38,6 +39,18 @@ function PlayButton() {
 			<span className="dm-print"><span id="play-led" className={state.playing ? "dm-led is-on" : "dm-led"} />Play</span>
 			<button id="play" className="dm-rubber dm-rubber-play" aria-pressed={state.playing} aria-label={state.playing ? "Stop" : "Play"}
 				disabled={state.status !== "ready"} onClick={() => machine.togglePlay()}><span className="dm-icon" /></button>
+		</div>
+	);
+}
+
+/** Renders the sequence as a loop-ready WAV and saves it (see LoopFile in the engine). */
+function DownloadButton() {
+	const { machine, state } = usePanel();
+	return (
+		<div className="dm-unit dm-save-unit">
+			<span className="dm-print">Download</span>
+			<button id="save" className="dm-rubber" type="button" aria-label={LoopFile.LABEL} disabled={state.status !== "ready" || state.exporting}
+				onClick={() => LoopFile.download(machine)}><svg className="dm-download-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></svg></button>
 		</div>
 	);
 }

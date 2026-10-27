@@ -1,6 +1,6 @@
-// The deck: the display and the whole machine's controls (tempo, swing, drive, reverb, play, clear).
+// The deck: the display and the whole machine's controls (tempo, swing, drive, reverb, play, clear, download).
 import { Component, inject } from "@angular/core";
-import { DrumMachine, PanelText, type MachineState } from "bumbap-engine";
+import { DrumMachine, LoopFile, PanelText, type MachineState } from "bumbap-engine";
 import { KnobUnit } from "./knob-unit";
 import { PanelStore } from "./panel-store";
 import { SevenSegment } from "./seven-segment";
@@ -27,6 +27,11 @@ import { SevenSegment } from "./seven-segment";
 			<span class="dm-print">Clear</span>
 			<button id="clear" class="dm-rubber" aria-label="Clear every step" (click)="machine.clear()"></button>
 		</div>
+		<div class="dm-unit dm-save-unit">
+			<span class="dm-print">Download</span>
+			<button id="save" class="dm-rubber" type="button" [attr.aria-label]="downloadLabel"
+				[disabled]="store.state().status !== 'ready' || store.state().exporting" (click)="download()"><svg class="dm-download-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></svg></button>
+		</div>
 	`
 })
 export class Deck {
@@ -34,6 +39,8 @@ export class Deck {
 	protected readonly machine = this.store.machine;
 	protected readonly limits = DrumMachine.limits;
 	protected readonly status = () => PanelText.status(this.store.state());
+	protected readonly downloadLabel = LoopFile.LABEL;
+	protected readonly download = () => LoopFile.download(this.machine);
 	protected readonly tempo = (state: MachineState) => state.tempo;
 	protected readonly swing = (state: MachineState) => state.swing;
 	protected readonly drive = (state: MachineState) => state.drive;

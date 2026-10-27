@@ -15,11 +15,24 @@ export function StepKeys() {
 	const gestures = useKeyGestures();
 	return (
 		<section className="dm-steps" aria-label="Steps">
-			<h2 className="dm-print dm-rule">Steps</h2>
+			<StepsHead />
 			<div id="keys" className="dm-keys">
 				{BEATS.map((beat) => <Beat key={beat} beat={beat} currentStep={currentStep} gestures={gestures} />)}
 			</div>
 		</section>
+	);
+}
+
+/** The Steps rule, then Copy and Paste for the selected part's sixteen steps. */
+function StepsHead() {
+	const { machine, state, selectedPart } = usePanel();
+	return (
+		<div className="dm-steps-head">
+			<h2 className="dm-print dm-rule">Steps</h2>
+			<button id="copy-steps" type="button" className="dm-tool" aria-label="Copy these steps" onClick={() => machine.copySteps(selectedPart)}>Copy</button>
+			<button id="paste-steps" type="button" className="dm-tool" aria-label="Paste the copied steps" disabled={!state.stepsCopied}
+				onClick={() => machine.pasteSteps(selectedPart)}>Paste</button>
+		</div>
 	);
 }
 

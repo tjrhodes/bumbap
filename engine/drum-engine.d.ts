@@ -75,6 +75,10 @@ export interface MachineState {
 	readonly tool: SequenceTool;
 	/** With Copy on, the pattern picked to copy, or -1 before one is. */
 	readonly copyFrom: number;
+	/** Steps have been copied, so Paste can paste them. */
+	readonly stepsCopied: boolean;
+	/** A loop is being rendered for download. */
+	readonly exporting: boolean;
 }
 
 /** The sequence's small buttons; "" when none is on. */
@@ -198,8 +202,14 @@ export declare class DrumMachine {
 	setSwing(percent: number): void;
 	setDrive(percent: number): void;
 	setReverb(percent: number): void;
-	/** Empties the grid of the pattern shown; tempo, swing, effects and the mix are kept. */
+	/** Empties the grid of the pattern on the keys; tempo, swing, effects and the mix are kept. */
 	clear(): void;
+	/** Copies one part's sixteen steps (levels, nudges, flips) from the pattern on the keys. */
+	copySteps(trackIndex: number): void;
+	/** Pastes the copied steps into one part of the pattern on the keys. */
+	pasteSteps(trackIndex: number): void;
+	/** Renders one pass of the sequence, loop-ready, as a WAV file; playback stops first. */
+	exportLoop(): Promise<Blob>;
 	/** Puts a pattern (0–7) on the keys to edit; the sequence plays on. */
 	editPattern(index: number): void;
 	/** Adds one pattern at the end of the sequence, or takes it out; the sequence keeps at least one. */
@@ -219,6 +229,14 @@ export declare class DrumMachine {
 	/** Stops, releases audio resources and forgets every listener. */
 	dispose(): void;
 }
+
+/** The Download button: renders the sequence as a loop-ready WAV and saves it ("bumbap-120bpm-4bars.wav"). */
+export declare const LoopFile: {
+	/** "Download the sequence as a WAV loop", for the button's label. */
+	readonly LABEL: string;
+	download(machine: DrumMachine): Promise<void>;
+	fileName(state: MachineState): string;
+};
 
 /** Sharing a beat as a link: the page the visitor sees, with the pattern's code at its end. */
 export declare const ShareLink: {

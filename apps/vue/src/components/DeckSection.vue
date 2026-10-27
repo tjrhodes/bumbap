@@ -1,6 +1,6 @@
-<!-- The deck: the display and the whole machine's controls (tempo, swing, drive, reverb, play, clear). -->
+<!-- The deck: the display and the whole machine's controls (tempo, swing, drive, reverb, play, clear, download). -->
 <script setup lang="ts">
-import { DrumMachine, PanelText } from "bumbap-engine";
+import { DrumMachine, LoopFile, PanelText } from "bumbap-engine";
 import { usePanel } from "../panel";
 import KnobUnit from "./KnobUnit.vue";
 import SevenSegment from "./SevenSegment.vue";
@@ -28,6 +28,11 @@ const { limits } = DrumMachine;
 		<div class="dm-unit dm-clear-unit">
 			<span class="dm-print">Clear</span>
 			<button id="clear" class="dm-rubber" aria-label="Clear every step" @click="machine.clear()"></button>
+		</div>
+		<div class="dm-unit dm-save-unit">
+			<span class="dm-print">Download</span>
+			<button id="save" class="dm-rubber" type="button" :aria-label="LoopFile.LABEL" :disabled="state.status !== 'ready' || state.exporting"
+				@click="LoopFile.download(machine)"><svg class="dm-download-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></svg></button>
 		</div>
 	</section>
 </template>

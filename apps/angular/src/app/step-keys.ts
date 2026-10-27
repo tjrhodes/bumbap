@@ -11,7 +11,12 @@ const STEPS_PER_BEAT = 4;
 	selector: "section[bmStepKeys]",
 	host: { class: "dm-steps", "aria-label": "Steps" },
 	template: `
-		<h2 class="dm-print dm-rule">Steps</h2>
+		<div class="dm-steps-head">
+			<h2 class="dm-print dm-rule">Steps</h2>
+			<button id="copy-steps" type="button" class="dm-tool" aria-label="Copy these steps" (click)="store.machine.copySteps(store.selectedPart())">Copy</button>
+			<button id="paste-steps" type="button" class="dm-tool" aria-label="Paste the copied steps" [disabled]="!store.state().stepsCopied"
+				(click)="store.machine.pasteSteps(store.selectedPart())">Paste</button>
+		</div>
 		<div id="keys" class="dm-keys">
 			@for (beat of beats; track beat) {
 				<div class="dm-beat" [attr.data-beat]="beat + 1">

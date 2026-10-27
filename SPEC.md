@@ -26,6 +26,8 @@ part's sixteen steps are shown at a time; a part selector chooses which.
 | Reverb | A 2.2 s room on the whole kit, after the drive; 100 % is as loud as the dry kit. |
 | Safety | A soft clipper at the end of the chain: the output never passes full scale, however many accents land together. |
 | Patterns (v2) | Eight pattern buttons in a framed group titled **Sequence**, in the gap right of the 808 knobs (their own row on a phone). Each holds a whole pattern: every part's steps (level, nudge, flip) and its level, mute, pitch, length and 808 knobs. Tempo, swing, drive and reverb stay global. Pattern 1 starts as the starter beat, 2–8 empty. **Tap** a button: that pattern goes on the keys to edit, and the sequence plays on; the keys show the playhead only while they show the pattern playing. The **sequence** is the order the patterns play in, repeats allowed, 1 to 16 of them, round and round; a new sequence chosen while playing takes over at the end of the bar (its first pattern blinks meanwhile). Three small tools sit beside the title: **Select** (each tap adds a pattern to a new sequence, in tap order; each button shows its places; Select again when done), **Copy** (tap the pattern to copy, then where it goes) and **Clear** (tap a pattern to make it blank, part sounds too); Copy and Clear turn off after their job. Shortcuts with no tool on: **shift-click** adds a pattern to the end of the sequence or takes it out; on a touch screen, **hold one button and tap others** to make the sequence those, in the order touched; **drag** one button onto another to copy it. Buttons in the sequence are half lit; the pattern playing is fully lit, with a glow; the one on the keys has a ring. Edits go to the pattern on the keys; the sound follows the pattern playing (its steps, part levels and recordings). Play starts at the top of the sequence. Empty patterns' numbers are dimmed; a line under the buttons says what a tap does now. |
+| Copy / Paste (v2) | Two small buttons at the right of the Steps rule: Copy takes the selected part's sixteen steps (levels, nudges, flips) from the pattern on the keys; Paste puts them into the selected part of the pattern on the keys, which can be another part, another pattern, or both. Paste is greyed until something is copied. |
+| Download (v2) | A rubber button beside Clear saves the sequence as a WAV: one pass, rendered offline faster than real time with drive, reverb and every pattern's own sounds, made loop-ready (two passes rendered and the second kept, so the reverb and long sounds from the end carry into the start). 16-bit stereo at the audio context's rate, named "bumbap-120bpm-4bars.wav". Playback stops while it renders; the status line says "Rendering the loop". |
 | Share | The whole machine (all eight patterns, their sequence and the pattern shown, with every step's level and nudge), including every step's level and nudge, lives in the URL hash. The share button (top right) copies that link, or offers it through the share sheet on a touch screen; in a frame on a page of the same site (the Lab page), the link is to that page. |
 | Start | With no code in the URL, a starter beat with accents and ghost notes is loaded. |
 | Loading | Panel usable at once; Play is disabled until the samples are decoded. |
@@ -85,6 +87,8 @@ machine.setSequence(indexes);                     // the play order, repeats all
 machine.copyPattern(from, to); machine.clearPattern(index);
 machine.toggleTool("select" | "copy" | "clear");  // the sequence's three small buttons
 machine.tapPattern(index, shift);                 // a tap on a pattern button, read by the tool that is on
+machine.copySteps(track); machine.pasteSteps(track);  // the Steps row's Copy and Paste
+machine.exportLoop();        // Promise<Blob>: one pass of the sequence as a loop-ready WAV (LoopFile saves it)
 machine.loadCode(code);      // true if the URL code was valid and applied
 machine.dispose();           // stops and releases the clock and the audio graph
 
@@ -141,7 +145,8 @@ UI is signed off.
           <span class="dm-knob-cap"></span>
         </div>
       </div>
-      <div class="dm-unit dm-play-unit">                <!-- also dm-clear-unit -->
+      <div class="dm-unit dm-play-unit">                <!-- also dm-clear-unit, and dm-save-unit (v2: Download,
+                                                           an svg.dm-download-icon in its button; disabled while rendering) -->
         <span class="dm-print"><span class="dm-led is-on"></span>Play</span>
         <button class="dm-rubber dm-rubber-play" aria-pressed="true" aria-label="Stop"><span class="dm-icon"></span></button>
       </div>
@@ -181,7 +186,11 @@ UI is signed off.
       </div>
     </section>
     <section class="dm-steps" aria-label="Steps">
-      <h2 class="dm-print dm-rule">Steps</h2>
+      <div class="dm-steps-head">   <!-- v2 -->
+        <h2 class="dm-print dm-rule">Steps</h2>
+        <button class="dm-tool" aria-label="Copy these steps">Copy</button>
+        <button class="dm-tool" aria-label="Paste the copied steps" disabled>Paste</button>   <!-- disabled until a copy -->
+      </div>
       <div class="dm-keys">
         <div class="dm-beat" data-beat="1">
           <button class="dm-tab dm-flip" aria-pressed="false" aria-label="Play Kick step 1 backwards"><span class="dm-flip-icon"></span></button>

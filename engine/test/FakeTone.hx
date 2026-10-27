@@ -36,6 +36,8 @@ class FakeTone {
 	/** The context the engine asked Tone to use, and how far behind the speakers pretend to be. */
 	public var contextInUse(default, null):Null<FakeContext>;
 	public var speakerDelay = 0.0;
+	/** How long the last offline render was asked to be, in seconds (0 before any). */
+	public var offlineSeconds(default, null) = 0.0;
 	/** The audio time each playhead update was scheduled for. */
 	public final drawTimes:Array<Float> = [];
 	public final waitingLoads = new Map<String, () -> Void>();
@@ -71,8 +73,19 @@ class FakeTone {
 			getTransport: transport,
 			getDraw: draw,
 			setContext: context -> contextInUse = context,
-			getContext: () -> {rawContext: {outputLatency: speakerDelay}}
+			getContext: () -> {sampleRate: FakeSample.RATE, rawContext: {outputLatency: speakerDelay}},
+			Offline: renderOffline
 		};
+	}
+
+	/**
+	 * Tone's offline rendering: runs the callback (its hits land in `hits` like live ones), then gives back a
+	 * ramp of values as long as asked for, so a test can see which part of it was kept.
+	 */
+	function renderOffline(callback:Dynamic->Promise<Dynamic>, seconds:Float):Promise<FakeSample> {
+		offlineSeconds = seconds;
+		final frames = Math.round(seconds * FakeSample.RATE);
+		return callback(null).then(_ -> new FakeSample("render", [for (frame in 0...frames) frame / frames]));
 	}
 
 	/** Called by every fake download: resolves at once, unless the test is holding downloads. */
@@ -136,6 +149,8 @@ class FakeNode {
 	public final frequency = {value: 0.0};
 	public final wet = {value: 0.0};
 	public final gain = {value: 0.0};
+	/** A reverb's room, worked out at once. */
+	public final ready:Promise<Dynamic> = Promise.resolve(null);
 	public var curve:Dynamic;
 	public var oversample = "none";
 	public var output(default, null):Null<FakeNode>;

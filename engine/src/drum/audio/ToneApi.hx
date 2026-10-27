@@ -22,6 +22,11 @@ typedef ToneApi = {
 	/** Makes this Tone's audio context the one every later object uses. */
 	function setContext(context:Dynamic):Void;
 	function getContext():ToneContext;
+	/**
+	 * Renders whatever the callback builds and schedules, faster than real time, into a buffer `duration`
+	 * seconds long. Tone makes its offline context the current one while the callback (and its promise) runs.
+	 */
+	function Offline(callback:Dynamic->Promise<Dynamic>, duration:Float):Promise<ToneAudioBuffer>;
 	/** Tone's classes, built with ToneNodes.create; their instances are typed below. */
 	final ToneAudioBuffer:Dynamic;
 	final ToneBufferSource:Dynamic;
@@ -35,6 +40,7 @@ typedef ToneApi = {
 
 /** Tone's audio context, and the browser's own one inside it. */
 typedef ToneContext = {
+	final sampleRate:Float;
 	final rawContext:{
 		/** Seconds from the audio clock to the speakers; not every browser reports it. */
 		final ?outputLatency:Float;
@@ -57,7 +63,11 @@ typedef ToneNode = {
 
 typedef ToneVolume = ToneNode & {final volume:ToneParam;};
 typedef ToneFilter = ToneNode & {final frequency:ToneParam;};
-typedef ToneReverb = ToneNode & {final wet:ToneParam;};
+typedef ToneReverb = ToneNode & {
+	final wet:ToneParam;
+	/** Resolves once the room's echo (its impulse response) has been worked out; until then it is silent. */
+	final ready:Promise<Dynamic>;
+};
 typedef ToneGain = ToneNode & {final gain:ToneParam;};
 
 typedef ToneWaveShaper = ToneNode & {

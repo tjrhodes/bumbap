@@ -55,6 +55,17 @@ class Track {
 		editStep(step, current -> Step.hit(current.velocity, current.nudge, !(current.on && current.reversed)));
 	}
 
+	/** The sixteen steps as they are now (steps are frozen values, so the copy can be kept). */
+	public function copySteps():Array<StepSettings> {
+		return steps.copy();
+	}
+
+	/** Takes over sixteen steps, e.g. copied from another part; every value is re-checked. */
+	public function pasteSteps(copied:Array<StepSettings>) {
+		for (step in 0...Limits.STEPS) steps[step] = copied[step] != null && copied[step].on
+			? Step.hit(copied[step].velocity, copied[step].nudge, copied[step].reversed) : Step.REST;
+	}
+
 	public function clearSteps() {
 		for (step in 0...Limits.STEPS) steps[step] = Step.REST;
 	}

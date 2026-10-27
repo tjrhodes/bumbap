@@ -1,6 +1,7 @@
 package drum.audio;
 
 import drum.audio.ToneApi;
+import js.lib.Promise;
 
 /**
  * Everything after the drum faders:
@@ -54,6 +55,11 @@ class MasterChain {
 		trim.chain(reverbSend, reverb, clipper);
 		clipper.toDestination();
 		input = headroom;
+	}
+
+	/** Resolves when the reverb can be heard: it works out its room when it is made, which takes a moment. */
+	public function ready():Promise<Dynamic> {
+		return reverb.ready;
 	}
 
 	public function setDrive(percent:Int) {
