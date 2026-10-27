@@ -1,15 +1,20 @@
 package drum;
 
 import drum.State.Pattern;
+import drum.State.SavedMachine;
 import drum.State.StepSettings;
 import drum.State.TrackSettings;
+import js.lib.WeakMap;
 
 /**
- * Packs a whole pattern into a short, URL-safe code and back, so a groove
+ * Packs the whole machine into a short, URL-safe code and back, so a groove
  * can be shared as a link:
  *
- *     5.<tempo>.<swing>.<drive>.<reverb>.<rows>.<volumes>.<mutes>.<sounds>
+ *     6.<tempo>.<swing>.<drive>.<reverb>.<shown>.<chain>-<pattern 1>-<pattern 2>-…-<pattern 8>
  *
+ * - shown: the pattern on the keys, 1–8. chain: the chained patterns, e.g. "136".
+ * - each pattern is <rows>.<volumes>.<mutes>.<sounds>, or nothing at all when it
+ *   is blank (no steps, every part as it starts), so unused patterns cost one "-".
  * - rows: one per track, joined by "_". Each row is 4 hex digits saying which
  *   steps play (step 1 is the lowest bit), then 4 characters per playing step,
  *   in order: 2 hex digits of velocity, 1 digit of nudge and 1 for direction
@@ -21,12 +26,15 @@ import drum.State.TrackSettings;
  * A "digit" for a signed setting (nudge, pitch) is its value counted from the
  * bottom of its range, in base 36: nudge −16 is "0", nudge 0 is "g".
  *
- * The leading "5" is the format version, so a future format can tell old
- * links apart instead of misreading them.
+ * The leading digit is the format version. Version 5 is a bümbap 1 link, with
+ * one pattern: "5.<tempo>.<swing>.<drive>.<reverb>.<pattern>". It still opens,
+ * as pattern 1.
  */
 class PatternCode {
-	static inline final VERSION = "5";
+	static inline final VERSION = "6";
+	static inline final ONE_PATTERN_VERSION = "5";
 	static inline final SEPARATOR = ".";
+	static inline final PATTERN_SEPARATOR = "-";
 	static inline final ROW_SEPARATOR = "_";
 	static inline final MASK_DIGITS = 4; // 16 steps = 16 bits = 4 hex digits
 	static inline final VELOCITY_DIGITS = 2; // 1–100 fits in two hex digits
@@ -35,34 +43,32 @@ class PatternCode {
 	static inline final LENGTH_DIGITS = 2;
 	static inline final SOUND_DIGITS = 1 + LENGTH_DIGITS + Kit.MOST_DIALS; // pitch, length, 808 knobs
 	static inline final BASE_36 = "0123456789abcdefghijklmnopqrstuvwxyz";
+	static inline final SETTINGS = "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})"; // tempo, swing, drive, reverb
 
 	static final NUDGE_DIGITS = digitsFor(Limits.NUDGE);
 	static final PITCH_DIGITS = digitsFor(Limits.PITCH);
 	static final DIAL_DIGITS = digitsFor(Limits.DIAL);
+	static final PATTERN_DIGITS = '[1-${Limits.PATTERNS}]';
 
-	public static function encode(pattern:Pattern):String {
-		final parts = [VERSION].concat([pattern.tempo, pattern.swing, pattern.drive, pattern.reverb].map(Std.string));
-		parts.push([for (track in pattern.tracks) encodeRow(track.steps)].join(ROW_SEPARATOR));
-		parts.push([for (track in pattern.tracks) StringTools.hex(track.volume, VOLUME_DIGITS)].join(""));
-		parts.push([for (track in pattern.tracks) track.muted ? "1" : "0"].join(""));
-		parts.push([for (track in pattern.tracks) encodeSound(track)].join(""));
-		return parts.join(SEPARATOR).toLowerCase();
+	/**
+	 * Patterns are never changed once saved, so each is packed only once: a code is made on every edit,
+	 * and only the pattern being edited is new each time.
+	 */
+	static final packedAlready = new WeakMap<String>(); // keyed by the pattern itself
+	static var blankPacked:Null<String>;
+
+	public static function encode(saved:SavedMachine):String {
+		final settings = [saved.tempo, saved.swing, saved.drive, saved.reverb].map(Std.string);
+		final header = [VERSION].concat(settings).concat([numbered([saved.shown]), numbered(saved.chain)]);
+		final patterns = [for (pattern in saved.patterns) isBlank(pattern) ? "" : pack(pattern)];
+		return [header.join(SEPARATOR)].concat(patterns).join(PATTERN_SEPARATOR);
 	}
 
 	/** Returns null for anything that is not a valid code for this kit. */
-	public static function decode(code:String):Null<Pattern> {
-		final shape = codeShape();
-		if (code == null || !shape.match(code.toLowerCase())) return null;
-		final settings = [for (group in 1...5) Std.parseInt(shape.matched(group))];
-		final tracks = decodeTracks(shape.matched(5).split(ROW_SEPARATOR), [for (group in 6...9) shape.matched(group)]);
-		if (tracks == null) return null;
-		return {
-			tempo: Limits.TEMPO.clamp(settings[0]),
-			swing: Limits.SWING.clamp(settings[1]),
-			drive: Limits.DRIVE.clamp(settings[2]),
-			reverb: Limits.REVERB.clamp(settings[3]),
-			tracks: tracks
-		};
+	public static function decode(code:Null<String>):Null<SavedMachine> {
+		if (code == null) return null;
+		final lower = code.toLowerCase();
+		return StringTools.startsWith(lower, ONE_PATTERN_VERSION + SEPARATOR) ? decodeOnePattern(lower) : decodeEveryPattern(lower);
 	}
 
 	/** One character for every whole value in the range, lowest first. */
@@ -71,6 +77,31 @@ class PatternCode {
 	}
 
 	// ── Encoding ───────────────────────────────────────────────────────
+
+	/** Pattern numbers as people count them, 1–8, written one after another: [0, 2, 5] is "136". */
+	static function numbered(patterns:Array<Int>):String {
+		return patterns.map(index -> Std.string(index + 1)).join("");
+	}
+
+	static function isBlank(pattern:Pattern):Bool {
+		blankPacked ??= encodePattern(Patterns.blank());
+		return pack(pattern) == blankPacked;
+	}
+
+	static function pack(pattern:Pattern):String {
+		if (!packedAlready.has(pattern)) packedAlready.set(pattern, encodePattern(pattern));
+		return packedAlready.get(pattern);
+	}
+
+	/** Rows, volumes, mutes, sounds: each a column across the eight parts. */
+	static function encodePattern(tracks:Pattern):String {
+		return [
+			[for (track in tracks) encodeRow(track.steps)].join(ROW_SEPARATOR),
+			[for (track in tracks) StringTools.hex(track.volume, VOLUME_DIGITS)].join(""),
+			[for (track in tracks) track.muted ? "1" : "0"].join(""),
+			[for (track in tracks) encodeSound(track)].join("")
+		].join(SEPARATOR).toLowerCase();
+	}
 
 	/** The mask of playing steps, followed by each playing step's velocity, nudge and direction. */
 	static function encodeRow(steps:Array<StepSettings>):String {
@@ -98,13 +129,55 @@ class PatternCode {
 
 	// ── Decoding ───────────────────────────────────────────────────────
 
-	/** The overall shape of a valid code; the row details are checked row by row. */
-	static function codeShape():EReg {
+	/** A bümbap 1 link: its one pattern becomes pattern 1, the others blank, and the chain just pattern 1. */
+	static function decodeOnePattern(code:String):Null<SavedMachine> {
+		final shape = new EReg('^$ONE_PATTERN_VERSION\\.$SETTINGS\\.(.+)$$', "");
+		if (!shape.match(code)) return null;
+		final pattern = decodePattern(shape.matched(5));
+		if (pattern == null) return null;
+		return machine(shape, [pattern].concat([for (_ in 1...Limits.PATTERNS) Patterns.blank()]), 0, [0]);
+	}
+
+	static function decodeEveryPattern(code:String):Null<SavedMachine> {
+		final parts = code.split(PATTERN_SEPARATOR);
+		final header = new EReg('^$VERSION\\.$SETTINGS\\.($PATTERN_DIGITS)\\.($PATTERN_DIGITS+)$$', "");
+		if (parts.length != Limits.PATTERNS + 1 || !header.match(parts[0])) return null;
+		final patterns = [for (packed in parts.slice(1)) packed == "" ? Patterns.blank() : decodePattern(packed)];
+		final chain = decodeChain(header.matched(6));
+		if (patterns.contains(null) || chain == null) return null;
+		return machine(header, patterns, Std.parseInt(header.matched(5)) - 1, chain);
+	}
+
+	/** The machine's settings (groups 1–4 of the shape that matched), clamped, with its patterns. */
+	static function machine(shape:EReg, patterns:Array<Pattern>, shown:Int, chain:Array<Int>):SavedMachine {
+		final setting = (group:Int) -> Std.parseInt(shape.matched(group));
+		return {
+			tempo: Limits.TEMPO.clamp(setting(1)), swing: Limits.SWING.clamp(setting(2)),
+			drive: Limits.DRIVE.clamp(setting(3)), reverb: Limits.REVERB.clamp(setting(4)),
+			patterns: patterns, shown: shown, chain: chain
+		};
+	}
+
+	/** "136" is [0, 2, 5]; numbers out of order or twice are refused, as no machine writes them. */
+	static function decodeChain(digits:String):Null<Array<Int>> {
+		final chain = [for (digit in digits.split("")) Std.parseInt(digit) - 1];
+		for (index in 1...chain.length) if (chain[index] <= chain[index - 1]) return null;
+		return chain;
+	}
+
+	/** One pattern: rows, volumes, mutes and sounds; null unless every part is there and well formed. */
+	static function decodePattern(packed:String):Null<Pattern> {
+		final shape = patternShape();
+		if (!shape.match(packed)) return null;
+		return decodeTracks(shape.matched(1).split(ROW_SEPARATOR), [for (group in 2...5) shape.matched(group)]);
+	}
+
+	/** The overall shape of one pattern; the row details are checked row by row. */
+	static function patternShape():EReg {
 		final voices = Kit.VOICES.length;
-		final number = "(\\d{1,3})";
 		final rows = '([0-9a-f${NUDGE_DIGITS}${ROW_SEPARATOR}]+)';
 		final sound = '[$PITCH_DIGITS][0-9a-f]{$LENGTH_DIGITS}[$DIAL_DIGITS]{${Kit.MOST_DIALS}}';
-		final parts = [VERSION, number, number, number, number, rows, '([0-9a-f]{${voices * VOLUME_DIGITS}})', '([01]{$voices})', '((?:$sound){$voices})'];
+		final parts = [rows, '([0-9a-f]{${voices * VOLUME_DIGITS}})', '([01]{$voices})', '((?:$sound){$voices})'];
 		return new EReg("^" + parts.join("\\" + SEPARATOR) + "$", "");
 	}
 

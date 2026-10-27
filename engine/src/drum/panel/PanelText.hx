@@ -53,6 +53,14 @@ class PanelText {
 		return '$trackName step ${stepIndex + 1}$details';
 	}
 
+	/** "Pattern 3", then what a screen reader needs beyond its pressed state (in the chain): "Pattern 3, playing, next, empty". */
+	public static function patternLabel(state:MachineState, pattern:Int):String {
+		final shown = state.pattern == pattern ? (state.playing ? ", playing" : ", shown") : "";
+		final next = state.nextPattern == pattern ? ", next" : "";
+		final empty = state.patternHasSteps[pattern] ? "" : ", empty";
+		return 'Pattern ${pattern + 1}$shown$next$empty';
+	}
+
 	public static function flipLabel(trackName:String, stepIndex:Int):String {
 		return 'Play $trackName step ${stepIndex + 1} backwards';
 	}

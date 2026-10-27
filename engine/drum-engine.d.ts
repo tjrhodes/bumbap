@@ -55,9 +55,18 @@ export interface MachineState {
 	readonly drive: number;
 	/** Reverb mix, 0–100. */
 	readonly reverb: number;
-	/** The pattern as a URL-safe code, ready for location.hash. */
+	/** The whole machine (all eight patterns and the chain) as a URL-safe code, ready for location.hash. */
 	readonly code: string;
+	/** The parts of the pattern shown: the one playing, or when stopped the one on the keys. */
 	readonly tracks: readonly TrackState[];
+	/** Which pattern that is, 0–7. */
+	readonly pattern: number;
+	/** The chained patterns, in number order; never empty. */
+	readonly chain: readonly number[];
+	/** The pattern waiting for the end of the bar, or -1. */
+	readonly nextPattern: number;
+	/** For each of the eight patterns, whether any of its steps plays. */
+	readonly patternHasSteps: readonly boolean[];
 }
 
 export interface MachineOptions {
@@ -96,7 +105,27 @@ export declare const PanelText: {
 	stepLabel(trackName: string, stepIndex: number, step: StepState): string;
 	flipLabel(trackName: string, stepIndex: number): string;
 	dialLabel(track: TrackState, slot: number): string;
+	/** "Pattern 3", then ", playing" / ", shown", ", next", ", empty" as they apply. */
+	patternLabel(state: MachineState, pattern: number): string;
 };
+
+/**
+ * The pattern buttons' gestures, shared by every build: forward the events, the pad calls the machine.
+ * A click chooses (Shift: chains); holding one button and tapping others chains them; a drag onto another copies.
+ */
+export declare class PatternPad {
+	/** What `patternAt` gives where there is no pattern button. */
+	static readonly NONE: number;
+	/** The pattern button (`[data-pattern]`) under a point on the page, or NONE. */
+	static patternAt(x: number, y: number): number;
+	constructor(machine: DrumMachine);
+	/** pointerdown on a pattern button. */
+	press(pointerId: number, pattern: number): void;
+	/** pointerup or pointercancel anywhere: pass `PatternPad.patternAt(x, y)` (or NONE when cancelled). */
+	release(pointerId: number, under: number): void;
+	/** click on a pattern button (from the mouse, touch or keyboard). */
+	click(pattern: number, shift: boolean): void;
+}
 
 export declare class DrumMachine {
 	static readonly limits: {
@@ -153,9 +182,17 @@ export declare class DrumMachine {
 	setSwing(percent: number): void;
 	setDrive(percent: number): void;
 	setReverb(percent: number): void;
-	/** Empties the grid; tempo, swing, effects and the mix are kept. */
+	/** Empties the grid of the pattern shown; tempo, swing, effects and the mix are kept. */
 	clear(): void;
-	/** Restores a shared pattern; false (and no change) if the code is invalid. */
+	/** Just this pattern (0–7) from now on; while playing, it takes over at the end of the bar. */
+	choosePattern(index: number): void;
+	/** Adds one pattern to the chain or takes it out; the chain keeps at least one. */
+	toggleInChain(index: number): void;
+	/** Exactly these patterns in the chain, played in number order. */
+	chainPatterns(indexes: readonly number[]): void;
+	/** Copies one pattern (steps and part sounds) over another. */
+	copyPattern(from: number, to: number): void;
+	/** Restores a shared machine (a bümbap 1 link opens as pattern 1); false (and no change) if the code is invalid. */
 	loadCode(code: string): boolean;
 	/** Stops, releases audio resources and forgets every listener. */
 	dispose(): void;

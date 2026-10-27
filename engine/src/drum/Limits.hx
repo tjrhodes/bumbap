@@ -8,6 +8,9 @@ class Limits {
 	/** One bar of sixteenth notes. */
 	public static inline final STEPS = 16;
 
+	/** Patterns the machine holds, each one bar long (version 2). */
+	public static inline final PATTERNS = 8;
+
 	/** The resolution of a nudge: a beat is split into 384 ticks. */
 	public static inline final TICKS_PER_BEAT = 384;
 

@@ -10,6 +10,7 @@ drum.DrumMachine
 drum.panel.PanelText
 drum.panel.SevenSegmentFont
 drum.panel.ShareLink
+drum.panel.PatternPad
 
 # Haxe writes a classic script; this turns it into an ES module.
 --cmd node tools/to-es-module.mjs dist/drum-engine.haxe.js dist/drum-engine.js

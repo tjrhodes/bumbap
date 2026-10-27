@@ -65,6 +65,11 @@ class SampleBank {
 		});
 	}
 
+	/** Downloads and decodes a recording now, so a pattern that uses it later plays it straight away. */
+	public function preload(sampleName:String):Promise<Void> {
+		return fetch(sampleName).then(_ -> null);
+	}
+
 	/** Plays one hit; a voice whose recording has not loaded yet stays silent. */
 	public function play(voiceId:String, hit:HitRequest) {
 		final sample = current[voiceId];

@@ -2,6 +2,7 @@ import Check.test;
 import drum.DrumMachine;
 import drum.panel.PanelText;
 import drum.panel.SevenSegmentFont;
+import drum.panel.PatternPad;
 import drum.panel.ShareLink;
 
 /** The words and the display font every front end shares. */
@@ -11,7 +12,11 @@ class PanelTests {
 			test("the display right-aligns four characters", displayCharacters),
 			test("the display texts read like the panel", displayTexts),
 			test("step labels say what a screen reader needs", stepLabels),
-			test("a shared link is the page with the beat at its end", sharedAddress)
+			test("a shared link is the page with the beat at its end", sharedAddress),
+			test("pattern buttons say whether they play, wait or are empty", patternLabels),
+			test("a click chooses a pattern; a shift-click chains it", padClicks),
+			test("holding one button and tapping others chains them; the taps are not also clicks", padHolds),
+			test("dragging one button onto another copies the pattern, and is not also a click", padDrags)
 		];
 	}
 
@@ -43,5 +48,57 @@ class PanelTests {
 		Check.equal(ShareLink.addressWith(lab, "5.100"), '$lab#5.100', "the code becomes the ending");
 		Check.equal(ShareLink.addressWith('$lab#5.90', "5.100"), '$lab#5.100', "an older beat is replaced");
 		Check.equal(ShareLink.addressWith('$lab#results', "5.100"), '$lab#5.100', "and so is a link to a section");
+	}
+
+	static function patternLabels() {
+		final machine = new DrumMachine({tone: new FakeTone().api, samplesUrl: "/"});
+		machine.toggleInChain(2);
+		Check.equal(PanelText.patternLabel(machine.getState(), 0), "Pattern 1, shown", "the one on the keys");
+		Check.equal(PanelText.patternLabel(machine.getState(), 2), "Pattern 3, empty", "chained shows as pressed, not in words");
+	}
+
+	static function padClicks() {
+		final pad = new PatternPad(machineWithPad());
+		pad.click(3, false);
+		Check.equal(machineState().pattern, 3, "a click chooses");
+		pad.click(5, true);
+		Check.equal(Std.string(machineState().chain), "[3,5]", "a shift-click chains");
+	}
+
+	static function padHolds() {
+		final pad = new PatternPad(machineWithPad());
+		pad.press(1, 2);
+		pad.press(2, 6);
+		pad.release(2, 6);
+		pad.press(3, 4);
+		pad.release(3, 4);
+		Check.equal(Std.string(machineState().chain), "[2,4,6]", "held 3, tapped 7 and 5");
+		pad.click(6, false);
+		pad.release(1, 2);
+		pad.click(2, false);
+		Check.equal('${machineState().pattern} ${machineState().chain}', "0 [2,4,6]", "no click chose anything");
+	}
+
+	static function padDrags() {
+		final pad = new PatternPad(machineWithPad());
+		pad.press(1, 0);
+		pad.release(1, 5);
+		pad.click(0, false);
+		Check.equal(Std.string(machineState().patternHasSteps.slice(4, 6)), "[false,true]", "pattern 1 copied onto 6");
+		Check.equal(Std.string(machineState().chain), "[0]", "and the drag was not a click on 1");
+		pad.press(1, 3);
+		pad.release(1, PatternPad.NONE);
+		Check.isTrue(!machineState().patternHasSteps[3], "let go off the buttons: nothing copied");
+	}
+
+	static var padMachine:DrumMachine;
+
+	static function machineWithPad():DrumMachine {
+		padMachine = new DrumMachine({tone: new FakeTone().api, samplesUrl: "/"});
+		return padMachine;
+	}
+
+	static function machineState() {
+		return padMachine.getState();
 	}
 }

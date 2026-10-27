@@ -1,3 +1,5 @@
+using StringTools;
+
 import Check.test;
 import drum.Kit;
 import drum.Limits;
@@ -6,7 +8,9 @@ import drum.PatternCode;
 import drum.Step;
 import drum.StepRow;
 import drum.Timing;
+import drum.Patterns;
 import drum.State.Pattern;
+import drum.State.SavedMachine;
 import drum.audio.HitShape;
 import drum.audio.HitShape.HitPlan;
 import drum.audio.Saturation;
@@ -50,9 +54,12 @@ class ModelTests {
 
 	static function codeTests():Array<Check.Test> {
 		return [
-			test("a URL code rebuilds the exact pattern", codeRoundTrip),
+			test("a URL code rebuilds the exact patterns, the chain and the pattern shown", codeRoundTrip),
 			test("bad URL codes are refused, not misread", badCodesRefused),
-			test("out-of-range numbers in a code are clamped", codeClamps)
+			test("a chain out of order, twice over or past 8 is refused", badChainsRefused),
+			test("out-of-range numbers in a code are clamped", codeClamps),
+			test("a blank pattern costs one character in a link", blankPatternsCostNothing),
+			test("a bümbap 1 link still opens, as pattern 1", oneLinksStillOpen)
 		];
 	}
 
@@ -210,25 +217,32 @@ class ModelTests {
 	// ── The URL code ──────────────────────────────────────────────────
 
 	static function codeRoundTrip() {
-		final code = PatternCode.encode(examplePattern());
+		final code = PatternCode.encode(exampleMachine());
 		final decoded = PatternCode.decode(code);
 		Check.equal(PatternCode.encode(decoded), code, "encode → decode → encode is stable");
 		Check.equal('${decoded.tempo} ${decoded.swing} ${decoded.drive} ${decoded.reverb}', "133 66 40 25", "machine settings");
-		Check.equal(StepRow.print(decoded.tracks[0].steps), "x..X....o.x....x", "first row, incl. step 16");
-		Check.equal('${decoded.tracks[0].steps[10].velocity} ${decoded.tracks[0].steps[10].reversed}', "61 true", "an odd velocity, reversed");
-		Check.isTrue(!decoded.tracks[0].steps[0].reversed, "forwards stays forwards");
-		Check.equal('${decoded.tracks[0].steps[0].nudge} ${decoded.tracks[0].steps[15].nudge}', "-16 16", "nudges at both ends");
-		Check.equal(decoded.tracks[2].volume, 100, "volume");
-		Check.equal('${decoded.tracks[1].pitch} ${decoded.tracks[3].pitch} ${decoded.tracks[0].length}', "-12 12 5", "pitch both ways, shortest length");
-		Check.equal(decoded.tracks[0].dials.join(","), "4,0", "the kick's 808 knobs");
-		Check.isTrue(decoded.tracks[2].muted, "mute");
+		Check.equal('${decoded.shown} ${decoded.chain.join(",")}', "7 0,2,7", "the pattern shown and the chain");
+		Check.isTrue(!Patterns.hasSteps(decoded.patterns[2]), "a blank pattern comes back blank");
+		Check.equal(StepRow.print(decoded.patterns[0][1].steps), "....x.......x...", "pattern 1");
+		checkUnusualPattern(decoded.patterns[7]);
+	}
+
+	/** Pattern 8 of the example, after its trip through a code: every unusual value intact. */
+	static function checkUnusualPattern(tracks:Pattern) {
+		Check.equal(StepRow.print(tracks[0].steps), "x..X....o.x....x", "first row, incl. step 16");
+		Check.equal('${tracks[0].steps[10].velocity} ${tracks[0].steps[10].reversed}', "61 true", "an odd velocity, reversed");
+		Check.isTrue(!tracks[0].steps[0].reversed, "forwards stays forwards");
+		Check.equal('${tracks[0].steps[0].nudge} ${tracks[0].steps[15].nudge}', "-16 16", "nudges at both ends");
+		Check.equal('${tracks[2].volume} ${tracks[1].pitch} ${tracks[3].pitch} ${tracks[0].length}', "100 -12 12 5", "volume, pitch both ways, shortest length");
+		Check.equal(tracks[0].dials.join(","), "4,0", "the kick's 808 knobs");
+		Check.isTrue(tracks[2].muted, "mute");
 	}
 
 	static function badCodesRefused() {
-		final valid = PatternCode.encode(examplePattern());
-		for (bad in [null, "", "4" + valid.substr(1), valid.substr(0, valid.length - 1), valid + "0"])
+		final valid = PatternCode.encode(exampleMachine());
+		for (bad in [null, "", "4" + valid.substr(1), valid.substr(0, valid.length - 1), valid + "0", valid + "-"])
 			Check.equal(PatternCode.decode(bad), null, 'refused: ${bad == null ? "null" : bad.substr(0, 12) + "…"}');
-		Check.equal(PatternCode.decode(valid.split("_").slice(1).join("_")), null, "a row missing");
+		Check.equal(PatternCode.decode(withLastPattern(valid, packed -> packed.split("_").slice(1).join("_"))), null, "a row missing");
 		Check.equal(PatternCode.decode(withSecondRow(valid, row -> row + "4b60")), null, "a hit the mask does not mention");
 		Check.equal(PatternCode.decode(withSecondRow(valid, row -> row + "4bz0")), null, "a nudge digit out of range");
 		Check.equal(PatternCode.decode(withSecondRow(valid, row -> row.substr(0, row.length - 1) + "2")), null, "a direction that is not 0 or 1");
@@ -237,8 +251,16 @@ class ModelTests {
 		Check.isTrue(PatternCode.decode(valid.toUpperCase()) != null, "case does not matter");
 	}
 
+	static function badChainsRefused() {
+		final valid = PatternCode.encode(exampleMachine());
+		final withHeader = (shown:String, chain:String) -> valid.replace(".8.138-", '.$shown.$chain-');
+		Check.isTrue(PatternCode.decode(withHeader("8", "138")) != null, "the example itself is fine");
+		for (bad in [["8", "31"], ["8", "113"], ["8", "19"], ["0", "1"], ["9", "1"], ["8", ""]])
+			Check.equal(PatternCode.decode(withHeader(bad[0], bad[1])), null, 'refused: shown ${bad[0]}, chain "${bad[1]}"');
+	}
+
 	static function codeClamps() {
-		final code = PatternCode.encode(examplePattern()).split(".");
+		final code = PatternCode.encode(exampleMachine()).split(".");
 		code[1] = "999";
 		code[2] = "10";
 		final decoded = PatternCode.decode(code.join("."));
@@ -246,17 +268,51 @@ class ModelTests {
 		Check.equal(decoded.swing, Limits.SWING.min, "swing floored");
 	}
 
-	/** The code with its second step row changed, to make one precise kind of damage. */
+	static function blankPatternsCostNothing() {
+		final code = PatternCode.encode(exampleMachine());
+		Check.equal(code.split("-").length, Limits.PATTERNS + 1, "the settings, then one place per pattern");
+		Check.equal([for (packed in code.split("-")) packed == "" ? "." : "x"].join(""), "xx......x", "only the used ones take space");
+	}
+
+	/** The beat a bümbap 1 link carried: the starter beat with the kick on step 3 too, exactly as the live site wrote it. */
+	static function oneLinksStillOpen() {
+		final oldLink = "5.100.50.0.0.044564g055g055g064g0_901064g064g032g0_100055g0_555555g032g055g032g055g032g055g032g0"
+			+ "_400055g0_0000_0000_208032g055g0.5050505050505050.00000000.c6412c6422c6400c6400c6420c6420c6420c6400";
+		final opened = PatternCode.decode(oldLink);
+		Check.equal(StepRow.print(opened.patterns[0][0].steps).substr(0, 4), "X.x.", "pattern 1 is the old beat");
+		Check.equal('${opened.shown} ${opened.chain.join(",")}', "0 0", "shown and chained on its own");
+		Check.isTrue(!Lambda.exists(opened.patterns.slice(1), Patterns.hasSteps), "the other seven are blank");
+		Check.equal(opened.tempo, 100, "with its tempo");
+	}
+
+	/** The code with its last pattern changed, to make one precise kind of damage. */
+	static function withLastPattern(code:String, damage:String->String):String {
+		final patterns = code.split("-");
+		patterns[patterns.length - 1] = damage(patterns[patterns.length - 1]);
+		return patterns.join("-");
+	}
+
+	/** The code with the second step row of its last pattern changed. */
 	static function withSecondRow(code:String, damage:String->String):String {
-		final parts = code.split(".");
-		final rows = parts[5].split("_");
-		rows[1] = damage(rows[1]);
-		parts[5] = rows.join("_");
-		return parts.join(".");
+		return withLastPattern(code, packed -> {
+			final columns = packed.split(".");
+			final rows = columns[0].split("_");
+			rows[1] = damage(rows[1]);
+			columns[0] = rows.join("_");
+			return columns.join(".");
+		});
+	}
+
+	/** Pattern 1 a small groove, pattern 8 the unusual one, the rest blank; 1, 3 and 8 chained, 8 shown. */
+	static function exampleMachine():SavedMachine {
+		final first = Patterns.blank();
+		first[1] = {steps: StepRow.parse("....x.......x..."), volume: 80, muted: false, pitch: 0, length: 100, dials: [2, 2]};
+		final patterns = [for (index in 0...Limits.PATTERNS) index == 0 ? first : (index == 7 ? exampleTracks() : Patterns.blank())];
+		return {tempo: 133, swing: 66, drive: 40, reverb: 25, patterns: patterns, shown: 7, chain: [0, 2, 7]};
 	}
 
 	/** A pattern with something unusual on every axis, to catch packing mistakes. */
-	static function examplePattern():Pattern {
+	static function exampleTracks():Pattern {
 		final rows = ["x..X....o.x....x", "....x.......x...", "x.x.x.x.x.x.x.x."];
 		final tracks = [for (index in 0...Kit.VOICES.length) {
 			steps: StepRow.parse(index < rows.length ? rows[index] : ""),
@@ -269,6 +325,6 @@ class ModelTests {
 		tracks[0].steps[0] = Step.hit(75, -16);
 		tracks[0].steps[10] = Step.hit(61, 3, true);
 		tracks[0].steps[15] = Step.hit(75, 16);
-		return {tempo: 133, swing: 66, drive: 40, reverb: 25, tracks: tracks};
+		return tracks;
 	}
 }

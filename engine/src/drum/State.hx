@@ -32,9 +32,17 @@ typedef MachineSettings = {
 	final reverb:Int;
 }
 
-/** Everything the URL code stores: enough to rebuild the groove exactly. */
-typedef Pattern = MachineSettings & {
-	final tracks:Array<TrackSettings>;
+/** One of the eight patterns: every part's steps and sound, one entry per part. */
+typedef Pattern = Array<TrackSettings>;
+
+/** Everything a link stores: enough to rebuild the machine exactly. */
+typedef SavedMachine = MachineSettings & {
+	/** All eight, in order; the one shown is as it stands now. */
+	final patterns:Array<Pattern>;
+	/** The pattern on the keys, 0–7. */
+	final shown:Int;
+	/** The chained patterns, in number order; never empty. */
+	final chain:Array<Int>;
 }
 
 /** A track as the UI sees it: its settings plus what to call things. */
@@ -61,7 +69,16 @@ enum abstract LoadStatus(String) to String {
 typedef MachineState = MachineSettings & {
 	final status:LoadStatus;
 	final playing:Bool;
-	/** The current pattern as a URL-safe code, ready for location.hash. */
+	/** The whole machine as a URL-safe code, ready for location.hash. */
 	final code:String;
+	/** The parts of the pattern shown: the one playing, or when stopped the one on the keys. */
 	final tracks:Array<TrackState>;
+	/** Which pattern that is, 0–7. */
+	final pattern:Int;
+	/** The chained patterns, in number order; never empty. */
+	final chain:Array<Int>;
+	/** The pattern waiting for the end of the bar, or -1. */
+	final nextPattern:Int;
+	/** For each of the eight patterns, whether any of its steps plays. */
+	final patternHasSteps:Array<Bool>;
 }
