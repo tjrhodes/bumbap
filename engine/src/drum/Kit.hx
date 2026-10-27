@@ -44,9 +44,12 @@ class Kit {
 	/** The most 808 knobs any part has; the URL code keeps room for this many. */
 	public static inline final MOST_DIALS = 2;
 
-	/** The recording for these knob positions, e.g. "BD2550". */
+	/**
+	 * The recording for these knob positions, e.g. "BD2550". Only the voice's own knobs count: a link keeps
+	 * room for two on every part, so the clap arrives with two it does not have.
+	 */
 	public static function sampleName(voice:Voice, positions:Array<Int>):String {
-		return voice.sampleCode + [for (position in positions) DIAL_DIGITS[position]].join("");
+		return voice.sampleCode + [for (dial in 0...voice.dials.length) DIAL_DIGITS[positions[dial]]].join("");
 	}
 
 	static function voice(id:String, name:String, sampleCode:String, dials:Array<DialSpec>, starterRow:String):Voice {

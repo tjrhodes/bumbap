@@ -151,6 +151,7 @@ class PatternTests {
 		setup.machine.loadCode(sender.getState().code);
 		return setup.machine.load().then(_ -> {
 			Check.isTrue(setup.tone.loads.contains("/samples/BD2500.wav"), "pattern 7's kick, though pattern 1 is shown");
+			Check.isTrue(setup.tone.loads.contains("/samples/CP.wav") && !setup.tone.loads.contains("/samples/CP0000.wav"), "the clap, which has no knobs, is just CP");
 		});
 	}
 
