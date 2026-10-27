@@ -21,15 +21,17 @@ part's sixteen steps are shown at a time; a part selector chooses which.
 | Display | Four-digit seven-segment display. Shows the tempo; while something is changed it shows that value for 1.2 s: S swing, d drive, r reverb, L level, P pitch, E length, u step velocity, n step nudge; an 808 knob shows the recording's setting digits (e.g. 2550). "LoAd" while loading, "Err" if the samples fail. |
 | Machine knobs | Tempo 60–200 BPM (100). Swing 50–75 % (50; MPC-style, 66 is a triplet shuffle). Drive 0–100 (0). Reverb 0–100 (0). Drag up/right, scroll, arrow keys, Home/End; double-click resets. |
 | Part knobs | For the selected part: Level 0–100 (80); Pitch ±12 semitones (0; a playback rate, so higher is also shorter, like a sampler); Length 5–100 % (100; how much of the sound is heard before it has faded out). A framed "808" group holds the part's real 808 knobs, which choose between the set's recordings: Kick Tone + Decay, Snare Tone + Snappy, Open hat Decay, Low/High tom Tuning; five detents each (the set's 00, 25, 50, 75, 10); clap, closed hat and rim have none, so the slots sit dimmed. A new recording loads the first time it is chosen; the part plays its old one until then. |
-| Buttons | Play/Stop (LED), Clear (empties every step; tempo, swing, effects and part settings stay). An M tab above each part button mutes that part without selecting it. Space toggles play when focus is not on a control. |
+| Buttons | Play/Stop (LED), Clear (empties every step of the pattern shown; tempo, swing, effects and part settings stay). An M tab above each part button mutes that part without selecting it. Space toggles play when focus is not on a control. |
 | Drive | Warm valve-style overdrive on the whole kit: asymmetric tanh soft clip (even harmonics), a low-pass that closes as drive rises, and a trim so the knob changes character more than loudness. |
 | Reverb | A 2.2 s room on the whole kit, after the drive; 100 % is as loud as the dry kit. |
 | Safety | A soft clipper at the end of the chain: the output never passes full scale, however many accents land together. |
-| Share | The whole pattern, including every step's level and nudge, lives in the URL hash. The share button (top right) copies that link, or offers it through the share sheet on a touch screen; in a frame on a page of the same site (the Lab page), the link is to that page. |
+| Patterns (v2) | Eight pattern buttons, in the gap right of the 808 knobs (their own row on a phone). Each holds a whole pattern: every part's steps (level, nudge, flip) and its level, mute, pitch, length and 808 knobs. Tempo, swing, drive and reverb stay global. Pattern 1 starts as the starter beat, 2–8 empty. **Tap** a button: just that pattern plays from then on; while playing, the change waits for the end of the bar (the button blinks meanwhile). **Shift+click**, or **hold one button and tap others** on a touch screen: adds or takes out patterns from the chain. The chain is any set, played in number order and round again (1, 3, 6 → 1 → 3 → 6 → 1…); it always keeps at least one. **Drag** one button onto another: copies the pattern there. Chained buttons are half lit; the pattern playing (or, stopped, the one on the keys) is fully lit, with a glow. The keys and part controls always show the pattern playing, so you see and edit what you hear. Play starts on the pattern shown if it is in the chain, otherwise on the chain's first. Empty patterns' numbers are dimmed. |
+| Share | The whole machine (all eight patterns, the chain and the pattern shown, with every step's level and nudge), including every step's level and nudge, lives in the URL hash. The share button (top right) copies that link, or offers it through the share sheet on a touch screen; in a frame on a page of the same site (the Lab page), the link is to that page. |
 | Start | With no code in the URL, a starter beat with accents and ghost notes is loaded. |
 | Loading | Panel usable at once; Play is disabled until the samples are decoded. |
 
-Out of scope: more bars, pattern chaining, recording, sample upload, MIDI.
+Out of scope: more than one bar per pattern, recording, sample upload, MIDI. (Pattern chaining was out of
+scope for version 1; version 2 adds it, and measures what the feature cost each build.)
 Five small finished builds beat five big unfinished ones.
 
 ## 2. The shared parts (identical in every build)
@@ -76,7 +78,11 @@ machine.setDrive(percent); machine.setReverb(percent);
 machine.setVolume(track, percent); machine.toggleMute(track);
 machine.setPitch(track, semitones); machine.setLength(track, percent);
 machine.setDial(track, dial, position);           // an 808 knob, 0–4: picks another recording
-machine.clear();
+machine.clear();                                  // the steps of the pattern shown
+machine.choosePattern(index);                     // 0–7: only this one; playing, it takes over at the end of the bar
+machine.toggleInChain(index);                     // adds or takes out one pattern (shift+click)
+machine.chainPatterns(indexes);                   // exactly these, in number order (hold one, tap others)
+machine.copyPattern(from, to);                    // drag one button onto another
 machine.loadCode(code);      // true if the URL code was valid and applied
 machine.dispose();           // stops and releases the clock and the audio graph
 
@@ -84,13 +90,20 @@ DrumMachine.limits           // { steps, ticksPerBeat, tempo, swing, volume, vel
 ```
 
 `MachineState` is `{ status, playing, tempo, swing, drive, reverb, code,
-tracks[] }`, each track `{ id, name, volume, muted, pitch, length, dials[],
+tracks[], pattern, chain[], nextPattern, patternHasSteps[] }` (v2: `pattern` is the one shown, 0–7; `chain` its
+members in number order; `nextPattern` the one waiting for the end of the bar, or -1), each track `{ id, name, volume, muted, pitch, length, dials[],
 dialNames[], sample, steps[] }` (`sample` is the chosen recording, e.g. "BD2550"), each step
 `{ on, velocity, nudge, reversed }`. A new snapshot object is made on every change and
 the same object is returned until the next one, so it works as-is with
 React's `useSyncExternalStore`, Vue's `shallowRef` and Angular signals.
 Values handed in are clamped and rounded by the engine, so a UI can pass raw
 drag maths straight through.
+
+**The pattern buttons' gestures (v2)** are shared too, in the engine's `PatternPad`: it turns a button's
+presses, releases and clicks into the machine calls above (a tap chooses, shift+click or hold-and-tap
+chains, a drag copies). Each build only renders the eight buttons from the snapshot and forwards three
+events: `pad.press(pointerId, index)`, `pad.release(pointerId, PatternPad.patternAt(x, y))` and
+`pad.click(index, shiftKey)`. Keyboard users get the click alone, so Enter and Shift+Enter work too.
 
 **Two channels on purpose.** Pattern edits come through `subscribe`; the
 playhead comes through `onStep`, up to ~13 times a second at 200 BPM. How each
@@ -137,6 +150,17 @@ UI is signed off.
           <span class="dm-print dm-dials-label">808</span>
           <div class="dm-unit"><span class="dm-print">Tone</span><div class="dm-knob dm-knob-808" role="slider" …></div></div>
           <!-- two slots; a part without that knob: .dm-unit.is-unused, label "—", aria-disabled -->
+        </div>
+        <div class="dm-patterns" role="group" aria-label="Patterns">   <!-- v2 -->
+          <span class="dm-print dm-dials-label">Pattern</span>
+          <div class="dm-pattern-row">
+            <button class="dm-pattern is-used" data-pattern="0" aria-pressed="true" aria-current="true"
+                    aria-label="Pattern 1">1</button>
+            <!-- …8 buttons. aria-pressed: in the chain (half lit); aria-current: playing or shown (fully lit);
+                 .is-next: waiting for the end of the bar (blinks); .is-used: has steps -->
+          </div>
+          <p class="dm-print dm-pattern-hint"><span class="for-mouse">Shift-click to chain · drag to copy</span>
+            <span class="for-touch">Hold and tap to chain · drag to copy</span></p>
         </div>
       </div>
       <div class="dm-pills" role="group" aria-label="Part">
