@@ -179,8 +179,8 @@ test.describe("sharing", () => {
 	});
 });
 
-test.describe("patterns (v2)", () => {
-	test("eight buttons: pattern 1 shown and chained, the others empty", async ({ panel }) => {
+test.describe("the sequence (v2)", () => {
+	test("eight pattern buttons: pattern 1 shown and in the sequence, the others empty", async ({ panel }) => {
 		await expect(panel.page.locator(".dm-pattern")).toHaveCount(8);
 		await expect(panel.pattern(1)).toHaveAttribute("aria-current", "true");
 		await expect(panel.pattern(1)).toHaveAttribute("aria-pressed", "true");
@@ -201,7 +201,7 @@ test.describe("patterns (v2)", () => {
 		await expect(panel.pattern(2)).toHaveClass(/is-used/);
 	});
 
-	test("shift-click chains patterns, and the chain plays them in turn", async ({ panel }) => {
+	test("shift-click adds a pattern to the sequence, and the sequence plays in turn", async ({ panel }) => {
 		await panel.pattern(3).click({ modifiers: ["Shift"] });
 		await expect(panel.pattern(3)).toHaveAttribute("aria-pressed", "true");
 		await expect(panel.pattern(1)).toHaveAttribute("aria-pressed", "true");
@@ -229,7 +229,7 @@ test.describe("patterns (v2)", () => {
 		await expect(panel.key(1)).toHaveAttribute("aria-pressed", "true");
 	});
 
-	test("on a touch screen, holding one button and tapping others chains them", async ({ panel }) => {
+	test("on a touch screen, holding one button and tapping others sequences them", async ({ panel }) => {
 		await panel.touch(1, "down", panel.pattern(2));
 		await panel.touch(2, "down", panel.pattern(5));
 		await panel.touch(2, "up", panel.pattern(5));
@@ -239,7 +239,7 @@ test.describe("patterns (v2)", () => {
 		await expect(panel.pattern(1)).toHaveAttribute("aria-current", "true");
 	});
 
-	test("a link carries every pattern and the chain; a bümbap 1 link opens as pattern 1", async ({ panel, page, browser }) => {
+	test("a link carries every pattern and the sequence; a bümbap 1 link opens as pattern 1", async ({ panel, page, browser }) => {
 		await panel.pattern(2).click();
 		await panel.key(5).click();
 		await panel.pattern(6).click({ modifiers: ["Shift"] });
@@ -252,6 +252,39 @@ test.describe("patterns (v2)", () => {
 		await third.open(ONE_PATTERN_LINK);
 		await expect(third.key(3)).toHaveAttribute("aria-pressed", "true");
 		await expect(third.pattern(2)).toHaveAttribute("aria-label", "Pattern 2, empty");
+	});
+});
+
+test.describe("the sequence's tools (v2)", () => {
+	test("Select: patterns tapped in order make the sequence, each showing its places", async ({ panel }) => {
+		await panel.tool("select").click();
+		await expect(panel.tool("select")).toHaveAttribute("aria-pressed", "true");
+		for (const number of [3, 1, 3]) await panel.pattern(number).click();
+		await expect(panel.pattern(3).locator(".dm-pattern-places")).toHaveText("1 3");
+		await expect(panel.pattern(1).locator(".dm-pattern-places")).toHaveText("2");
+		await expect(panel.pattern(1)).toHaveAttribute("aria-current", "true");
+		await panel.tool("select").click();
+		await expect(panel.pattern(3).locator(".dm-pattern-places")).toHaveText("");
+		await expect(panel.pattern(3)).toHaveAttribute("aria-pressed", "true");
+	});
+
+	test("Copy: the first tap picks a pattern, the second copies it there", async ({ panel }) => {
+		await panel.tool("copy").click();
+		await panel.pattern(1).click();
+		await expect(panel.pattern(1)).toHaveClass(/is-copy-source/);
+		await expect(panel.page.locator(".dm-pattern-hint .for-mouse")).toHaveText("Now tap where pattern 1 goes");
+		await panel.pattern(5).click();
+		await expect(panel.pattern(5)).toHaveAttribute("aria-label", "Pattern 5");
+		await expect(panel.tool("copy")).toHaveAttribute("aria-pressed", "false");
+		await expect(panel.pattern(1)).toHaveAttribute("aria-current", "true");
+	});
+
+	test("Clear: a tap empties that pattern", async ({ panel }) => {
+		await panel.tool("clear").click();
+		await panel.pattern(1).click();
+		await expect(panel.key(1)).toHaveAttribute("aria-pressed", "false");
+		await expect(panel.pattern(1)).toHaveAttribute("aria-label", "Pattern 1, shown, empty");
+		await expect(panel.tool("clear")).toHaveAttribute("aria-pressed", "false");
 	});
 });
 

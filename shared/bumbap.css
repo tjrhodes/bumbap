@@ -92,13 +92,26 @@ body { background: var(--rock); color: var(--stone); font-family: var(--body); f
 	background: var(--crevice); color: var(--lichen); }
 .dm-unit.is-unused { opacity: .3; }
 
-/* ── Patterns (v2): eight buttons in a framed group, beside the 808 knobs on wide screens, a row of their own
-      on a phone. Half lit: in the chain. Fully lit, with a glow: playing (or, stopped, on the keys).
-      Blinking: waiting for the end of the bar. Dim number: nothing in it yet. ── */
+/* ── The sequence (v2): eight pattern buttons in a framed group, beside the 808 knobs on wide screens, a row of
+      their own on a phone. Half lit: in the sequence. Fully lit, with a glow: playing (or, stopped, on the keys).
+      Blinking: waiting for the end of the bar. Dim number: nothing in it yet. On the frame, the title and three
+      small tools (Select, Copy, Clear); with Select on, each button shows its places in the sequence. ── */
 .dm-patterns { position: relative; flex: 1 1 100%; display: grid; align-content: center; gap: 10px;
-	padding: 18px 12px 10px; border: 1px solid var(--hairline); border-radius: 8px; }
+	padding: 22px 12px 10px; border: 1px solid var(--hairline); border-radius: 8px; }
+.dm-sequence-head { position: absolute; top: -10px; left: 50%; translate: -50% 0; display: flex; align-items: center;
+	gap: 6px; padding-inline: 7px; background: var(--crevice); white-space: nowrap; }
+.dm-sequence-title { color: var(--lichen); margin-right: 3px; }
+.dm-tool { height: 19px; padding: 0 7px; border: 0; border-radius: 4px; cursor: pointer; color: var(--ink);
+	font: 700 .56rem/1 var(--display); letter-spacing: .08em; text-transform: uppercase;
+	background: linear-gradient(var(--rubber-light), var(--rubber));
+	box-shadow: 0 2px 0 var(--rubber-shadow), inset 0 1px 0 rgba(255, 255, 255, .6); }
+.dm-tool:active { translate: 0 1px; box-shadow: 0 1px 0 var(--rubber-shadow); }
+.dm-tool[aria-pressed="true"] { background: linear-gradient(#f3e7a8, var(--lichen));
+	box-shadow: 0 2px 0 #86721f, 0 0 10px rgba(233, 201, 58, .55), inset 0 1px 0 rgba(255, 255, 255, .6); }
+.dm-tool:focus-visible { outline: 2px solid var(--stone); outline-offset: 2px; }
 .dm-pattern-row { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
-.dm-pattern { --lit: rgba(233, 201, 58, .38); min-width: 0; height: 40px; border-radius: 8px; cursor: pointer;
+.dm-pattern { --lit: rgba(233, 201, 58, .38); display: grid; place-content: center; gap: 2px; min-width: 0; height: 40px;
+	padding: 0; border-radius: 8px; cursor: pointer;
 	border: 1.5px solid rgba(219, 210, 185, .4); background: transparent; color: rgba(219, 210, 185, .45);
 	font: 700 .95rem/1 var(--display); touch-action: none; user-select: none; -webkit-user-select: none;
 	-webkit-touch-callout: none; transition: background-color 120ms, box-shadow 120ms, color 120ms; }
@@ -109,7 +122,10 @@ body { background: var(--rock); color: var(--stone); font-family: var(--body); f
 .dm-pattern.is-next { animation: dm-blink .5s steps(1) infinite; }
 @keyframes dm-blink { 50% { background: var(--lichen); color: var(--crevice); box-shadow: 0 0 14px 3px rgba(233, 201, 58, .55); } }
 .dm-pattern:focus-visible { outline: 2px solid var(--stone); outline-offset: 2px; }
-.dm-pattern-hint { justify-content: center; color: var(--sand); font-size: .58rem; letter-spacing: .1em; }
+.dm-pattern.is-copy-source { outline: 2px dashed var(--lichen); outline-offset: 2px; }
+.dm-pattern-places { font: 700 .52rem/1 var(--display); letter-spacing: .04em; word-spacing: .3em; }
+.dm-pattern-places:empty { display: none; }
+.dm-pattern-hint { justify-content: center; text-align: center; color: var(--sand); font-size: .58rem; letter-spacing: .1em; }
 .dm-pattern-hint .for-touch { display: none; }
 @media (pointer: coarse) {
 	.dm-pattern-hint .for-mouse { display: none; }

@@ -39,6 +39,8 @@ export class Panel {
 	dialSlot(slot: number) { return this.page.locator(".dm-dials .dm-unit").nth(slot); }
 	/** Pattern buttons are counted from 1, as printed on them. */
 	pattern(number: number) { return this.page.locator(`.dm-pattern[data-pattern="${number - 1}"]`); }
+	/** The sequence's small buttons: "select", "copy" or "clear". */
+	tool(name: string) { return this.page.locator(`.dm-tool[data-tool="${name}"]`); }
 
 	/**
 	 * A finger on a touch screen, for gestures a mouse cannot make (holding one button while tapping another):
