@@ -1,5 +1,5 @@
 <!-- The sequence (v2): eight pattern buttons and the Select, Copy and Clear tools beside the title. In the sequence,
-     half lit; playing or shown, fully lit; waiting for the end of the bar, blinking; empty, a dim number; with Select
+     half lit; playing, fully lit; on the keys, a ring; taking over at the end of the bar, blinking; empty, a dim number; with Select
      on, each button's places in the sequence. Taps go to the engine's PatternPad, shared by every build. -->
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from "vue";
@@ -39,7 +39,7 @@ onUnmounted(() => {
 		</div>
 		<div class="dm-pattern-row">
 			<button v-for="index in PATTERNS" :key="index" type="button" :data-pattern="index"
-				:class="['dm-pattern', { 'is-used': state.patternHasSteps[index], 'is-next': state.nextPattern === index, 'is-copy-source': state.copyFrom === index }]"
+				:class="['dm-pattern', { 'is-used': state.patternHasSteps[index], 'is-playing': state.playingPattern === index, 'is-next': state.nextPattern === index, 'is-copy-source': state.copyFrom === index }]"
 				:aria-pressed="state.sequence.includes(index)" :aria-current="state.pattern === index" :aria-label="PanelText.patternLabel(state, index)"
 				@pointerdown="pad.press($event.pointerId, index)" @click="pad.click(index, $event.shiftKey)">
 				<span class="dm-pattern-number">{{ index + 1 }}</span><span class="dm-pattern-places">{{ PanelText.sequencePlaces(state, index) }}</span>

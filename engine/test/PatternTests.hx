@@ -6,7 +6,7 @@ import drum.StepRow;
 import drum.panel.PanelText;
 import js.lib.Promise;
 
-/** Version 2: eight patterns, the sequence that plays them, and the Select, Copy and Clear tools. */
+/** Version 2: eight patterns, any of them on the keys while the sequence plays, and the Select, Copy and Clear tools. */
 class PatternTests {
 	static inline final KICK = 0;
 	static inline final SNARE = 1;
@@ -18,21 +18,20 @@ class PatternTests {
 
 	static function sequenceTests():Array<Check.Test> {
 		return [
-			test("choosing a pattern: stopped it is just chosen, playing it is queued", choosing),
 			test("shift-click adds at the end or takes out, and the last one stays", toggling),
-			test("the sequence plays in its own order, repeats included, from wherever it is", goingRound),
+			test("the sequence plays in its own order, repeats included, from the top", goingRound),
 			test("a sequence set at once keeps its order and drops what does not exist", replacing),
-			test("a queued pattern taken out of the sequence is forgotten", queuedTakenOut)
+			test("edited under the pattern playing: it keeps its turn if it can, else the top comes next", editedWhilePlaying)
 		];
 	}
 
 	static function machineTests():Array<Check.Test> {
 		return [
-			test("pattern 1 is the starter beat and 2–8 are empty", startingPatterns),
-			test("choosing a pattern while stopped shows it; each keeps its own steps and sounds", eachPatternKeepsItsOwn),
+			test("pattern 1 is the starter beat, on the keys and in the sequence; 2–8 are empty", startingPatterns),
+			test("each pattern keeps its own steps and sounds", eachPatternKeepsItsOwn),
 			test("copying a pattern takes its steps and its part sounds", copying),
-			test("a link carries every pattern and the chain", linksCarryEverything),
-			later("loading downloads every pattern's recordings, not just the one shown", loadingEveryPattern)
+			test("a link carries every pattern, the sequence and the pattern on the keys", linksCarryEverything),
+			later("loading downloads every pattern's recordings, not just the one on the keys", loadingEveryPattern)
 		];
 	}
 
@@ -47,23 +46,15 @@ class PatternTests {
 
 	static function playingTests():Array<Check.Test> {
 		return [
-			later("while playing, a chosen pattern waits for the end of the bar", chosenWaitsForTheBar),
-			later("a sequence plays its patterns in turn, and the keys follow on the bar's first heard step", sequencePlaysInTurn),
-			later("Play starts on the sequence's first pattern if the one shown is not in it", playStartsInTheSequence)
+			later("editing another pattern leaves the sequence playing, and hides the playhead from the keys", editingWhilePlaying),
+			later("a new sequence takes over at the end of the bar, its first pattern marked next meanwhile", newSequenceWaitsForTheBar),
+			later("a sequence plays its patterns in turn, each published as its bar is heard", sequencePlaysInTurn),
+			later("Play starts at the top of the sequence, whatever is on the keys", playStartsAtTheTop),
+			later("the sound follows the pattern playing: its steps and its recordings", soundFollowsThePatternPlaying)
 		];
 	}
 
-	// ── The chain on its own ──────────────────────────────────────────
-
-	static function choosing() {
-		final sequence = new Sequence();
-		sequence.choose(3, false);
-		Check.equal('${sequence.patterns} ${sequence.queued}', "[3] -1", "stopped: the sequence is that pattern, nothing queued");
-		sequence.choose(5, true);
-		Check.equal('${sequence.patterns} ${sequence.queued} ${sequence.advance()}', "[5] 5 5", "playing: queued, and next");
-		sequence.choose(0, true);
-		Check.equal(sequence.queued, Sequence.NONE, "choosing the one shown queues nothing");
-	}
+	// ── The sequence on its own ───────────────────────────────────────
 
 	static function toggling() {
 		final sequence = new Sequence();
@@ -80,10 +71,8 @@ class PatternTests {
 	static function goingRound() {
 		final sequence = new Sequence();
 		sequence.replace([0, 2, 0, 5]);
-		final heard = [for (_ in 0...5) sequence.advance()];
-		Check.equal(heard.join(","), "2,0,5,0,2", "after the first: 3, 1 again, 6, then round");
-		sequence.show(4);
-		Check.equal('${sequence.start()} ${sequence.position}', "0 0", "Play from outside the sequence starts at its first");
+		final heard = [sequence.start()].concat([for (_ in 0...5) sequence.advance()]);
+		Check.equal(heard.join(","), "0,2,0,5,0,2", "1, 3, 1 again, 6, then round");
 	}
 
 	static function replacing() {
@@ -96,32 +85,34 @@ class PatternTests {
 		Check.equal(sequence.patterns.length, Sequence.MOST, "at most 16");
 	}
 
-	static function queuedTakenOut() {
+	static function editedWhilePlaying() {
 		final sequence = new Sequence();
-		sequence.choose(4, true);
-		sequence.toggle(2);
-		Check.equal(sequence.queued, 4, "still queued while in the sequence");
-		sequence.toggle(4);
-		Check.equal('${sequence.queued} ${sequence.advance()}', "-1 2", "taken out: forgotten, and the sequence moves on");
+		sequence.replace([0, 1, 2]);
+		sequence.start();
+		sequence.advance();
+		sequence.append(5);
+		Check.equal('${sequence.playing} ${sequence.position} ${sequence.next()}', "1 1 2", "added to: pattern 2 keeps its turn");
+		sequence.replace([3, 4]);
+		Check.equal('${sequence.position} ${sequence.next()} ${sequence.advance()}', "-1 3 3", "replaced: the top comes next");
 	}
 
 	// ── The machine's patterns ────────────────────────────────────────
 
 	static function startingPatterns() {
 		final state = newMachine().machine.getState();
-		Check.equal('${state.pattern} ${state.sequence} ${state.nextPattern} ${state.tool}', "0 [0] -1 ", "pattern 1 shown and in the sequence, no tool on");
+		Check.equal('${state.pattern} ${state.playingPattern} ${state.sequence} ${state.nextPattern} ${state.tool}', "0 -1 [0] -1 ", "pattern 1 on the keys and in the sequence");
 		Check.equal(Std.string(state.patternHasSteps), "[true,false,false,false,false,false,false,false]", "only pattern 1 has steps");
 	}
 
 	static function eachPatternKeepsItsOwn() {
 		final machine = newMachine().machine;
-		machine.choosePattern(2);
+		machine.editPattern(2);
 		Check.equal(StepRow.print(machine.getState().tracks[KICK].steps), "................", "pattern 3 starts empty");
 		machine.toggleStep(KICK, 4);
 		machine.setPitch(SNARE, 7);
-		machine.choosePattern(0);
+		machine.editPattern(0);
 		Check.equal('${machine.getState().tracks[KICK].steps[4].on} ${machine.getState().tracks[SNARE].pitch}', "false 0", "pattern 1 untouched");
-		machine.choosePattern(2);
+		machine.editPattern(2);
 		Check.equal('${machine.getState().tracks[KICK].steps[4].on} ${machine.getState().tracks[SNARE].pitch}', "true 7", "pattern 3 kept its edits");
 		Check.equal(Std.string(machine.getState().patternHasSteps.slice(0, 3)), "[true,false,true]", "both now have steps");
 	}
@@ -130,41 +121,38 @@ class PatternTests {
 		final machine = newMachine().machine;
 		machine.setDial(KICK, 0, 4);
 		machine.copyPattern(0, 5);
-		machine.choosePattern(5);
+		machine.editPattern(5);
 		final copied = machine.getState().tracks[KICK];
 		Check.equal('${copied.steps[0].on} ${copied.sample}', "true BD1050", "steps and the kick's 808 knob came too");
 		machine.toggleStep(KICK, 1);
-		machine.choosePattern(0);
+		machine.editPattern(0);
 		Check.isTrue(!machine.getState().tracks[KICK].steps[1].on, "the copy is its own: editing it leaves the original alone");
 		machine.copyPattern(4, 0);
-		Check.isTrue(!machine.getState().patternHasSteps[0], "copied onto the pattern shown: the keys show the copy at once");
+		Check.isTrue(!machine.getState().tracks[KICK].steps[0].on, "copied onto the pattern on the keys: they show the copy at once");
 	}
 
 	static function linksCarryEverything() {
 		final sender = newMachine().machine;
 		sender.copyPattern(0, 3);
-		sender.choosePattern(3);
+		sender.editPattern(3);
 		sender.toggleStep(SNARE, 2);
-		sender.toggleInSequence(6);
-		sender.toggleInSequence(3);
-		sender.toggleInSequence(6);
 		sender.setSequence([6, 3, 6]);
 		final receiver = newMachine().machine;
 		Check.isTrue(receiver.loadCode(sender.getState().code), "accepted");
 		final received = receiver.getState();
-		Check.equal('${received.pattern} ${received.sequence} ${received.code == sender.getState().code}', "3 [6,3,6] true", "same patterns, sequence and pattern shown");
+		Check.equal('${received.pattern} ${received.sequence} ${received.code == sender.getState().code}', "3 [6,3,6] true", "same patterns, sequence and pattern on the keys");
 		Check.isTrue(received.tracks[SNARE].steps[2].on, "with pattern 4's edit");
 	}
 
 	static function loadingEveryPattern():Promise<Any> {
 		final sender = newMachine().machine;
-		sender.choosePattern(6);
+		sender.editPattern(6);
 		sender.setDial(KICK, 1, 0);
-		sender.choosePattern(0);
+		sender.editPattern(0);
 		final setup = newMachine();
 		setup.machine.loadCode(sender.getState().code);
 		return setup.machine.load().then(_ -> {
-			Check.isTrue(setup.tone.loads.contains("/samples/BD2500.wav"), "pattern 7's kick, though pattern 1 is shown");
+			Check.isTrue(setup.tone.loads.contains("/samples/BD2500.wav"), "pattern 7's kick, though pattern 1 is on the keys");
 			Check.isTrue(setup.tone.loads.contains("/samples/CP.wav") && !setup.tone.loads.contains("/samples/CP0000.wav"), "the clap, which has no knobs, is just CP");
 		});
 	}
@@ -217,37 +205,66 @@ class PatternTests {
 
 	// ── Playing ───────────────────────────────────────────────────────
 
-	static function chosenWaitsForTheBar():Promise<Any> {
+	static function editingWhilePlaying():Promise<Any> {
+		final setup = newMachine();
+		final playhead = [];
+		setup.machine.onStep(step -> playhead.push(step));
+		return playing(setup).then(_ -> {
+			setup.machine.editPattern(2);
+			playSteps(setup, 2);
+			setup.tone.nextFrame();
+			final state = setup.machine.getState();
+			Check.equal('${state.pattern} ${state.playingPattern} ${state.sequence}', "2 0 [0]", "pattern 3 on the keys, pattern 1 still playing");
+			Check.isTrue(setup.tone.hits.length > 0, "and still heard");
+			Check.equal(playhead.join(","), "-1,-1", "the keys show no playhead: they are not the pattern playing");
+		});
+	}
+
+	static function newSequenceWaitsForTheBar():Promise<Any> {
 		final setup = newMachine();
 		return playing(setup).then(_ -> {
 			playSteps(setup, 4);
-			setup.machine.choosePattern(1);
-			Check.equal('${setup.machine.getState().pattern} ${setup.machine.getState().nextPattern}', "0 1", "queued, still on pattern 1");
+			setup.machine.setSequence([1]);
+			Check.equal('${setup.machine.getState().playingPattern} ${setup.machine.getState().nextPattern}', "0 1", "pattern 1 plays on; 2 is next");
 			playSteps(setup, STEPS_IN_A_BAR - 4 + 1);
 			setup.tone.nextFrame();
-			Check.equal('${setup.machine.getState().pattern} ${setup.machine.getState().nextPattern}', "1 -1", "pattern 2 from the next bar");
+			Check.equal('${setup.machine.getState().playingPattern} ${setup.machine.getState().nextPattern}', "1 -1", "pattern 2 from the next bar");
 		});
 	}
 
 	static function sequencePlaysInTurn():Promise<Any> {
 		final setup = newMachine();
 		setup.machine.setSequence([0, 2, 2]);
-		final shownAtEachBar = [];
-		setup.machine.onStep(step -> if (step == 0) shownAtEachBar.push(setup.machine.getState().pattern + 1));
+		final heardEachBar = [];
+		setup.machine.onStep(_ -> {});
+		setup.machine.subscribe(state -> if (state.playingPattern != heardEachBar[heardEachBar.length - 1]) heardEachBar.push(state.playingPattern));
 		return playing(setup).then(_ -> {
 			for (_ in 0...4) {
 				playSteps(setup, STEPS_IN_A_BAR);
 				setup.tone.nextFrame();
 			}
-			Check.equal(shownAtEachBar.join(" → "), "1 → 3 → 3 → 1", "1, then 3 twice, then round, each shown as its bar is heard");
+			Check.equal(heardEachBar.slice(1).map(index -> index + 1).join(" → "), "1 → 3 → 1", "1, then 3 for two bars, then round");
 		});
 	}
 
-	static function playStartsInTheSequence():Promise<Any> {
+	static function playStartsAtTheTop():Promise<Any> {
 		final setup = newMachine();
 		setup.machine.setSequence([6, 4]);
 		return playing(setup).then(_ -> {
-			Check.equal(setup.machine.getState().pattern, 6, "pattern 7, the sequence's first");
+			Check.equal('${setup.machine.getState().playingPattern} ${setup.machine.getState().pattern}', "6 0", "pattern 7 plays, pattern 1 stays on the keys");
+		});
+	}
+
+	static function soundFollowsThePatternPlaying():Promise<Any> {
+		final setup = newMachine();
+		setup.machine.editPattern(1);
+		setup.machine.toggleStep(KICK, 0);
+		setup.machine.setDial(KICK, 0, 4);
+		setup.machine.editPattern(0);
+		setup.machine.setSequence([1]);
+		return playing(setup).then(_ -> afterDownloads()).then(_ -> {
+			playSteps(setup, 1);
+			Check.equal([for (hit in setup.tone.hits) hit.voice].join(" "), "BD1050", "pattern 2's one kick, with its own recording");
 		});
 	}
 
@@ -260,6 +277,10 @@ class PatternTests {
 
 	static function playing(setup:{tone:FakeTone, machine:DrumMachine}):Promise<Any> {
 		return setup.machine.load().then(_ -> setup.machine.play());
+	}
+
+	static function afterDownloads():Promise<Any> {
+		return new Promise((resolve, _) -> haxe.Timer.delay(() -> resolve(null), 0));
 	}
 
 	/** The clock's part: this many sixteenths (their times do not matter here). */

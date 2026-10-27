@@ -55,15 +55,15 @@ class PanelText {
 	}
 
 	/**
-	 * "Pattern 3", then what a screen reader needs beyond its pressed state (in the sequence): ", playing" or
-	 * ", shown", ", next", ", empty", and with Select on its places in the sequence: ", sequence places 1 3".
+	 * "Pattern 3", then what a screen reader needs beyond its pressed state (in the sequence): ", on the keys",
+	 * ", playing", ", next", ", empty", and with Select on its places in the sequence: ", sequence places 1 3".
 	 */
 	public static function patternLabel(state:MachineState, pattern:Int):String {
-		final shown = state.pattern == pattern ? (state.playing ? ", playing" : ", shown") : "";
-		final next = state.nextPattern == pattern ? ", next" : "";
+		final onKeys = state.pattern == pattern ? ", on the keys" : "";
+		final now = (state.playingPattern == pattern ? ", playing" : "") + (state.nextPattern == pattern ? ", next" : "");
 		final empty = state.patternHasSteps[pattern] ? "" : ", empty";
 		final places = sequencePlaces(state, pattern);
-		return 'Pattern ${pattern + 1}$shown$next$empty${places == "" ? "" : ", sequence places " + places}';
+		return 'Pattern ${pattern + 1}$onKeys$now$empty${places == "" ? "" : ", sequence places " + places}';
 	}
 
 	/** With Select on, where a pattern comes in the sequence, from 1: "1 3" for one played first and third. Otherwise "". */
@@ -78,7 +78,7 @@ class PanelText {
 			case Select: both("Tap patterns in the order they play · Select again when done");
 			case Copy: both(state.copyFrom < 0 ? "Tap the pattern to copy" : 'Now tap where pattern ${state.copyFrom + 1} goes');
 			case Clear: both("Tap the pattern to clear");
-			case Off: ["Tap to play · shift-click to add to the sequence · drag to copy", "Tap to play · hold one, tap others to sequence · drag to copy"];
+			case Off: ["Tap to edit · shift-click to add to the sequence · drag to copy", "Tap to edit · hold one, tap others to sequence · drag to copy"];
 		}
 	}
 

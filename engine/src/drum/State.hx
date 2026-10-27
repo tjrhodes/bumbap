@@ -79,15 +79,17 @@ typedef MachineState = MachineSettings & {
 	final playing:Bool;
 	/** The whole machine as a URL-safe code, ready for location.hash. */
 	final code:String;
-	/** The parts of the pattern shown: the one playing, or when stopped the one on the keys. */
+	/** The parts of the pattern on the keys, being edited (it need not be the one playing). */
 	final tracks:Array<TrackState>;
 	/** Which pattern that is, 0–7. */
 	final pattern:Int;
+	/** The pattern playing, 0–7; -1 when stopped. */
+	final playingPattern:Int;
 	/** The order the patterns play in, repeats allowed; 1 to 16 of them. */
 	final sequence:Array<Int>;
 	/** Where in the sequence the shown pattern is playing, from 0; -1 when it is not in the sequence. */
 	final sequencePlace:Int;
-	/** The pattern waiting for the end of the bar, or -1. */
+	/** While playing, the pattern that takes over at the end of the bar because the sequence changed, or -1. */
 	final nextPattern:Int;
 	/** For each of the eight patterns, whether any of its steps plays. */
 	final patternHasSteps:Array<Bool>;

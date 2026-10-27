@@ -479,14 +479,15 @@ function onShortcut(event) {
 
 const patternButtons = () => [...document.querySelectorAll(".dm-pattern")];
 
-/** In the sequence: half lit. Playing or shown: fully lit. Waiting for the bar: blinking. With Select on: its places. */
+/** In the sequence: half lit. Playing: fully lit. On the keys: a ring. Taking over at the bar: blinking. With Select on: its places. */
 function drawPatterns(state) {
 	patternButtons().forEach((button, index) => {
 		button.setAttribute("aria-pressed", String(state.sequence.includes(index)));
 		button.setAttribute("aria-current", String(state.pattern === index));
 		button.setAttribute("aria-label", PanelText.patternLabel(state, index));
 		button.querySelector(".dm-pattern-places").textContent = PanelText.sequencePlaces(state, index);
-		for (const [name, on] of [["is-next", state.nextPattern === index], ["is-used", state.patternHasSteps[index]], ["is-copy-source", state.copyFrom === index]])
+		const looks = { "is-playing": state.playingPattern === index, "is-next": state.nextPattern === index, "is-used": state.patternHasSteps[index], "is-copy-source": state.copyFrom === index };
+		for (const [name, on] of Object.entries(looks))
 			button.classList.toggle(name, on);
 	});
 	for (const tool of document.querySelectorAll(".dm-tool")) tool.setAttribute("aria-pressed", String(tool.dataset.tool === state.tool));

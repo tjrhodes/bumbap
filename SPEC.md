@@ -25,7 +25,7 @@ part's sixteen steps are shown at a time; a part selector chooses which.
 | Drive | Warm valve-style overdrive on the whole kit: asymmetric tanh soft clip (even harmonics), a low-pass that closes as drive rises, and a trim so the knob changes character more than loudness. |
 | Reverb | A 2.2 s room on the whole kit, after the drive; 100 % is as loud as the dry kit. |
 | Safety | A soft clipper at the end of the chain: the output never passes full scale, however many accents land together. |
-| Patterns (v2) | Eight pattern buttons in a framed group titled **Sequence**, in the gap right of the 808 knobs (their own row on a phone). Each holds a whole pattern: every part's steps (level, nudge, flip) and its level, mute, pitch, length and 808 knobs. Tempo, swing, drive and reverb stay global. Pattern 1 starts as the starter beat, 2–8 empty. **Tap** a button: just that pattern plays from then on; while playing, the change waits for the end of the bar (the button blinks meanwhile). The **sequence** is the order the patterns play in, repeats allowed, 1 to 16 of them, round and round. Three small tools sit beside the title: **Select** (each tap adds a pattern to a new sequence, in tap order; each button shows its places; Select again when done), **Copy** (tap the pattern to copy, then where it goes) and **Clear** (tap a pattern to make it blank, part sounds too); Copy and Clear turn off after their job. Shortcuts with no tool on: **shift-click** adds a pattern to the end of the sequence or takes it out; on a touch screen, **hold one button and tap others** to make the sequence those, in the order touched; **drag** one button onto another to copy it. Buttons in the sequence are half lit; the pattern playing (or, stopped, the one on the keys) is fully lit, with a glow. The keys and part controls always show the pattern playing. Play starts on the shown pattern where the sequence has it, otherwise at its start. Empty patterns' numbers are dimmed; a line under the buttons says what a tap does now. |
+| Patterns (v2) | Eight pattern buttons in a framed group titled **Sequence**, in the gap right of the 808 knobs (their own row on a phone). Each holds a whole pattern: every part's steps (level, nudge, flip) and its level, mute, pitch, length and 808 knobs. Tempo, swing, drive and reverb stay global. Pattern 1 starts as the starter beat, 2–8 empty. **Tap** a button: that pattern goes on the keys to edit, and the sequence plays on; the keys show the playhead only while they show the pattern playing. The **sequence** is the order the patterns play in, repeats allowed, 1 to 16 of them, round and round; a new sequence chosen while playing takes over at the end of the bar (its first pattern blinks meanwhile). Three small tools sit beside the title: **Select** (each tap adds a pattern to a new sequence, in tap order; each button shows its places; Select again when done), **Copy** (tap the pattern to copy, then where it goes) and **Clear** (tap a pattern to make it blank, part sounds too); Copy and Clear turn off after their job. Shortcuts with no tool on: **shift-click** adds a pattern to the end of the sequence or takes it out; on a touch screen, **hold one button and tap others** to make the sequence those, in the order touched; **drag** one button onto another to copy it. Buttons in the sequence are half lit; the pattern playing is fully lit, with a glow; the one on the keys has a ring. Edits go to the pattern on the keys; the sound follows the pattern playing (its steps, part levels and recordings). Play starts at the top of the sequence. Empty patterns' numbers are dimmed; a line under the buttons says what a tap does now. |
 | Share | The whole machine (all eight patterns, their sequence and the pattern shown, with every step's level and nudge), including every step's level and nudge, lives in the URL hash. The share button (top right) copies that link, or offers it through the share sheet on a touch screen; in a frame on a page of the same site (the Lab page), the link is to that page. |
 | Start | With no code in the URL, a starter beat with accents and ghost notes is loaded. |
 | Loading | Panel usable at once; Play is disabled until the samples are decoded. |
@@ -79,7 +79,7 @@ machine.setVolume(track, percent); machine.toggleMute(track);
 machine.setPitch(track, semitones); machine.setLength(track, percent);
 machine.setDial(track, dial, position);           // an 808 knob, 0–4: picks another recording
 machine.clear();                                  // the steps of the pattern shown
-machine.choosePattern(index);                     // 0–7: only this one; playing, it takes over at the end of the bar
+machine.editPattern(index);                       // 0–7: puts it on the keys; the sequence plays on
 machine.toggleInSequence(index);                  // adds at the end or takes out (shift-click)
 machine.setSequence(indexes);                     // the play order, repeats allowed, up to 16 (hold one, tap others)
 machine.copyPattern(from, to); machine.clearPattern(index);
@@ -92,8 +92,9 @@ DrumMachine.limits           // { steps, ticksPerBeat, tempo, swing, volume, vel
 ```
 
 `MachineState` is `{ status, playing, tempo, swing, drive, reverb, code,
-tracks[], pattern, sequence[], sequencePlace, nextPattern, patternHasSteps[], tool, copyFrom }` (v2: `pattern`
-is the one shown, 0–7; `sequence` the play order; `nextPattern` the one waiting for the end of the bar, or -1;
+tracks[], pattern, playingPattern, sequence[], sequencePlace, nextPattern, patternHasSteps[], tool, copyFrom }` (v2:
+`pattern` is the one on the keys, 0–7, whose parts `tracks` holds; `playingPattern` the one playing, -1 when stopped;
+`sequence` the play order; `nextPattern` the one taking over at the end of the bar after the sequence changed, or -1;
 `tool` the sequence button that is on, "" for none; `copyFrom` the pattern Copy picked, or -1), each track `{ id, name, volume, muted, pitch, length, dials[],
 dialNames[], sample, steps[] }` (`sample` is the chosen recording, e.g. "BD2550"), each step
 `{ on, velocity, nudge, reversed }`. A new snapshot object is made on every change and
@@ -163,7 +164,7 @@ UI is signed off.
           <div class="dm-pattern-row">
             <button class="dm-pattern is-used" data-pattern="0" aria-pressed="true" aria-current="true" aria-label="Pattern 1, shown">
               <span class="dm-pattern-number">1</span><span class="dm-pattern-places"></span></button>
-            <!-- …8 buttons. aria-pressed: in the sequence (half lit); aria-current: playing or shown (fully lit);
+            <!-- …8 buttons. aria-pressed: in the sequence (half lit); aria-current: on the keys (a ring); .is-playing (fully lit);
                  .is-next: waiting for the end of the bar (blinks); .is-used: has steps; .is-copy-source: Copy's pick;
                  .dm-pattern-places: with Select on, its places in the sequence ("1 3") -->
           </div>

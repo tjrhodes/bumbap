@@ -180,11 +180,11 @@ test.describe("sharing", () => {
 });
 
 test.describe("the sequence (v2)", () => {
-	test("eight pattern buttons: pattern 1 shown and in the sequence, the others empty", async ({ panel }) => {
+	test("eight pattern buttons: pattern 1 on the keys and in the sequence, the others empty", async ({ panel }) => {
 		await expect(panel.page.locator(".dm-pattern")).toHaveCount(8);
 		await expect(panel.pattern(1)).toHaveAttribute("aria-current", "true");
 		await expect(panel.pattern(1)).toHaveAttribute("aria-pressed", "true");
-		await expect(panel.pattern(1)).toHaveAttribute("aria-label", "Pattern 1, shown");
+		await expect(panel.pattern(1)).toHaveAttribute("aria-label", "Pattern 1, on the keys");
 		await expect(panel.pattern(2)).toHaveAttribute("aria-label", "Pattern 2, empty");
 		await expect(panel.pattern(2)).toHaveAttribute("aria-pressed", "false");
 	});
@@ -208,17 +208,32 @@ test.describe("the sequence (v2)", () => {
 		await panel.knob("tempo").focus();
 		await panel.page.keyboard.press("End");
 		await panel.play.click();
-		await expect(panel.pattern(3)).toHaveAttribute("aria-current", "true", { timeout: 4_000 });
-		await expect(panel.pattern(1)).toHaveAttribute("aria-current", "true", { timeout: 4_000 });
+		await expect(panel.pattern(3)).toHaveClass(/is-playing/, { timeout: 4_000 });
+		await expect(panel.pattern(1)).toHaveClass(/is-playing/, { timeout: 4_000 });
+		await expect(panel.pattern(1)).toHaveAttribute("aria-current", "true");
 	});
 
-	test("while playing, a chosen pattern blinks until the end of the bar", async ({ panel }) => {
+	test("while playing, a new sequence blinks its first pattern until the end of the bar", async ({ panel }) => {
 		await panel.play.click();
+		await panel.tool("select").click();
 		await panel.pattern(2).click();
 		await expect(panel.pattern(2)).toHaveClass(/is-next/);
-		await expect(panel.pattern(1)).toHaveAttribute("aria-current", "true");
-		await expect(panel.pattern(2)).toHaveAttribute("aria-current", "true", { timeout: 4_000 });
+		await expect(panel.pattern(1)).toHaveClass(/is-playing/);
+		await expect(panel.pattern(2)).toHaveClass(/is-playing/, { timeout: 4_000 });
 		await expect(panel.pattern(2)).not.toHaveClass(/is-next/);
+		await expect(panel.pattern(1)).toHaveAttribute("aria-current", "true");
+	});
+
+	test("tapping a pattern while the sequence plays edits it, and the sequence plays on", async ({ panel, page }) => {
+		await panel.play.click();
+		await expect(page.locator(".dm-key.is-current")).toHaveCount(1);
+		await panel.pattern(3).click();
+		await expect(panel.pattern(3)).toHaveAttribute("aria-current", "true");
+		await expect(panel.pattern(1)).toHaveClass(/is-playing/);
+		await expect(panel.key(1)).toHaveAttribute("aria-pressed", "false");
+		await expect(page.locator(".dm-key.is-current")).toHaveCount(0);
+		await panel.pattern(1).click();
+		await expect(page.locator(".dm-key.is-current")).toHaveCount(1);
 	});
 
 	test("dragging one button onto another copies the pattern", async ({ panel }) => {
@@ -283,7 +298,7 @@ test.describe("the sequence's tools (v2)", () => {
 		await panel.tool("clear").click();
 		await panel.pattern(1).click();
 		await expect(panel.key(1)).toHaveAttribute("aria-pressed", "false");
-		await expect(panel.pattern(1)).toHaveAttribute("aria-label", "Pattern 1, shown, empty");
+		await expect(panel.pattern(1)).toHaveAttribute("aria-label", "Pattern 1, on the keys, empty");
 		await expect(panel.tool("clear")).toHaveAttribute("aria-pressed", "false");
 	});
 });

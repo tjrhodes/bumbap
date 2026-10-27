@@ -1,5 +1,5 @@
 // The sequence (v2): eight pattern buttons and the Select, Copy and Clear tools beside the title. In the sequence,
-// half lit; playing or shown, fully lit; waiting for the end of the bar, blinking; empty, a dim number; with Select
+// half lit; playing, fully lit; on the keys, a ring; taking over at the end of the bar, blinking; empty, a dim number; with Select
 // on, each button's places in the sequence. Taps go to the engine's PatternPad, shared by every build.
 import { Component, computed, inject } from "@angular/core";
 import { PanelText, PatternPad } from "bumbap-engine";
@@ -24,7 +24,7 @@ import { PanelStore } from "./panel-store";
 		<div class="dm-pattern-row">
 			@for (index of patterns; track index) {
 				<button type="button" class="dm-pattern" [attr.data-pattern]="index" [class.is-used]="store.state().patternHasSteps[index]"
-					[class.is-next]="store.state().nextPattern === index" [class.is-copy-source]="store.state().copyFrom === index"
+					[class.is-playing]="store.state().playingPattern === index" [class.is-next]="store.state().nextPattern === index" [class.is-copy-source]="store.state().copyFrom === index"
 					[attr.aria-pressed]="store.state().sequence.includes(index)" [attr.aria-current]="store.state().pattern === index"
 					[attr.aria-label]="label(index)" (pointerdown)="pad.press($event.pointerId, index)" (click)="pad.click(index, $event.shiftKey)"
 					><span class="dm-pattern-number">{{ index + 1 }}</span><span class="dm-pattern-places">{{ places(index) }}</span></button>

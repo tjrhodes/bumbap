@@ -12,9 +12,10 @@ import js.html.PointerEvent;
 
 /**
  * The sequence (version 2): eight pattern buttons and the Select, Copy and Clear tools beside the title.
- * Each snapshot draws them: in the sequence, half lit; playing or shown, fully lit; waiting for the end of
- * the bar, blinking; empty, a dim number; with Select on, each button's places in the sequence. A tap goes
- * to the engine's PatternPad, which every build shares, and so does the line saying what a tap does now.
+ * Each snapshot draws them: in the sequence, half lit; playing, fully lit; on the keys, a ring; taking over
+ * at the end of the bar, blinking; empty, a dim number; with Select on, each button's places in the
+ * sequence. A tap goes to the engine's PatternPad, which every build shares, and so does the line saying
+ * what a tap does now.
  */
 class PatternButtons {
 	final buttons:Array<Element>;
@@ -44,6 +45,7 @@ class PatternButtons {
 		Dom.setAttribute(button, "aria-current", Std.string(state.pattern == index));
 		Dom.setAttribute(button, "aria-label", PanelText.patternLabel(state, index));
 		Dom.setText(button.querySelector(".dm-pattern-places"), PanelText.sequencePlaces(state, index));
+		button.classList.toggle("is-playing", state.playingPattern == index);
 		button.classList.toggle("is-next", state.nextPattern == index);
 		button.classList.toggle("is-used", state.patternHasSteps[index]);
 		button.classList.toggle("is-copy-source", state.copyFrom == index);

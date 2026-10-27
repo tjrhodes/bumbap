@@ -32,10 +32,9 @@ typedef MachineOptions = {
  * - `onStep`: the playhead, up to ~13 times a second, kept apart so each
  *   framework can choose how to draw it without re-rendering the grid.
  *
- * The pattern shown (the one playing, or when stopped the one on the keys)
- * lives in the tracks, where it is played and edited; the other seven wait as
- * saved settings, and the shown one is copied back to its slot before it is
- * swapped, copied or packed into a link.
+ * Any of the eight patterns can be on the keys (`edited`) while the sequence
+ * plays another: edits go to the pattern on the keys, the sound follows the
+ * pattern playing (its steps, part levels and recordings).
  *
  * Building one sets Tone's audio context (see Latency), so build it before
  * making any Tone objects of your own.
@@ -58,9 +57,10 @@ class DrumMachine {
 		dial: Limits.DIAL
 	};
 
-	final tracks:Array<Track>;
-	final patterns:Array<Pattern>;
+	final bank = new PatternBank();
 	final sequence = new Sequence();
+	/** The pattern on the keys, being edited; it need not be the one playing. */
+	var edited = 0;
 	final tone:ToneApi;
 	final master:MasterChain;
 	final samples:SampleBank;
@@ -76,7 +76,7 @@ class DrumMachine {
 	var state:MachineState;
 	/** Bars begun since Play: the first plays the pattern Play started on, each later one the sequence's next. */
 	var barsStarted = 0;
-	/** A new pattern has taken over the sound; the UI hears about it when its first step is heard. */
+	/** Another pattern has taken over the sound; the UI hears about it when its first step is heard. */
 	var newPatternToShow = false;
 	/** Which of the sequence's small buttons is on, and what it has been told so far. */
 	var tool:SequenceTool = Off;
@@ -86,8 +86,6 @@ class DrumMachine {
 	public function new(options:MachineOptions) {
 		tone = options.tone;
 		Latency.preferSmoothPlayback(tone);
-		tracks = [for (voice in Kit.VOICES) new Track(voice)];
-		patterns = [for (index in 0...Limits.PATTERNS) index == 0 ? tracksNow() : Patterns.blank()];
 		master = new MasterChain(tone);
 		samples = new SampleBank(tone, Kit.VOICES, options.samplesUrl, master.input);
 		clock = new StepClock(tone, soundStep, stepHeard);
@@ -117,7 +115,7 @@ class DrumMachine {
 
 	/** Downloads and decodes the recordings every pattern's 808 knobs choose; Play is refused until this is done. */
 	public function load():Promise<Void> {
-		final downloads = tracks.map(useChosenSample).concat(preloadEveryPatternsSamples());
+		final downloads = soundingTracks().map(useChosenSample).concat(preloadEveryPatternsSamples());
 		return Promise.all(downloads).then(_ -> setStatus(Ready), error -> {
 			setStatus(Failed);
 			js.Browser.console.error("Drum samples failed to load", error);
@@ -127,8 +125,8 @@ class DrumMachine {
 	/** Must be called from a click or key press: browsers only unlock audio then. */
 	public function play():Promise<Void> {
 		if (playing || status != Ready) return Promise.resolve();
-		final first = sequence.start();
-		if (first != sequence.shown) showPattern(first);
+		sequence.start();
+		applySounds();
 		barsStarted = 0;
 		playing = true;
 		return tone.start().then(_ -> {
@@ -145,7 +143,6 @@ class DrumMachine {
 		if (!playing) return;
 		playing = false;
 		clock.stop();
-		sequence.show(sequence.shown); // anything queued is dropped: Play starts again from the sequence
 		newPatternToShow = false;
 		changed();
 	}
@@ -178,9 +175,10 @@ class DrumMachine {
 		editTrack(trackIndex, track -> track.toggleReverse(step));
 	}
 
-	/** Empties the grid of the pattern shown; tempo, swing, effects and the mix are kept. */
+	/** Empties the grid of the pattern on the keys; tempo, swing, effects and the mix are kept. */
 	public function clear() {
-		for (track in tracks) track.clearSteps();
+		for (track in bank.tracks(edited)) track.clearSteps();
+		bank.changed(edited);
 		changed();
 	}
 
@@ -189,7 +187,7 @@ class DrumMachine {
 	public function setVolume(trackIndex:Int, percent:Float) {
 		editTrack(trackIndex, track -> {
 			track.setVolume(percent);
-			samples.setVolume(track.voice.id, track.volume);
+			if (edited == sounding()) samples.setVolume(track.voice.id, track.volume);
 		});
 	}
 
@@ -205,12 +203,14 @@ class DrumMachine {
 
 	/**
 	 * Turns one of a part's 808 knobs (0–4), which chooses another recording
-	 * from the set. The part keeps its old sound until the new one has loaded.
+	 * from the set. The part keeps its old sound until the new one has loaded;
+	 * in a pattern not playing, the recording is only downloaded, ready for its turn.
 	 */
 	public function setDial(trackIndex:Int, dial:Int, position:Float) {
 		editTrack(trackIndex, track -> {
 			track.setDial(dial, position);
-			useChosenSample(track).catchError(error -> js.Browser.console.error("808 sample failed to load", error));
+			final download = edited == sounding() ? useChosenSample(track) : samples.preload(track.sampleName());
+			download.catchError(error -> js.Browser.console.error("808 sample failed to load", error));
 		});
 	}
 
@@ -243,10 +243,10 @@ class DrumMachine {
 
 	// ── Patterns and their sequence (version 2) ───────────────────────
 
-	/** Just this pattern (0–7) from now on; while playing, it takes over at the end of the bar. */
-	public function choosePattern(index:Int) {
+	/** Puts a pattern (0–7) on the keys to edit; what plays is the sequence's business, so it plays on. */
+	public function editPattern(index:Int) {
 		if (!Patterns.exists(index)) return;
-		choose(index);
+		edited = index;
 		changed();
 	}
 
@@ -262,13 +262,13 @@ class DrumMachine {
 		changed();
 	}
 
-	/** Copies one pattern over another, steps and part sounds; copied onto the one shown, it is heard at once. */
+	/** Copies one pattern over another, steps and part sounds; copied onto the one playing, it is heard at once. */
 	public function copyPattern(from:Int, to:Int) {
 		copy(from, to);
 		changed();
 	}
 
-	/** Makes a pattern blank: no steps, and every part as it starts. Cleared while shown, the keys empty at once. */
+	/** Makes a pattern blank: no steps, and every part as it starts. */
 	public function clearPattern(index:Int) {
 		blank(index);
 		changed();
@@ -282,11 +282,11 @@ class DrumMachine {
 		changed();
 	}
 
-	/** A tap on a pattern button, which means what the tool that is on says (none: play it; with Shift, sequence it). */
+	/** A tap on a pattern button, which means what the tool that is on says (none: edit it; with Shift, sequence it). */
 	public function tapPattern(index:Int, shift:Bool) {
 		if (!Patterns.exists(index)) return;
 		switch (tool) {
-			case Off: if (shift) sequence.toggle(index); else choose(index);
+			case Off: if (shift) sequence.toggle(index); else edited = index;
 			case Select: selectTap(index);
 			case Copy: copyTap(index);
 			case Clear: blank(index);
@@ -299,9 +299,10 @@ class DrumMachine {
 	public function loadCode(code:String):Bool {
 		final saved = PatternCode.decode(code);
 		if (saved == null) return false;
-		for (index in 0...Limits.PATTERNS) patterns[index] = saved.patterns[index];
-		sequence.restore(saved.shown, saved.sequence);
-		restoreTracks(patterns[saved.shown]);
+		for (index in 0...Limits.PATTERNS) bank.restore(index, saved.patterns[index]);
+		edited = saved.shown;
+		sequence.restore(saved.sequence);
+		applySounds();
 		preloadEveryPatternsSamples();
 		applyTempo(saved.tempo);
 		applySwing(saved.swing);
@@ -327,7 +328,7 @@ class DrumMachine {
 	function soundStep(step:Int, audioTime:Float) {
 		if (step == 0) moveOnAtTheBar();
 		final stepSeconds = Timing.stepSeconds(step, swing, Timing.sixteenthSeconds(tempo));
-		for (track in tracks) {
+		for (track in soundingTracks()) {
 			final hit = track.stepAt(step);
 			if (!hit.on || track.muted) continue;
 			soundHit(track, hit, audioTime + Timing.nudgeSeconds(hit.nudge, tempo), stepSeconds);
@@ -346,41 +347,37 @@ class DrumMachine {
 		});
 	}
 
-	/** Each bar after the first plays the sequence's next pattern; the keys change when that bar is heard. */
+	/** Each bar after the first plays the sequence's next pattern; the buttons change when that bar is heard. */
 	function moveOnAtTheBar() {
 		if (barsStarted++ == 0) return;
-		final next = sequence.advance();
-		if (next == sequence.shown) return;
-		showPattern(next);
+		final before = sequence.playing;
+		if (sequence.advance() == before) return;
+		applySounds();
 		newPatternToShow = true;
 	}
 
-	/** A step is being heard: a new pattern is published with its first step, then the playhead moves. */
+	/**
+	 * A step is being heard: a new pattern playing is published with its first step, then the playhead moves.
+	 * The keys show the playhead only when they show the pattern playing; otherwise they hear -1, as if stopped.
+	 */
 	function stepHeard(step:Int) {
 		if (step == 0 && newPatternToShow) {
 			newPatternToShow = false;
 			changed();
 		}
-		stepListeners.tell(step);
-	}
-
-	function choose(index:Int) {
-		sequence.choose(index, playing);
-		if (!playing) showPattern(index);
+		stepListeners.tell(edited == sequence.playing ? step : StepClock.NO_STEP);
 	}
 
 	function copy(from:Int, to:Int) {
 		if (!Patterns.exists(from) || !Patterns.exists(to) || from == to) return;
-		keepShownPattern();
-		patterns[to] = patterns[from]; // patterns are never changed in place, so two slots can share one
-		if (to == sequence.shown) restoreTracks(patterns[to]);
+		bank.copy(from, to);
+		if (to == sounding()) applySounds();
 	}
 
 	function blank(index:Int) {
 		if (!Patterns.exists(index)) return;
-		keepShownPattern();
-		patterns[index] = Patterns.blank();
-		if (index == sequence.shown) restoreTracks(patterns[index]);
+		bank.restore(index, Patterns.blank());
+		if (index == sounding()) applySounds();
 	}
 
 	/** Select: the first tap starts the sequence afresh, each tap after it adds to the end. */
@@ -400,46 +397,36 @@ class DrumMachine {
 		copyFrom = Sequence.NONE;
 	}
 
-	/** Puts a pattern on the tracks; the one shown until now is kept in its slot first. */
-	function showPattern(index:Int) {
-		keepShownPattern();
-		restoreTracks(patterns[index]);
-		sequence.show(index);
+	/** The pattern whose sound is set up: the one playing, or when stopped the one Play starts on. */
+	function sounding():Int {
+		return playing ? sequence.playing : sequence.patterns[0];
 	}
 
-	/** The shown pattern lives in the tracks while it is edited; its slot takes a copy before anything reads it. */
-	function keepShownPattern() {
-		patterns[sequence.shown] = tracksNow();
+	function soundingTracks():Array<Track> {
+		return bank.tracks(sounding());
 	}
 
-	function tracksNow():Pattern {
-		return [for (track in tracks) track.toState()];
-	}
-
-	/** The tracks take over a pattern: steps, levels, mutes, pitch, length and the recordings its 808 knobs choose. */
-	function restoreTracks(pattern:Pattern) {
-		for (index in 0...tracks.length) tracks[index].restore(pattern[index]);
-		for (track in tracks) useChosenSample(track).catchError(error -> js.Browser.console.error("808 sample failed to load", error));
+	/** The sound follows the pattern playing: each part's recording and level. */
+	function applySounds() {
+		for (track in soundingTracks()) useChosenSample(track).catchError(error -> js.Browser.console.error("808 sample failed to load", error));
 		applyVolumesToSamples();
 	}
 
 	/** Every pattern's recordings, downloaded ahead, so a pattern plays its own sounds the moment its bar comes. */
 	function preloadEveryPatternsSamples():Array<Promise<Void>> {
-		return [
-			for (pattern in patterns) for (index in 0...pattern.length)
-				samples.preload(Kit.sampleName(Kit.VOICES[index], pattern[index].dials))
-		];
+		return bank.everySampleName().map(samples.preload);
 	}
 
 	function useChosenSample(track:Track):Promise<Void> {
 		return samples.useSample(track.voice.id, track.sampleName());
 	}
 
-	/** Ignores track numbers that do not exist, then publishes the change. */
+	/** Edits a part of the pattern on the keys; track numbers that do not exist are ignored. */
 	function editTrack(trackIndex:Int, edit:Track->Void) {
-		final track = tracks[trackIndex];
+		final track = bank.tracks(edited)[trackIndex];
 		if (track == null) return;
 		edit(track);
+		bank.changed(edited);
 		changed();
 	}
 
@@ -466,7 +453,7 @@ class DrumMachine {
 	}
 
 	function applyVolumesToSamples() {
-		for (track in tracks) samples.setVolume(track.voice.id, track.volume);
+		for (track in soundingTracks()) samples.setVolume(track.voice.id, track.volume);
 	}
 
 	/**
@@ -492,21 +479,26 @@ class DrumMachine {
 	}
 
 	function snapshot():MachineState {
-		final trackStates = [for (track in tracks) track.toState()];
-		final everyPattern:Array<Pattern> = [for (index in 0...Limits.PATTERNS) index == sequence.shown ? cast trackStates : patterns[index]];
+		final everyPattern = bank.snapshots();
 		return freeze({
 			status: status, playing: playing, code: PatternCode.encode(saved(everyPattern)),
-			tempo: tempo, swing: swing, drive: drive, reverb: reverb, tracks: trackStates,
-			pattern: sequence.shown, sequence: sequence.patterns.copy(), sequencePlace: sequence.position, nextPattern: sequence.queued,
-			patternHasSteps: everyPattern.map(Patterns.hasSteps), tool: tool, copyFrom: copyFrom
+			tempo: tempo, swing: swing, drive: drive, reverb: reverb, tracks: bank.snapshot(edited),
+			pattern: edited, playingPattern: playing ? sequence.playing : Sequence.NONE, sequence: sequence.patterns.copy(),
+			sequencePlace: sequence.position, nextPattern: comingNext(), patternHasSteps: everyPattern.map(Patterns.hasSteps),
+			tool: tool, copyFrom: copyFrom
 		});
+	}
+
+	/** While playing, the pattern that takes over at the end of the bar because the sequence changed under the one playing. */
+	function comingNext():Int {
+		return playing && sequence.position == Sequence.NONE ? sequence.next() : Sequence.NONE;
 	}
 
 	/** What a link keeps: the machine's settings, the eight patterns and their sequence. */
 	function saved(everyPattern:Array<Pattern>):SavedMachine {
 		return {
 			tempo: tempo, swing: swing, drive: drive, reverb: reverb,
-			patterns: everyPattern, shown: sequence.shown, sequence: sequence.patterns
+			patterns: everyPattern, shown: edited, sequence: sequence.patterns
 		};
 	}
 

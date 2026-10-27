@@ -57,15 +57,17 @@ export interface MachineState {
 	readonly reverb: number;
 	/** The whole machine (all eight patterns and their sequence) as a URL-safe code, ready for location.hash. */
 	readonly code: string;
-	/** The parts of the pattern shown: the one playing, or when stopped the one on the keys. */
+	/** The parts of the pattern on the keys, being edited (it need not be the one playing). */
 	readonly tracks: readonly TrackState[];
 	/** Which pattern that is, 0–7. */
 	readonly pattern: number;
+	/** The pattern playing, 0–7; -1 when stopped. */
+	readonly playingPattern: number;
 	/** The order the patterns play in, repeats allowed; 1 to 16 of them. */
 	readonly sequence: readonly number[];
-	/** Where in the sequence the shown pattern is playing, from 0; -1 when it is not in it. */
+	/** Where in the sequence the pattern playing is, from 0; -1 when the sequence changed under it. */
 	readonly sequencePlace: number;
-	/** The pattern waiting for the end of the bar, or -1. */
+	/** While playing, the pattern taking over at the end of the bar because the sequence changed, or -1. */
 	readonly nextPattern: number;
 	/** For each of the eight patterns, whether any of its steps plays. */
 	readonly patternHasSteps: readonly boolean[];
@@ -114,7 +116,7 @@ export declare const PanelText: {
 	stepLabel(trackName: string, stepIndex: number, step: StepState): string;
 	flipLabel(trackName: string, stepIndex: number): string;
 	dialLabel(track: TrackState, slot: number): string;
-	/** "Pattern 3", then ", playing" / ", shown", ", next", ", empty", and with Select on ", sequence places 1 3". */
+	/** "Pattern 3", then ", on the keys", ", playing", ", next", ", empty", and with Select on ", sequence places 1 3". */
 	patternLabel(state: MachineState, pattern: number): string;
 	/** With Select on, a pattern's places in the sequence, from 1 ("1 3"); otherwise "". */
 	sequencePlaces(state: MachineState, pattern: number): string;
@@ -165,7 +167,7 @@ export declare class DrumMachine {
 	getState(): MachineState;
 	/** Called after every change. */
 	subscribe(listener: (state: MachineState) => void): Unsubscribe;
-	/** The playhead: step 0–15 on the frame it is heard, -1 when stopped. */
+	/** The playhead on the keys: step 0–15 on the frame it is heard; -1 when stopped, or when the keys show a pattern not playing. */
 	onStep(listener: (step: number) => void): Unsubscribe;
 
 	/** Downloads and decodes each part's chosen recording; Play does nothing until this resolves. */
@@ -198,8 +200,8 @@ export declare class DrumMachine {
 	setReverb(percent: number): void;
 	/** Empties the grid of the pattern shown; tempo, swing, effects and the mix are kept. */
 	clear(): void;
-	/** Just this pattern (0–7) from now on; while playing, it takes over at the end of the bar. */
-	choosePattern(index: number): void;
+	/** Puts a pattern (0–7) on the keys to edit; the sequence plays on. */
+	editPattern(index: number): void;
 	/** Adds one pattern at the end of the sequence, or takes it out; the sequence keeps at least one. */
 	toggleInSequence(index: number): void;
 	/** The sequence, in the order it plays, repeats allowed (up to 16). */
@@ -210,7 +212,7 @@ export declare class DrumMachine {
 	clearPattern(index: number): void;
 	/** Turns one of the sequence's buttons on (any other off), or off if it was on. */
 	toggleTool(tool: Exclude<SequenceTool, "">): void;
-	/** A tap on a pattern button, read by the tool that is on (none: play it; with Shift, add to or take out of the sequence). */
+	/** A tap on a pattern button, read by the tool that is on (none: edit it; with Shift, add to or take out of the sequence). */
 	tapPattern(index: number, shift: boolean): void;
 	/** Restores a shared machine (a bümbap 1 link opens as pattern 1); false (and no change) if the code is invalid. */
 	loadCode(code: string): boolean;

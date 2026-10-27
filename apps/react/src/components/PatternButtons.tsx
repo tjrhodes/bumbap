@@ -1,5 +1,5 @@
 // The sequence (v2): eight pattern buttons and the Select, Copy and Clear tools beside the title. In the sequence,
-// half lit; playing or shown, fully lit; waiting for the end of the bar, blinking; empty, a dim number; with Select
+// half lit; playing, fully lit; on the keys, a ring; taking over at the end of the bar, blinking; empty, a dim number; with Select
 // on, each button's places in the sequence. Taps go to the engine's PatternPad, shared by every build.
 import { useEffect, useMemo } from "react";
 import { PanelText, PatternPad, type MachineState, type SequenceTool } from "bumbap-engine";
@@ -41,8 +41,8 @@ function SequenceHead() {
 }
 
 function PatternButton({ index, state, pad }: { index: number; state: MachineState; pad: PatternPad }) {
-	const classes = ["dm-pattern", state.patternHasSteps[index] && "is-used", state.nextPattern === index && "is-next",
-		state.copyFrom === index && "is-copy-source"];
+	const classes = ["dm-pattern", state.patternHasSteps[index] && "is-used", state.playingPattern === index && "is-playing",
+		state.nextPattern === index && "is-next", state.copyFrom === index && "is-copy-source"];
 	return (
 		<button type="button" className={classes.filter(Boolean).join(" ")} data-pattern={index}
 			aria-pressed={state.sequence.includes(index)} aria-current={state.pattern === index} aria-label={PanelText.patternLabel(state, index)}

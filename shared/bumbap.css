@@ -93,8 +93,8 @@ body { background: var(--rock); color: var(--stone); font-family: var(--body); f
 .dm-unit.is-unused { opacity: .3; }
 
 /* ── The sequence (v2): eight pattern buttons in a framed group, beside the 808 knobs on wide screens, a row of
-      their own on a phone. Half lit: in the sequence. Fully lit, with a glow: playing (or, stopped, on the keys).
-      Blinking: waiting for the end of the bar. Dim number: nothing in it yet. On the frame, the title and three
+      their own on a phone. Half lit: in the sequence. Fully lit, with a glow: playing. A ring: on the keys, being
+      edited. Blinking: taking over at the end of the bar. Dim number: nothing in it yet. On the frame, the title and three
       small tools (Select, Copy, Clear); with Select on, each button shows its places in the sequence. ── */
 .dm-patterns { position: relative; flex: 1 1 100%; display: grid; align-content: center; gap: 10px;
 	padding: 22px 12px 10px; border: 1px solid var(--hairline); border-radius: 8px; }
@@ -117,8 +117,10 @@ body { background: var(--rock); color: var(--stone); font-family: var(--body); f
 	-webkit-touch-callout: none; transition: background-color 120ms, box-shadow 120ms, color 120ms; }
 .dm-pattern.is-used { color: var(--stone); }
 .dm-pattern[aria-pressed="true"] { background: var(--lit); border-color: rgba(233, 201, 58, .75); color: #fff7cf; }
-.dm-pattern[aria-current="true"] { background: var(--lichen); border-color: var(--lichen);
+.dm-pattern[aria-current="true"] { box-shadow: 0 0 0 2px var(--crevice), 0 0 0 4px var(--stone); color: #fff7cf; }
+.dm-pattern.is-playing { background: var(--lichen); border-color: var(--lichen);
 	color: var(--crevice); box-shadow: 0 0 14px 3px rgba(233, 201, 58, .55), 0 0 2px 1px rgba(255, 247, 207, .7); }
+.dm-pattern.is-playing[aria-current="true"] { box-shadow: 0 0 0 2px var(--crevice), 0 0 0 4px var(--stone), 0 0 18px 5px rgba(233, 201, 58, .5); }
 .dm-pattern.is-next { animation: dm-blink .5s steps(1) infinite; }
 @keyframes dm-blink { 50% { background: var(--lichen); color: var(--crevice); box-shadow: 0 0 14px 3px rgba(233, 201, 58, .55); } }
 .dm-pattern:focus-visible { outline: 2px solid var(--stone); outline-offset: 2px; }

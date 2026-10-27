@@ -2,31 +2,24 @@ package drum;
 
 /**
  * The order the eight patterns play in. Plain data with guarded edits; it knows nothing about sound or
- * time, the machine tells it when a bar ends.
+ * time, the machine tells it when a bar ends. Which pattern is being edited is not its business: any
+ * pattern can be on the keys while the sequence plays.
  *
  * - The sequence is a list of patterns played in its own order and round again, repeats allowed:
  *   3, 1, 3, 6, 3, 1, 3, 6… It holds 1 to 16 entries.
- * - The shown pattern is the one playing, or when stopped the one on the keys; `position` is where in the
- *   list it is playing (NONE when it is not in it), so a pattern listed twice knows which turn it is on.
- * - A pattern chosen on its own while the machine plays waits, queued, for the end of the bar.
+ * - `playing` is the pattern sounding this bar, and `position` its turn in the list, so a pattern listed
+ *   twice knows which turn it is on. Edited under it so that the pattern playing is no longer listed,
+ *   the position is NONE: the bar finishes, then the sequence starts again from the top.
  */
 class Sequence {
 	public static inline final NONE = -1;
 	public static inline final MOST = 16;
 
-	public var shown(default, null) = 0;
 	public var patterns(default, null):Array<Int> = [0];
-	public var queued(default, null) = NONE;
 	public var position(default, null) = 0;
+	public var playing(default, null) = 0;
 
 	public function new() {}
-
-	/** Just this pattern from now on. Playing, it is queued for the end of the bar (the machine shows it then). */
-	public function choose(pattern:Int, playing:Bool) {
-		patterns = [pattern];
-		queued = playing && pattern != shown ? pattern : NONE;
-		position = pattern == shown ? 0 : NONE;
-	}
 
 	/** Exactly these patterns, in this order (those that do not exist are dropped); an empty list changes nothing. */
 	public function replace(list:Array<Int>) {
@@ -48,39 +41,33 @@ class Sequence {
 		if (without.length == patterns.length) append(pattern); else replace(without);
 	}
 
-	/** The bar is ending: moves on to the queued pattern, or else the next in the list, and gives the one to play. */
-	public function advance():Int {
-		if (queued != NONE) {
-			position = patterns.indexOf(queued);
-			return queued;
-		}
-		position = (position + 1) % patterns.length; // from NONE (-1), that is the first
-		return patterns[position];
-	}
-
-	/** Play starts on the shown pattern where the list has it, otherwise on the list's first. */
+	/** Play starts at the top of the list. */
 	public function start():Int {
-		position = Std.int(Math.max(0, patterns.indexOf(shown)));
-		return patterns[position];
+		position = 0;
+		playing = patterns[0];
+		return playing;
 	}
 
-	/** The machine now shows this pattern; whatever was queued has arrived (or, stopped, is forgotten). */
-	public function show(pattern:Int) {
-		shown = pattern;
-		queued = NONE;
-		if (patterns[position] != shown) position = patterns.indexOf(shown);
+	/** The bar is ending: moves on to the next turn (the top, after an edit took the playing one away). */
+	public function advance():Int {
+		position = (position + 1) % patterns.length; // from NONE (-1), that is the first
+		playing = patterns[position];
+		return playing;
+	}
+
+	/** The pattern the next bar plays. */
+	public function next():Int {
+		return patterns[(position + 1) % patterns.length];
 	}
 
 	/** From a shared link, which has already checked the numbers. */
-	public function restore(shown:Int, patterns:Array<Int>) {
+	public function restore(patterns:Array<Int>) {
 		this.patterns = patterns.copy();
-		position = NONE;
-		show(shown);
+		start();
 	}
 
-	/** The shown pattern keeps its turn if the list still has it there; a queued pattern no longer listed is forgotten. */
+	/** The pattern playing keeps its turn where the list still has it; otherwise the next bar starts from the top. */
 	function afterEdit() {
-		if (position == NONE || patterns[position] != shown) position = patterns.indexOf(shown);
-		if (queued != NONE && !patterns.contains(queued)) queued = NONE;
+		if (patterns[position] != playing) position = patterns.indexOf(playing);
 	}
 }
