@@ -1,4 +1,4 @@
-<!-- The selected part's own knobs (Level, Pitch, Length, and its 808 knobs), then the part buttons. -->
+<!-- The selected part's own knobs (Level, Pitch, Length, and its 808 knobs), the pattern buttons, then the part buttons. -->
 <script setup lang="ts">
 import { computed } from "vue";
 import { DrumMachine, type MachineState } from "bumbap-engine";
@@ -6,6 +6,7 @@ import { selectedTrack, usePanel } from "../panel";
 import DialSlot from "./DialSlot.vue";
 import KnobUnit from "./KnobUnit.vue";
 import PartButtons from "./PartButtons.vue";
+import PatternButtons from "./PatternButtons.vue";
 
 /** The 808 group has room for the most knobs any part has. */
 const DIAL_SLOTS = [0, 1];
@@ -27,6 +28,7 @@ const part = (state: MachineState) => state.tracks[selectedPart.value];
 				<span class="dm-print dm-dials-label">808</span>
 				<DialSlot v-for="slot in DIAL_SLOTS" :key="slot" :slot-index="slot" />
 			</div>
+			<PatternButtons />
 		</div>
 		<PartButtons />
 	</section>
