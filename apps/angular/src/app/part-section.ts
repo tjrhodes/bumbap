@@ -1,14 +1,15 @@
-// The selected part's own knobs (Level, Pitch, Length, and its 808 knobs), then the part buttons.
+// The selected part's own knobs (Level, Pitch, Length, and its 808 knobs), the pattern buttons, then the part buttons.
 import { Component, inject } from "@angular/core";
 import { DrumMachine, type MachineState } from "bumbap-engine";
 import { DialSlot } from "./dial-slot";
 import { KnobUnit } from "./knob-unit";
 import { PanelStore } from "./panel-store";
 import { PartButtons } from "./part-buttons";
+import { PatternButtons } from "./pattern-buttons";
 
 @Component({
 	selector: "section[bmPartSection]",
-	imports: [DialSlot, KnobUnit, PartButtons],
+	imports: [DialSlot, KnobUnit, PartButtons, PatternButtons],
 	host: { class: "dm-part", "aria-label": "Part" },
 	template: `
 		<h2 class="dm-print dm-rule">Part</h2>
@@ -20,6 +21,7 @@ import { PartButtons } from "./part-buttons";
 				<span class="dm-print dm-dials-label">808</span>
 				@for (slot of dialSlots; track slot) { <div bmDialSlot [slot]="slot"></div> }
 			</div>
+			<div bmPatternButtons></div>
 		</div>
 		<div bmPartButtons></div>
 	`
