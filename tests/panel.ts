@@ -37,6 +37,28 @@ export class Panel {
 	key(number: number) { return this.page.locator(".dm-key").nth(number - 1); }
 	flip(number: number) { return this.page.locator(".dm-flip").nth(number - 1); }
 	dialSlot(slot: number) { return this.page.locator(".dm-dials .dm-unit").nth(slot); }
+	/** Pattern buttons are counted from 1, as printed on them. */
+	pattern(number: number) { return this.page.locator(`.dm-pattern[data-pattern="${number - 1}"]`); }
+
+	/**
+	 * A finger on a touch screen, for gestures a mouse cannot make (holding one button while tapping another):
+	 * the pointer events a browser sends, then its click, which comes from where the finger went down.
+	 */
+	async touch(pointerId: number, kind: "down" | "up", target: Locator, clickAfter = kind === "up") {
+		const box = (await target.boundingBox())!;
+		const at = { pointerId, pointerType: "touch", bubbles: true, clientX: box.x + box.width / 2, clientY: box.y + box.height / 2 };
+		await target.dispatchEvent(kind === "down" ? "pointerdown" : "pointerup", at);
+		if (clickAfter) await target.dispatchEvent("click", { bubbles: true });
+	}
+
+	/** Drags one element onto another with the mouse, in small moves like a hand. */
+	async dragOnto(from: Locator, to: Locator) {
+		const [start, end] = [(await from.boundingBox())!, (await to.boundingBox())!];
+		await this.page.mouse.move(start.x + start.width / 2, start.y + start.height / 2);
+		await this.page.mouse.down();
+		await this.page.mouse.move(end.x + end.width / 2, end.y + end.height / 2, { steps: 8 });
+		await this.page.mouse.up();
+	}
 
 	/** Drags from the middle of an element by (dx, dy) pixels, in small moves like a hand. */
 	async drag(target: Locator, dx: number, dy: number) {

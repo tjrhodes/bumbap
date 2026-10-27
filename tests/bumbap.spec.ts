@@ -4,6 +4,10 @@
 import { expect, test as base } from "@playwright/test";
 import { Panel } from "./panel";
 
+/** A link as bümbap 1 wrote it: the starter beat with the kick on step 3 too. */
+const ONE_PATTERN_LINK = "5.100.50.0.0.044564g055g055g064g0_901064g064g032g0_100055g0_555555g032g055g032g055g032g055g032g0"
+	+ "_400055g0_0000_0000_208032g055g0.5050505050505050.00000000.c6412c6422c6400c6400c6420c6420c6420c6400";
+
 const test = base.extend<{ panel: Panel; consoleErrors: string[] }>({
 	consoleErrors: async ({ page }, use) => {
 		const errors: string[] = [];
@@ -157,7 +161,7 @@ test.describe("sharing", () => {
 		await panel.key(2).click();
 		await panel.knob("tempo").focus();
 		await page.keyboard.press("End");
-		await expect.poll(() => page.evaluate(() => location.hash)).toMatch(/^#5\.200\./);
+		await expect.poll(() => page.evaluate(() => location.hash)).toMatch(/^#6\.200\./);
 		const code = (await page.evaluate(() => location.hash)).slice(1);
 		const second = new Panel(await browser.newPage());
 		await second.open(code);
@@ -172,6 +176,82 @@ test.describe("sharing", () => {
 		await expect(page.locator(".dm-share-note")).toHaveText("Link copied");
 		expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(page.url());
 		await expect(page.locator(".dm-share-note")).toHaveText("", { timeout: 5_000 });
+	});
+});
+
+test.describe("patterns (v2)", () => {
+	test("eight buttons: pattern 1 shown and chained, the others empty", async ({ panel }) => {
+		await expect(panel.page.locator(".dm-pattern")).toHaveCount(8);
+		await expect(panel.pattern(1)).toHaveAttribute("aria-current", "true");
+		await expect(panel.pattern(1)).toHaveAttribute("aria-pressed", "true");
+		await expect(panel.pattern(1)).toHaveAttribute("aria-label", "Pattern 1, shown");
+		await expect(panel.pattern(2)).toHaveAttribute("aria-label", "Pattern 2, empty");
+		await expect(panel.pattern(2)).toHaveAttribute("aria-pressed", "false");
+	});
+
+	test("each pattern keeps its own steps", async ({ panel }) => {
+		await panel.pattern(2).click();
+		await expect(panel.key(1)).toHaveAttribute("aria-pressed", "false");
+		await panel.key(3).click();
+		await panel.pattern(1).click();
+		await expect(panel.key(1)).toHaveAttribute("aria-pressed", "true");
+		await expect(panel.key(3)).toHaveAttribute("aria-pressed", "false");
+		await panel.pattern(2).click();
+		await expect(panel.key(3)).toHaveAttribute("aria-pressed", "true");
+		await expect(panel.pattern(2)).toHaveClass(/is-used/);
+	});
+
+	test("shift-click chains patterns, and the chain plays them in turn", async ({ panel }) => {
+		await panel.pattern(3).click({ modifiers: ["Shift"] });
+		await expect(panel.pattern(3)).toHaveAttribute("aria-pressed", "true");
+		await expect(panel.pattern(1)).toHaveAttribute("aria-pressed", "true");
+		await panel.knob("tempo").focus();
+		await panel.page.keyboard.press("End");
+		await panel.play.click();
+		await expect(panel.pattern(3)).toHaveAttribute("aria-current", "true", { timeout: 4_000 });
+		await expect(panel.pattern(1)).toHaveAttribute("aria-current", "true", { timeout: 4_000 });
+	});
+
+	test("while playing, a chosen pattern blinks until the end of the bar", async ({ panel }) => {
+		await panel.play.click();
+		await panel.pattern(2).click();
+		await expect(panel.pattern(2)).toHaveClass(/is-next/);
+		await expect(panel.pattern(1)).toHaveAttribute("aria-current", "true");
+		await expect(panel.pattern(2)).toHaveAttribute("aria-current", "true", { timeout: 4_000 });
+		await expect(panel.pattern(2)).not.toHaveClass(/is-next/);
+	});
+
+	test("dragging one button onto another copies the pattern", async ({ panel }) => {
+		await panel.dragOnto(panel.pattern(1), panel.pattern(4));
+		await expect(panel.pattern(4)).toHaveAttribute("aria-label", "Pattern 4");
+		await expect(panel.pattern(1)).toHaveAttribute("aria-current", "true");
+		await panel.pattern(4).click();
+		await expect(panel.key(1)).toHaveAttribute("aria-pressed", "true");
+	});
+
+	test("on a touch screen, holding one button and tapping others chains them", async ({ panel }) => {
+		await panel.touch(1, "down", panel.pattern(2));
+		await panel.touch(2, "down", panel.pattern(5));
+		await panel.touch(2, "up", panel.pattern(5));
+		await panel.touch(1, "up", panel.pattern(2));
+		for (const [number, chained] of [[1, "false"], [2, "true"], [5, "true"]] as const)
+			await expect(panel.pattern(number)).toHaveAttribute("aria-pressed", chained);
+		await expect(panel.pattern(1)).toHaveAttribute("aria-current", "true");
+	});
+
+	test("a link carries every pattern and the chain; a bümbap 1 link opens as pattern 1", async ({ panel, page, browser }) => {
+		await panel.pattern(2).click();
+		await panel.key(5).click();
+		await panel.pattern(6).click({ modifiers: ["Shift"] });
+		const second = new Panel(await browser.newPage());
+		await second.open((await page.evaluate(() => location.hash)).slice(1));
+		await expect(second.pattern(6)).toHaveAttribute("aria-pressed", "true");
+		await expect(second.pattern(2)).toHaveAttribute("aria-current", "true");
+		await expect(second.key(5)).toHaveAttribute("aria-pressed", "true");
+		const third = new Panel(await browser.newPage());
+		await third.open(ONE_PATTERN_LINK);
+		await expect(third.key(3)).toHaveAttribute("aria-pressed", "true");
+		await expect(third.pattern(2)).toHaveAttribute("aria-label", "Pattern 2, empty");
 	});
 });
 

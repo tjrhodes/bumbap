@@ -91,6 +91,30 @@ body { background: var(--rock); color: var(--stone); font-family: var(--body); f
 .dm-dials-label { position: absolute; top: -6px; left: 50%; translate: -50% 0; padding-inline: 6px;
 	background: var(--crevice); color: var(--lichen); }
 .dm-unit.is-unused { opacity: .3; }
+
+/* ── Patterns (v2): eight buttons in a framed group, beside the 808 knobs on wide screens, a row of their own
+      on a phone. Half lit: in the chain. Fully lit, with a glow: playing (or, stopped, on the keys).
+      Blinking: waiting for the end of the bar. Dim number: nothing in it yet. ── */
+.dm-patterns { position: relative; flex: 1 1 100%; display: grid; align-content: center; gap: 10px;
+	padding: 18px 12px 10px; border: 1px solid var(--hairline); border-radius: 8px; }
+.dm-pattern-row { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
+.dm-pattern { --lit: rgba(233, 201, 58, .38); min-width: 0; height: 40px; border-radius: 8px; cursor: pointer;
+	border: 1.5px solid rgba(219, 210, 185, .4); background: transparent; color: rgba(219, 210, 185, .45);
+	font: 700 .95rem/1 var(--display); touch-action: none; user-select: none; -webkit-user-select: none;
+	-webkit-touch-callout: none; transition: background-color 120ms, box-shadow 120ms, color 120ms; }
+.dm-pattern.is-used { color: var(--stone); }
+.dm-pattern[aria-pressed="true"] { background: var(--lit); border-color: rgba(233, 201, 58, .75); color: #fff7cf; }
+.dm-pattern[aria-current="true"] { background: var(--lichen); border-color: var(--lichen);
+	color: var(--crevice); box-shadow: 0 0 14px 3px rgba(233, 201, 58, .55), 0 0 2px 1px rgba(255, 247, 207, .7); }
+.dm-pattern.is-next { animation: dm-blink .5s steps(1) infinite; }
+@keyframes dm-blink { 50% { background: var(--lichen); color: var(--crevice); box-shadow: 0 0 14px 3px rgba(233, 201, 58, .55); } }
+.dm-pattern:focus-visible { outline: 2px solid var(--stone); outline-offset: 2px; }
+.dm-pattern-hint { justify-content: center; color: var(--sand); font-size: .58rem; letter-spacing: .1em; }
+.dm-pattern-hint .for-touch { display: none; }
+@media (pointer: coarse) {
+	.dm-pattern-hint .for-mouse { display: none; }
+	.dm-pattern-hint .for-touch { display: inline; }
+}
 .dm-unit.is-unused .dm-knob { cursor: default; }
 
 /* ── Knobs: knurled body that turns, printed scale that does not ─── */
@@ -201,10 +225,15 @@ button:focus-visible, .dm-knob:focus-visible { outline: 2px solid var(--lichen);
 	.dm-head { grid-template-columns: auto 1fr auto auto; grid-template-areas: "mark print note share"; }
 	.dm-deck { grid-template-columns: minmax(200px, 250px) repeat(6, auto); justify-content: space-between;
 		align-items: end; column-gap: 20px; grid-template-areas: "window tempo swing drive reverb play clear"; }
-	.dm-strip { justify-content: flex-start; column-gap: 34px; }
+	.dm-strip { justify-content: flex-start; align-items: stretch; column-gap: 34px; }
+	.dm-strip > .dm-unit { justify-content: flex-end; }
+	.dm-patterns { flex: 1 1 280px; }
 	.dm-pills { gap: 8px; }
 	.dm-pill { gap: 7px; padding: 6px 10px; font-size: .78rem; letter-spacing: .05em; }
 	.dm-keys { grid-template-columns: repeat(4, 1fr); }
 }
 @media (max-width: 759px) { .dm-deck .dm-knob { --size: 50px; } }
-@media (prefers-reduced-motion: reduce) { .dm-rubber, .dm-key, .dm-key-led, .dm-icon { transition: none; } }
+@media (prefers-reduced-motion: reduce) {
+	.dm-rubber, .dm-key, .dm-key-led, .dm-icon, .dm-pattern { transition: none; }
+	.dm-pattern.is-next { animation: none; border-style: dashed; border-color: var(--lichen); }
+}
