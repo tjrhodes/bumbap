@@ -300,6 +300,7 @@ function draw(state) {
 	drawKnobs(state, selected);
 	drawParts(state.tracks, selected);
 	drawKeys(selected);
+	drawPatterns(state);
 	try { history.replaceState(null, "", `#${state.code}`); } catch { /* some frames refuse it; nothing is lost */ }
 }
 
@@ -474,6 +475,30 @@ function onShortcut(event) {
 	panel.machine.togglePlay();
 }
 
+/* ── Patterns (v2): drawn from each snapshot; the gestures go to the engine's PatternPad ───── */
+
+const patternButtons = () => [...document.querySelectorAll(".dm-pattern")];
+
+/** In the chain: half lit (aria-pressed). Playing or shown: fully lit (aria-current). Waiting for the bar: blinking. */
+function drawPatterns(state) {
+	patternButtons().forEach((button, index) => {
+		button.setAttribute("aria-pressed", String(state.chain.includes(index)));
+		button.setAttribute("aria-current", String(state.pattern === index));
+		button.setAttribute("aria-label", PanelText.patternLabel(state, index));
+		button.classList.toggle("is-next", state.nextPattern === index);
+		button.classList.toggle("is-used", state.patternHasSteps[index]);
+	});
+}
+
+/** Down and click on the buttons; up anywhere, since a finger dragged onto another button is lifted there. */
+function listenToPatterns(pad) {
+	const patternOf = (event) => event.target.closest("[data-pattern]")?.dataset.pattern;
+	element("patterns").addEventListener("pointerdown", (event) => patternOf(event) && pad.press(event.pointerId, Number(patternOf(event))));
+	element("patterns").addEventListener("click", (event) => patternOf(event) && pad.click(Number(patternOf(event)), event.shiftKey));
+	window.addEventListener("pointerup", (event) => pad.release(event.pointerId, PatternPad.patternAt(event.clientX, event.clientY)));
+	window.addEventListener("pointercancel", (event) => pad.release(event.pointerId, PatternPad.NONE));
+}
+
 /* ── Sharing ───────────────────────────────────────────────────────────────────────── */
 
 let shareNoteTimer = 0;
@@ -491,6 +516,7 @@ function shareBeat() {
 function listen() {
 	const machine = panel.machine;
 	element("share").addEventListener("click", shareBeat);
+	listenToPatterns(new PatternPad(machine));
 	element("play").addEventListener("click", () => machine.togglePlay());
 	element("clear").addEventListener("click", () => machine.clear());
 	element("pills").addEventListener("click", onPillsClick);
