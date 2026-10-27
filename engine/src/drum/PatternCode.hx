@@ -10,9 +10,10 @@ import js.lib.WeakMap;
  * Packs the whole machine into a short, URL-safe code and back, so a groove
  * can be shared as a link:
  *
- *     6.<tempo>.<swing>.<drive>.<reverb>.<shown>.<chain>-<pattern 1>-<pattern 2>-…-<pattern 8>
+ *     6.<tempo>.<swing>.<drive>.<reverb>.<shown>.<sequence>-<pattern 1>-<pattern 2>-…-<pattern 8>
  *
- * - shown: the pattern on the keys, 1–8. chain: the chained patterns, e.g. "136".
+ * - shown: the pattern on the keys, 1–8. sequence: the order they play in, repeats allowed,
+ *   1 to 16 of them: "3136" plays 3, 1, 3, 6.
  * - each pattern is <rows>.<volumes>.<mutes>.<sounds>, or nothing at all when it
  *   is blank (no steps, every part as it starts), so unused patterns cost one "-".
  * - rows: one per track, joined by "_". Each row is 4 hex digits saying which
@@ -59,7 +60,7 @@ class PatternCode {
 
 	public static function encode(saved:SavedMachine):String {
 		final settings = [saved.tempo, saved.swing, saved.drive, saved.reverb].map(Std.string);
-		final header = [VERSION].concat(settings).concat([numbered([saved.shown]), numbered(saved.chain)]);
+		final header = [VERSION].concat(settings).concat([numbered([saved.shown]), numbered(saved.sequence)]);
 		final patterns = [for (pattern in saved.patterns) isBlank(pattern) ? "" : pack(pattern)];
 		return [header.join(SEPARATOR)].concat(patterns).join(PATTERN_SEPARATOR);
 	}
@@ -129,7 +130,7 @@ class PatternCode {
 
 	// ── Decoding ───────────────────────────────────────────────────────
 
-	/** A bümbap 1 link: its one pattern becomes pattern 1, the others blank, and the chain just pattern 1. */
+	/** A bümbap 1 link: its one pattern becomes pattern 1, the others blank, and the sequence just pattern 1. */
 	static function decodeOnePattern(code:String):Null<SavedMachine> {
 		final shape = new EReg('^$ONE_PATTERN_VERSION\\.$SETTINGS\\.(.+)$$', "");
 		if (!shape.match(code)) return null;
@@ -140,29 +141,22 @@ class PatternCode {
 
 	static function decodeEveryPattern(code:String):Null<SavedMachine> {
 		final parts = code.split(PATTERN_SEPARATOR);
-		final header = new EReg('^$VERSION\\.$SETTINGS\\.($PATTERN_DIGITS)\\.($PATTERN_DIGITS+)$$', "");
+		final header = new EReg('^$VERSION\\.$SETTINGS\\.($PATTERN_DIGITS)\\.($PATTERN_DIGITS{1,${Sequence.MOST}})$$', "");
 		if (parts.length != Limits.PATTERNS + 1 || !header.match(parts[0])) return null;
 		final patterns = [for (packed in parts.slice(1)) packed == "" ? Patterns.blank() : decodePattern(packed)];
-		final chain = decodeChain(header.matched(6));
-		if (patterns.contains(null) || chain == null) return null;
-		return machine(header, patterns, Std.parseInt(header.matched(5)) - 1, chain);
+		if (patterns.contains(null)) return null;
+		final sequence = [for (digit in header.matched(6).split("")) Std.parseInt(digit) - 1];
+		return machine(header, patterns, Std.parseInt(header.matched(5)) - 1, sequence);
 	}
 
 	/** The machine's settings (groups 1–4 of the shape that matched), clamped, with its patterns. */
-	static function machine(shape:EReg, patterns:Array<Pattern>, shown:Int, chain:Array<Int>):SavedMachine {
+	static function machine(shape:EReg, patterns:Array<Pattern>, shown:Int, sequence:Array<Int>):SavedMachine {
 		final setting = (group:Int) -> Std.parseInt(shape.matched(group));
 		return {
 			tempo: Limits.TEMPO.clamp(setting(1)), swing: Limits.SWING.clamp(setting(2)),
 			drive: Limits.DRIVE.clamp(setting(3)), reverb: Limits.REVERB.clamp(setting(4)),
-			patterns: patterns, shown: shown, chain: chain
+			patterns: patterns, shown: shown, sequence: sequence
 		};
-	}
-
-	/** "136" is [0, 2, 5]; numbers out of order or twice are refused, as no machine writes them. */
-	static function decodeChain(digits:String):Null<Array<Int>> {
-		final chain = [for (digit in digits.split("")) Std.parseInt(digit) - 1];
-		for (index in 1...chain.length) if (chain[index] <= chain[index - 1]) return null;
-		return chain;
 	}
 
 	/** One pattern: rows, volumes, mutes and sounds; null unless every part is there and well formed. */

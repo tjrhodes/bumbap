@@ -1,27 +1,28 @@
 import Check.later;
 import Check.test;
 import drum.DrumMachine;
-import drum.PatternChain;
+import drum.Sequence;
 import drum.StepRow;
+import drum.panel.PanelText;
 import js.lib.Promise;
 
-/** Version 2: eight patterns, the chain that plays them, and copying one onto another. */
+/** Version 2: eight patterns, the sequence that plays them, and the Select, Copy and Clear tools. */
 class PatternTests {
 	static inline final KICK = 0;
 	static inline final SNARE = 1;
 	static inline final STEPS_IN_A_BAR = 16;
 
 	public static function all():Array<Check.Test> {
-		return chainTests().concat(machineTests()).concat(playingTests());
+		return sequenceTests().concat(machineTests()).concat(toolTests()).concat(playingTests());
 	}
 
-	static function chainTests():Array<Check.Test> {
+	static function sequenceTests():Array<Check.Test> {
 		return [
 			test("choosing a pattern: stopped it is just chosen, playing it is queued", choosing),
-			test("the chain adds and takes out patterns in number order, and keeps one", toggling),
-			test("the chain goes round in number order, from wherever it is", goingRound),
-			test("a chain set at once drops repeats and numbers that do not exist", chainingExactly),
-			test("a queued pattern taken out of the chain is forgotten", queuedTakenOut)
+			test("shift-click adds at the end or takes out, and the last one stays", toggling),
+			test("the sequence plays in its own order, repeats included, from wherever it is", goingRound),
+			test("a sequence set at once keeps its order and drops what does not exist", replacing),
+			test("a queued pattern taken out of the sequence is forgotten", queuedTakenOut)
 		];
 	}
 
@@ -35,70 +36,80 @@ class PatternTests {
 		];
 	}
 
+	static function toolTests():Array<Check.Test> {
+		return [
+			test("Select: taps set the sequence in their order, repeats allowed, and show their places", selecting),
+			test("Copy: the first tap picks, the second copies there, then Copy turns off", copyingWithTheTool),
+			test("Clear: a tap blanks that pattern, part sounds too, then Clear turns off", clearingWithTheTool),
+			test("a tool turns off when pressed again, and another one takes its place", toolsTakeTurns)
+		];
+	}
+
 	static function playingTests():Array<Check.Test> {
 		return [
 			later("while playing, a chosen pattern waits for the end of the bar", chosenWaitsForTheBar),
-			later("a chain plays its patterns in turn, and the keys follow on the bar's first heard step", chainPlaysInTurn),
-			later("Play starts on the chain's first pattern if the one shown is not in it", playStartsInTheChain)
+			later("a sequence plays its patterns in turn, and the keys follow on the bar's first heard step", sequencePlaysInTurn),
+			later("Play starts on the sequence's first pattern if the one shown is not in it", playStartsInTheSequence)
 		];
 	}
 
 	// ── The chain on its own ──────────────────────────────────────────
 
 	static function choosing() {
-		final chain = new PatternChain();
-		chain.choose(3, false);
-		Check.equal('${chain.members} ${chain.queued}', "[3] -1", "stopped: the chain is that pattern, nothing queued");
-		chain.choose(5, true);
-		Check.equal('${chain.members} ${chain.queued} ${chain.next()}', "[5] 5 5", "playing: queued, and next");
-		chain.choose(0, true);
-		Check.equal(chain.queued, PatternChain.NONE, "choosing the one shown queues nothing");
+		final sequence = new Sequence();
+		sequence.choose(3, false);
+		Check.equal('${sequence.patterns} ${sequence.queued}', "[3] -1", "stopped: the sequence is that pattern, nothing queued");
+		sequence.choose(5, true);
+		Check.equal('${sequence.patterns} ${sequence.queued} ${sequence.advance()}', "[5] 5 5", "playing: queued, and next");
+		sequence.choose(0, true);
+		Check.equal(sequence.queued, Sequence.NONE, "choosing the one shown queues nothing");
 	}
 
 	static function toggling() {
-		final chain = new PatternChain();
-		chain.toggle(5);
-		chain.toggle(2);
-		Check.equal(Std.string(chain.members), "[0,2,5]", "added, in number order");
-		chain.toggle(0);
-		chain.toggle(2);
-		Check.equal(Std.string(chain.members), "[5]", "taken out");
-		chain.toggle(5);
-		Check.equal(Std.string(chain.members), "[5]", "the last one stays");
+		final sequence = new Sequence();
+		sequence.toggle(5);
+		sequence.toggle(2);
+		Check.equal(Std.string(sequence.patterns), "[0,5,2]", "added at the end, in the order clicked");
+		sequence.toggle(0);
+		sequence.toggle(2);
+		Check.equal(Std.string(sequence.patterns), "[5]", "taken out");
+		sequence.toggle(5);
+		Check.equal(Std.string(sequence.patterns), "[5]", "the last one stays");
 	}
 
 	static function goingRound() {
-		final chain = new PatternChain();
-		chain.chainExactly([0, 2, 5]);
-		Check.equal(chain.next(), 2, "after 1 comes 3");
-		chain.moveTo(5);
-		Check.equal(chain.next(), 0, "after the last, the first again");
-		chain.moveTo(3);
-		Check.equal('${chain.next()} ${chain.first()}', "5 0", "from outside the chain: the next one up; Play starts on the first");
+		final sequence = new Sequence();
+		sequence.replace([0, 2, 0, 5]);
+		final heard = [for (_ in 0...5) sequence.advance()];
+		Check.equal(heard.join(","), "2,0,5,0,2", "after the first: 3, 1 again, 6, then round");
+		sequence.show(4);
+		Check.equal('${sequence.start()} ${sequence.position}', "0 0", "Play from outside the sequence starts at its first");
 	}
 
-	static function chainingExactly() {
-		final chain = new PatternChain();
-		chain.chainExactly([6, 1, 6, 9, -1]);
-		Check.equal(Std.string(chain.members), "[1,6]", "sorted, once each, only patterns that exist");
-		chain.chainExactly([]);
-		Check.equal(Std.string(chain.members), "[1,6]", "an empty chain is ignored");
+	static function replacing() {
+		final sequence = new Sequence();
+		sequence.replace([6, 1, 6, 9, -1]);
+		Check.equal(Std.string(sequence.patterns), "[6,1,6]", "in order, repeats kept, only patterns that exist");
+		sequence.replace([]);
+		Check.equal(Std.string(sequence.patterns), "[6,1,6]", "an empty sequence is ignored");
+		sequence.replace([for (_ in 0...20) 1]);
+		Check.equal(sequence.patterns.length, Sequence.MOST, "at most 16");
 	}
 
 	static function queuedTakenOut() {
-		final chain = new PatternChain();
-		chain.choose(4, true);
-		chain.toggle(2);
-		Check.equal(chain.queued, 4, "still queued while in the chain");
-		chain.toggle(4);
-		Check.equal('${chain.queued} ${chain.next()}', "-1 2", "taken out: forgotten, and the chain moves on");
+		final sequence = new Sequence();
+		sequence.choose(4, true);
+		sequence.toggle(2);
+		Check.equal(sequence.queued, 4, "still queued while in the sequence");
+		sequence.toggle(4);
+		Check.equal('${sequence.queued} ${sequence.advance()}', "-1 2", "taken out: forgotten, and the sequence moves on");
 	}
 
 	// ── The machine's patterns ────────────────────────────────────────
 
 	static function startingPatterns() {
 		final state = newMachine().machine.getState();
-		Check.equal('${state.pattern} ${state.chain} ${state.nextPattern}', "0 [0] -1", "pattern 1 shown and chained");
+		Check.equal('${state.pattern} ${state.sequence} ${state.nextPattern} ${state.tool}', "0 [0] -1 ", "pattern 1 shown and in the sequence, no tool on");
 		Check.equal(Std.string(state.patternHasSteps), "[true,false,false,false,false,false,false,false]", "only pattern 1 has steps");
 	}
 
@@ -134,11 +145,14 @@ class PatternTests {
 		sender.copyPattern(0, 3);
 		sender.choosePattern(3);
 		sender.toggleStep(SNARE, 2);
-		sender.toggleInChain(6);
+		sender.toggleInSequence(6);
+		sender.toggleInSequence(3);
+		sender.toggleInSequence(6);
+		sender.setSequence([6, 3, 6]);
 		final receiver = newMachine().machine;
 		Check.isTrue(receiver.loadCode(sender.getState().code), "accepted");
 		final received = receiver.getState();
-		Check.equal('${received.pattern} ${received.chain} ${received.code == sender.getState().code}', "3 [3,6] true", "same patterns, chain and pattern shown");
+		Check.equal('${received.pattern} ${received.sequence} ${received.code == sender.getState().code}', "3 [6,3,6] true", "same patterns, sequence and pattern shown");
 		Check.isTrue(received.tracks[SNARE].steps[2].on, "with pattern 4's edit");
 	}
 
@@ -155,6 +169,52 @@ class PatternTests {
 		});
 	}
 
+	// ── The tools ─────────────────────────────────────────────────────
+
+	static function selecting() {
+		final machine = newMachine().machine;
+		machine.toggleTool(Select);
+		for (pattern in [2, 0, 2, 5]) machine.tapPattern(pattern, false);
+		final state = machine.getState();
+		Check.equal('${state.sequence} ${state.pattern}', "[2,0,2,5] 0", "the taps' order, the keys still on pattern 1");
+		Check.equal(PanelText.sequencePlaces(state, 2), "1 3", "pattern 3 plays first and third");
+		Check.equal(PanelText.patternLabel(state, 2), "Pattern 3, empty, sequence places 1 3", "and says so");
+		machine.toggleTool(Select);
+		Check.equal(PanelText.sequencePlaces(machine.getState(), 2), "", "Select off: no places shown");
+		machine.toggleTool(Select);
+		machine.tapPattern(4, false);
+		Check.equal(Std.string(machine.getState().sequence), "[4]", "Select again: a new sequence from its first tap");
+	}
+
+	static function copyingWithTheTool() {
+		final machine = newMachine().machine;
+		machine.toggleTool(Copy);
+		machine.tapPattern(0, false);
+		Check.equal('${machine.getState().copyFrom} ${machine.getState().tool}', "0 copy", "pattern 1 picked");
+		machine.tapPattern(6, false);
+		final state = machine.getState();
+		Check.equal('${state.patternHasSteps[6]} ${state.tool} ${state.copyFrom} ${state.pattern}', "true  -1 0", "copied, Copy off, keys unchanged");
+	}
+
+	static function clearingWithTheTool() {
+		final machine = newMachine().machine;
+		machine.setPitch(KICK, 5);
+		machine.toggleTool(Clear);
+		machine.tapPattern(0, false);
+		final state = machine.getState();
+		Check.equal('${state.patternHasSteps[0]} ${state.tracks[KICK].pitch} ${state.tool}', "false 0 ", "blank, pitch back to 0, Clear off");
+	}
+
+	static function toolsTakeTurns() {
+		final machine = newMachine().machine;
+		machine.toggleTool(Copy);
+		machine.tapPattern(1, false);
+		machine.toggleTool(Clear);
+		Check.equal('${machine.getState().tool} ${machine.getState().copyFrom}', "clear -1", "Clear replaces Copy, forgetting its pick");
+		machine.toggleTool(Clear);
+		Check.equal(Std.string(machine.getState().tool), "", "pressed again: off");
+	}
+
 	// ── Playing ───────────────────────────────────────────────────────
 
 	static function chosenWaitsForTheBar():Promise<Any> {
@@ -169,25 +229,25 @@ class PatternTests {
 		});
 	}
 
-	static function chainPlaysInTurn():Promise<Any> {
+	static function sequencePlaysInTurn():Promise<Any> {
 		final setup = newMachine();
-		setup.machine.toggleInChain(2);
+		setup.machine.setSequence([0, 2, 2]);
 		final shownAtEachBar = [];
 		setup.machine.onStep(step -> if (step == 0) shownAtEachBar.push(setup.machine.getState().pattern + 1));
 		return playing(setup).then(_ -> {
-			for (_ in 0...3) {
+			for (_ in 0...4) {
 				playSteps(setup, STEPS_IN_A_BAR);
 				setup.tone.nextFrame();
 			}
-			Check.equal(shownAtEachBar.join(" → "), "1 → 3 → 1", "patterns 1 and 3 in turn, shown as each bar is heard");
+			Check.equal(shownAtEachBar.join(" → "), "1 → 3 → 3 → 1", "1, then 3 twice, then round, each shown as its bar is heard");
 		});
 	}
 
-	static function playStartsInTheChain():Promise<Any> {
+	static function playStartsInTheSequence():Promise<Any> {
 		final setup = newMachine();
-		setup.machine.chainPatterns([4, 6]);
+		setup.machine.setSequence([6, 4]);
 		return playing(setup).then(_ -> {
-			Check.equal(setup.machine.getState().pattern, 4, "pattern 5, the chain's first");
+			Check.equal(setup.machine.getState().pattern, 6, "pattern 7, the sequence's first");
 		});
 	}
 

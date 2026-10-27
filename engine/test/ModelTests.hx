@@ -56,7 +56,7 @@ class ModelTests {
 		return [
 			test("a URL code rebuilds the exact patterns, the chain and the pattern shown", codeRoundTrip),
 			test("bad URL codes are refused, not misread", badCodesRefused),
-			test("a chain out of order, twice over or past 8 is refused", badChainsRefused),
+			test("a sequence past pattern 8, empty or longer than 16 is refused", badSequencesRefused),
 			test("out-of-range numbers in a code are clamped", codeClamps),
 			test("a blank pattern costs one character in a link", blankPatternsCostNothing),
 			test("a bümbap 1 link still opens, as pattern 1", oneLinksStillOpen)
@@ -221,7 +221,7 @@ class ModelTests {
 		final decoded = PatternCode.decode(code);
 		Check.equal(PatternCode.encode(decoded), code, "encode → decode → encode is stable");
 		Check.equal('${decoded.tempo} ${decoded.swing} ${decoded.drive} ${decoded.reverb}', "133 66 40 25", "machine settings");
-		Check.equal('${decoded.shown} ${decoded.chain.join(",")}', "7 0,2,7", "the pattern shown and the chain");
+		Check.equal('${decoded.shown} ${decoded.sequence.join(",")}', "7 7,0,7,2", "the pattern shown and the sequence, in its order");
 		Check.isTrue(!Patterns.hasSteps(decoded.patterns[2]), "a blank pattern comes back blank");
 		Check.equal(StepRow.print(decoded.patterns[0][1].steps), "....x.......x...", "pattern 1");
 		checkUnusualPattern(decoded.patterns[7]);
@@ -251,12 +251,13 @@ class ModelTests {
 		Check.isTrue(PatternCode.decode(valid.toUpperCase()) != null, "case does not matter");
 	}
 
-	static function badChainsRefused() {
+	static function badSequencesRefused() {
 		final valid = PatternCode.encode(exampleMachine());
-		final withHeader = (shown:String, chain:String) -> valid.replace(".8.138-", '.$shown.$chain-');
-		Check.isTrue(PatternCode.decode(withHeader("8", "138")) != null, "the example itself is fine");
-		for (bad in [["8", "31"], ["8", "113"], ["8", "19"], ["0", "1"], ["9", "1"], ["8", ""]])
-			Check.equal(PatternCode.decode(withHeader(bad[0], bad[1])), null, 'refused: shown ${bad[0]}, chain "${bad[1]}"');
+		final withHeader = (shown:String, sequence:String) -> valid.replace(".8.8183-", '.$shown.$sequence-');
+		Check.isTrue(PatternCode.decode(withHeader("2", "3112")) != null, "any order, repeats included");
+		final tooLong = [for (_ in 0...17) "1"].join("");
+		for (bad in [["8", "19"], ["0", "1"], ["9", "1"], ["8", ""], ["8", tooLong]])
+			Check.equal(PatternCode.decode(withHeader(bad[0], bad[1])), null, 'refused: shown ${bad[0]}, sequence "${bad[1]}"');
 	}
 
 	static function codeClamps() {
@@ -280,7 +281,7 @@ class ModelTests {
 			+ "_400055g0_0000_0000_208032g055g0.5050505050505050.00000000.c6412c6422c6400c6400c6420c6420c6420c6400";
 		final opened = PatternCode.decode(oldLink);
 		Check.equal(StepRow.print(opened.patterns[0][0].steps).substr(0, 4), "X.x.", "pattern 1 is the old beat");
-		Check.equal('${opened.shown} ${opened.chain.join(",")}', "0 0", "shown and chained on its own");
+		Check.equal('${opened.shown} ${opened.sequence.join(",")}', "0 0", "shown, and the whole sequence");
 		Check.isTrue(!Lambda.exists(opened.patterns.slice(1), Patterns.hasSteps), "the other seven are blank");
 		Check.equal(opened.tempo, 100, "with its tempo");
 	}
@@ -303,12 +304,12 @@ class ModelTests {
 		});
 	}
 
-	/** Pattern 1 a small groove, pattern 8 the unusual one, the rest blank; 1, 3 and 8 chained, 8 shown. */
+	/** Pattern 1 a small groove, pattern 8 the unusual one, the rest blank; the sequence 8, 1, 8, 3, with 8 shown. */
 	static function exampleMachine():SavedMachine {
 		final first = Patterns.blank();
 		first[1] = {steps: StepRow.parse("....x.......x..."), volume: 80, muted: false, pitch: 0, length: 100, dials: [2, 2]};
 		final patterns = [for (index in 0...Limits.PATTERNS) index == 0 ? first : (index == 7 ? exampleTracks() : Patterns.blank())];
-		return {tempo: 133, swing: 66, drive: 40, reverb: 25, patterns: patterns, shown: 7, chain: [0, 2, 7]};
+		return {tempo: 133, swing: 66, drive: 40, reverb: 25, patterns: patterns, shown: 7, sequence: [7, 0, 7, 2]};
 	}
 
 	/** A pattern with something unusual on every axis, to catch packing mistakes. */

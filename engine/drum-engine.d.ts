@@ -55,19 +55,28 @@ export interface MachineState {
 	readonly drive: number;
 	/** Reverb mix, 0–100. */
 	readonly reverb: number;
-	/** The whole machine (all eight patterns and the chain) as a URL-safe code, ready for location.hash. */
+	/** The whole machine (all eight patterns and their sequence) as a URL-safe code, ready for location.hash. */
 	readonly code: string;
 	/** The parts of the pattern shown: the one playing, or when stopped the one on the keys. */
 	readonly tracks: readonly TrackState[];
 	/** Which pattern that is, 0–7. */
 	readonly pattern: number;
-	/** The chained patterns, in number order; never empty. */
-	readonly chain: readonly number[];
+	/** The order the patterns play in, repeats allowed; 1 to 16 of them. */
+	readonly sequence: readonly number[];
+	/** Where in the sequence the shown pattern is playing, from 0; -1 when it is not in it. */
+	readonly sequencePlace: number;
 	/** The pattern waiting for the end of the bar, or -1. */
 	readonly nextPattern: number;
 	/** For each of the eight patterns, whether any of its steps plays. */
 	readonly patternHasSteps: readonly boolean[];
+	/** The sequence button that is on ("" for none): a tap on a pattern then selects, copies or clears it. */
+	readonly tool: SequenceTool;
+	/** With Copy on, the pattern picked to copy, or -1 before one is. */
+	readonly copyFrom: number;
 }
+
+/** The sequence's small buttons; "" when none is on. */
+export type SequenceTool = "" | "select" | "copy" | "clear";
 
 export interface MachineOptions {
 	/** The Tone.js v15 module: `import * as Tone from "tone"`. */
@@ -105,13 +114,18 @@ export declare const PanelText: {
 	stepLabel(trackName: string, stepIndex: number, step: StepState): string;
 	flipLabel(trackName: string, stepIndex: number): string;
 	dialLabel(track: TrackState, slot: number): string;
-	/** "Pattern 3", then ", playing" / ", shown", ", next", ", empty" as they apply. */
+	/** "Pattern 3", then ", playing" / ", shown", ", next", ", empty", and with Select on ", sequence places 1 3". */
 	patternLabel(state: MachineState, pattern: number): string;
+	/** With Select on, a pattern's places in the sequence, from 1 ("1 3"); otherwise "". */
+	sequencePlaces(state: MachineState, pattern: number): string;
+	/** What a tap on a pattern does now: [for a mouse, for a touch screen]. */
+	sequenceHints(state: MachineState): readonly [string, string];
 };
 
 /**
  * The pattern buttons' gestures, shared by every build: forward the events, the pad calls the machine.
- * A click chooses (Shift: chains); holding one button and tapping others chains them; a drag onto another copies.
+ * A click is a tap (DrumMachine.tapPattern); with no tool on, holding one button and tapping others sets the
+ * sequence in that order, and a drag onto another button copies.
  */
 export declare class PatternPad {
 	/** What `patternAt` gives where there is no pattern button. */
@@ -186,12 +200,18 @@ export declare class DrumMachine {
 	clear(): void;
 	/** Just this pattern (0–7) from now on; while playing, it takes over at the end of the bar. */
 	choosePattern(index: number): void;
-	/** Adds one pattern to the chain or takes it out; the chain keeps at least one. */
-	toggleInChain(index: number): void;
-	/** Exactly these patterns in the chain, played in number order. */
-	chainPatterns(indexes: readonly number[]): void;
+	/** Adds one pattern at the end of the sequence, or takes it out; the sequence keeps at least one. */
+	toggleInSequence(index: number): void;
+	/** The sequence, in the order it plays, repeats allowed (up to 16). */
+	setSequence(indexes: readonly number[]): void;
 	/** Copies one pattern (steps and part sounds) over another. */
 	copyPattern(from: number, to: number): void;
+	/** Makes a pattern blank: no steps, every part as it starts. */
+	clearPattern(index: number): void;
+	/** Turns one of the sequence's buttons on (any other off), or off if it was on. */
+	toggleTool(tool: Exclude<SequenceTool, "">): void;
+	/** A tap on a pattern button, read by the tool that is on (none: play it; with Shift, add to or take out of the sequence). */
+	tapPattern(index: number, shift: boolean): void;
 	/** Restores a shared machine (a bümbap 1 link opens as pattern 1); false (and no change) if the code is invalid. */
 	loadCode(code: string): boolean;
 	/** Stops, releases audio resources and forgets every listener. */

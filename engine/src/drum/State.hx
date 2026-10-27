@@ -41,8 +41,8 @@ typedef SavedMachine = MachineSettings & {
 	final patterns:Array<Pattern>;
 	/** The pattern on the keys, 0–7. */
 	final shown:Int;
-	/** The chained patterns, in number order; never empty. */
-	final chain:Array<Int>;
+	/** The order the patterns play in, repeats allowed; 1 to 16 of them. */
+	final sequence:Array<Int>;
 }
 
 /** A track as the UI sees it: its settings plus what to call things. */
@@ -53,6 +53,14 @@ typedef TrackState = TrackSettings & {
 	final dialNames:Array<String>;
 	/** The recording its knobs choose, e.g. "BD2550". */
 	final sample:String;
+}
+
+/** The sequence's small buttons; Off when none is on. */
+enum abstract SequenceTool(String) to String {
+	var Off = "";
+	var Select = "select";
+	var Copy = "copy";
+	var Clear = "clear";
 }
 
 /** Whether the samples are ready to play. */
@@ -75,10 +83,16 @@ typedef MachineState = MachineSettings & {
 	final tracks:Array<TrackState>;
 	/** Which pattern that is, 0–7. */
 	final pattern:Int;
-	/** The chained patterns, in number order; never empty. */
-	final chain:Array<Int>;
+	/** The order the patterns play in, repeats allowed; 1 to 16 of them. */
+	final sequence:Array<Int>;
+	/** Where in the sequence the shown pattern is playing, from 0; -1 when it is not in the sequence. */
+	final sequencePlace:Int;
 	/** The pattern waiting for the end of the bar, or -1. */
 	final nextPattern:Int;
 	/** For each of the eight patterns, whether any of its steps plays. */
 	final patternHasSteps:Array<Bool>;
+	/** The sequence button that is on: a tap on a pattern then selects, copies or clears instead of playing it. */
+	final tool:SequenceTool;
+	/** With Copy on, the pattern picked to copy, or -1 before one is. */
+	final copyFrom:Int;
 }

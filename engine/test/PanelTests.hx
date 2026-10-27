@@ -14,8 +14,9 @@ class PanelTests {
 			test("step labels say what a screen reader needs", stepLabels),
 			test("a shared link is the page with the beat at its end", sharedAddress),
 			test("pattern buttons say whether they play, wait or are empty", patternLabels),
-			test("a click chooses a pattern; a shift-click chains it", padClicks),
-			test("holding one button and tapping others chains them; the taps are not also clicks", padHolds),
+			test("a click chooses a pattern; a shift-click adds it to the sequence", padClicks),
+			test("holding one button and tapping others sequences them; the taps are not also clicks", padHolds),
+			test("with a sequence button on, holding and dragging are just taps", padToolsOn),
 			test("dragging one button onto another copies the pattern, and is not also a click", padDrags)
 		];
 	}
@@ -52,7 +53,7 @@ class PanelTests {
 
 	static function patternLabels() {
 		final machine = new DrumMachine({tone: new FakeTone().api, samplesUrl: "/"});
-		machine.toggleInChain(2);
+		machine.toggleInSequence(2);
 		Check.equal(PanelText.patternLabel(machine.getState(), 0), "Pattern 1, shown", "the one on the keys");
 		Check.equal(PanelText.patternLabel(machine.getState(), 2), "Pattern 3, empty", "chained shows as pressed, not in words");
 	}
@@ -62,7 +63,7 @@ class PanelTests {
 		pad.click(3, false);
 		Check.equal(machineState().pattern, 3, "a click chooses");
 		pad.click(5, true);
-		Check.equal(Std.string(machineState().chain), "[3,5]", "a shift-click chains");
+		Check.equal(Std.string(machineState().sequence), "[3,5]", "a shift-click adds to the sequence");
 	}
 
 	static function padHolds() {
@@ -72,11 +73,11 @@ class PanelTests {
 		pad.release(2, 6);
 		pad.press(3, 4);
 		pad.release(3, 4);
-		Check.equal(Std.string(machineState().chain), "[2,4,6]", "held 3, tapped 7 and 5");
+		Check.equal(Std.string(machineState().sequence), "[2,6,4]", "held 3, tapped 7 then 5: in that order");
 		pad.click(6, false);
 		pad.release(1, 2);
 		pad.click(2, false);
-		Check.equal('${machineState().pattern} ${machineState().chain}', "0 [2,4,6]", "no click chose anything");
+		Check.equal('${machineState().pattern} ${machineState().sequence}', "0 [2,6,4]", "no click chose anything");
 	}
 
 	static function padDrags() {
@@ -85,10 +86,22 @@ class PanelTests {
 		pad.release(1, 5);
 		pad.click(0, false);
 		Check.equal(Std.string(machineState().patternHasSteps.slice(4, 6)), "[false,true]", "pattern 1 copied onto 6");
-		Check.equal(Std.string(machineState().chain), "[0]", "and the drag was not a click on 1");
+		Check.equal(Std.string(machineState().sequence), "[0]", "and the drag was not a click on 1");
 		pad.press(1, 3);
 		pad.release(1, PatternPad.NONE);
 		Check.isTrue(!machineState().patternHasSteps[3], "let go off the buttons: nothing copied");
+	}
+
+	static function padToolsOn() {
+		final pad = new PatternPad(machineWithPad());
+		padMachine.toggleTool(Select);
+		pad.press(1, 3);
+		pad.press(2, 1);
+		pad.release(2, 1);
+		pad.click(1, false);
+		pad.release(1, 6);
+		pad.click(3, false);
+		Check.equal('${machineState().sequence} ${machineState().patternHasSteps[6]}', "[1,3] false", "two Select taps, no hold, no copy");
 	}
 
 	static var padMachine:DrumMachine;

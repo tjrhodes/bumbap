@@ -1,6 +1,7 @@
 package drum.panel;
 
 import drum.State.MachineState;
+import drum.State.SequenceTool;
 import drum.State.StepSettings;
 import drum.State.TrackState;
 
@@ -53,12 +54,36 @@ class PanelText {
 		return '$trackName step ${stepIndex + 1}$details';
 	}
 
-	/** "Pattern 3", then what a screen reader needs beyond its pressed state (in the chain): "Pattern 3, playing, next, empty". */
+	/**
+	 * "Pattern 3", then what a screen reader needs beyond its pressed state (in the sequence): ", playing" or
+	 * ", shown", ", next", ", empty", and with Select on its places in the sequence: ", sequence places 1 3".
+	 */
 	public static function patternLabel(state:MachineState, pattern:Int):String {
 		final shown = state.pattern == pattern ? (state.playing ? ", playing" : ", shown") : "";
 		final next = state.nextPattern == pattern ? ", next" : "";
 		final empty = state.patternHasSteps[pattern] ? "" : ", empty";
-		return 'Pattern ${pattern + 1}$shown$next$empty';
+		final places = sequencePlaces(state, pattern);
+		return 'Pattern ${pattern + 1}$shown$next$empty${places == "" ? "" : ", sequence places " + places}';
+	}
+
+	/** With Select on, where a pattern comes in the sequence, from 1: "1 3" for one played first and third. Otherwise "". */
+	public static function sequencePlaces(state:MachineState, pattern:Int):String {
+		if (state.tool != Select) return "";
+		return [for (place in 0...state.sequence.length) if (state.sequence[place] == pattern) Std.string(place + 1)].join(" ");
+	}
+
+	/** The line under the pattern buttons: what a tap does now, for a mouse and for a touch screen. */
+	public static function sequenceHints(state:MachineState):Array<String> {
+		return switch (state.tool) {
+			case Select: both("Tap patterns in the order they play · Select again when done");
+			case Copy: both(state.copyFrom < 0 ? "Tap the pattern to copy" : 'Now tap where pattern ${state.copyFrom + 1} goes');
+			case Clear: both("Tap the pattern to clear");
+			case Off: ["Tap to play · shift-click to add to the sequence · drag to copy", "Tap to play · hold one, tap others to sequence · drag to copy"];
+		}
+	}
+
+	static function both(hint:String):Array<String> {
+		return [hint, hint];
 	}
 
 	public static function flipLabel(trackName:String, stepIndex:Int):String {

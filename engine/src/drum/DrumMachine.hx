@@ -4,6 +4,7 @@ import drum.State.LoadStatus;
 import drum.State.MachineState;
 import drum.State.Pattern;
 import drum.State.SavedMachine;
+import drum.State.SequenceTool;
 import drum.State.StepSettings;
 import drum.audio.HitShape;
 import drum.audio.Latency;
@@ -23,7 +24,7 @@ typedef MachineOptions = {
 
 /**
  * The one object every front end talks to. It owns the eight patterns and
- * their chain, the clock and the sounds, and tells the UI about changes on
+ * the sequence they play in, the clock and the sounds, and tells the UI about changes on
  * two channels:
  *
  * - `subscribe`: a fresh, frozen snapshot after every edit (rare, cheap
@@ -59,7 +60,7 @@ class DrumMachine {
 
 	final tracks:Array<Track>;
 	final patterns:Array<Pattern>;
-	final chain = new PatternChain();
+	final sequence = new Sequence();
 	final tone:ToneApi;
 	final master:MasterChain;
 	final samples:SampleBank;
@@ -73,10 +74,14 @@ class DrumMachine {
 	var drive = Limits.DRIVE.initial;
 	var reverb = Limits.REVERB.initial;
 	var state:MachineState;
-	/** Bars begun since Play: the first plays the pattern Play started on, each later one the chain's next. */
+	/** Bars begun since Play: the first plays the pattern Play started on, each later one the sequence's next. */
 	var barsStarted = 0;
 	/** A new pattern has taken over the sound; the UI hears about it when its first step is heard. */
 	var newPatternToShow = false;
+	/** Which of the sequence's small buttons is on, and what it has been told so far. */
+	var tool:SequenceTool = Off;
+	var copyFrom = Sequence.NONE;
+	var selectStartsAgain = true;
 
 	public function new(options:MachineOptions) {
 		tone = options.tone;
@@ -122,7 +127,8 @@ class DrumMachine {
 	/** Must be called from a click or key press: browsers only unlock audio then. */
 	public function play():Promise<Void> {
 		if (playing || status != Ready) return Promise.resolve();
-		if (chain.first() != chain.shown) showPattern(chain.first());
+		final first = sequence.start();
+		if (first != sequence.shown) showPattern(first);
 		barsStarted = 0;
 		playing = true;
 		return tone.start().then(_ -> {
@@ -139,7 +145,7 @@ class DrumMachine {
 		if (!playing) return;
 		playing = false;
 		clock.stop();
-		chain.moveTo(chain.shown); // anything queued is dropped: Play starts again from the chain
+		sequence.show(sequence.shown); // anything queued is dropped: Play starts again from the sequence
 		newPatternToShow = false;
 		changed();
 	}
@@ -235,34 +241,57 @@ class DrumMachine {
 		changed();
 	}
 
-	// ── Patterns (version 2) ───────────────────────────────────────────
+	// ── Patterns and their sequence (version 2) ───────────────────────
 
 	/** Just this pattern (0–7) from now on; while playing, it takes over at the end of the bar. */
 	public function choosePattern(index:Int) {
 		if (!Patterns.exists(index)) return;
-		chain.choose(index, playing);
-		if (!playing) showPattern(index);
+		choose(index);
 		changed();
 	}
 
-	/** Adds one pattern to the chain or takes it out (shift+click); the chain keeps at least one. */
-	public function toggleInChain(index:Int) {
-		chain.toggle(index);
+	/** Adds one pattern at the end of the sequence, or takes it out (shift-click); the sequence keeps at least one. */
+	public function toggleInSequence(index:Int) {
+		sequence.toggle(index);
 		changed();
 	}
 
-	/** Exactly these patterns in the chain, played in number order (hold one button and tap others). */
-	public function chainPatterns(indexes:Array<Int>) {
-		chain.chainExactly(indexes);
+	/** The sequence, in the order it plays, repeats allowed (up to 16); hold one button and tap others, say. */
+	public function setSequence(indexes:Array<Int>) {
+		sequence.replace(indexes);
 		changed();
 	}
 
 	/** Copies one pattern over another, steps and part sounds; copied onto the one shown, it is heard at once. */
 	public function copyPattern(from:Int, to:Int) {
-		if (!Patterns.exists(from) || !Patterns.exists(to) || from == to) return;
-		keepShownPattern();
-		patterns[to] = patterns[from]; // patterns are never changed in place, so two slots can share one
-		if (to == chain.shown) restoreTracks(patterns[to]);
+		copy(from, to);
+		changed();
+	}
+
+	/** Makes a pattern blank: no steps, and every part as it starts. Cleared while shown, the keys empty at once. */
+	public function clearPattern(index:Int) {
+		blank(index);
+		changed();
+	}
+
+	/** The sequence's Select, Copy and Clear buttons: turns one on (and any other off), or off if it was on. */
+	public function toggleTool(name:SequenceTool) {
+		tool = tool == name ? Off : name;
+		copyFrom = Sequence.NONE;
+		selectStartsAgain = true;
+		changed();
+	}
+
+	/** A tap on a pattern button, which means what the tool that is on says (none: play it; with Shift, sequence it). */
+	public function tapPattern(index:Int, shift:Bool) {
+		if (!Patterns.exists(index)) return;
+		switch (tool) {
+			case Off: if (shift) sequence.toggle(index); else choose(index);
+			case Select: selectTap(index);
+			case Copy: copyTap(index);
+			case Clear: blank(index);
+		}
+		if (tool == Clear) tool = Off;
 		changed();
 	}
 
@@ -271,7 +300,7 @@ class DrumMachine {
 		final saved = PatternCode.decode(code);
 		if (saved == null) return false;
 		for (index in 0...Limits.PATTERNS) patterns[index] = saved.patterns[index];
-		chain.restore(saved.shown, saved.chain);
+		sequence.restore(saved.shown, saved.sequence);
 		restoreTracks(patterns[saved.shown]);
 		preloadEveryPatternsSamples();
 		applyTempo(saved.tempo);
@@ -317,11 +346,11 @@ class DrumMachine {
 		});
 	}
 
-	/** Each bar after the first plays the chain's next pattern; the keys change when that bar is heard. */
+	/** Each bar after the first plays the sequence's next pattern; the keys change when that bar is heard. */
 	function moveOnAtTheBar() {
 		if (barsStarted++ == 0) return;
-		final next = chain.next();
-		if (next == chain.shown) return;
+		final next = sequence.advance();
+		if (next == sequence.shown) return;
 		showPattern(next);
 		newPatternToShow = true;
 	}
@@ -335,16 +364,52 @@ class DrumMachine {
 		stepListeners.tell(step);
 	}
 
+	function choose(index:Int) {
+		sequence.choose(index, playing);
+		if (!playing) showPattern(index);
+	}
+
+	function copy(from:Int, to:Int) {
+		if (!Patterns.exists(from) || !Patterns.exists(to) || from == to) return;
+		keepShownPattern();
+		patterns[to] = patterns[from]; // patterns are never changed in place, so two slots can share one
+		if (to == sequence.shown) restoreTracks(patterns[to]);
+	}
+
+	function blank(index:Int) {
+		if (!Patterns.exists(index)) return;
+		keepShownPattern();
+		patterns[index] = Patterns.blank();
+		if (index == sequence.shown) restoreTracks(patterns[index]);
+	}
+
+	/** Select: the first tap starts the sequence afresh, each tap after it adds to the end. */
+	function selectTap(index:Int) {
+		if (selectStartsAgain) sequence.replace([index]); else sequence.append(index);
+		selectStartsAgain = false;
+	}
+
+	/** Copy: the first tap picks the pattern to copy, the second where it goes; then Copy turns itself off. */
+	function copyTap(index:Int) {
+		if (copyFrom == Sequence.NONE) {
+			copyFrom = index;
+			return;
+		}
+		copy(copyFrom, index);
+		tool = Off;
+		copyFrom = Sequence.NONE;
+	}
+
 	/** Puts a pattern on the tracks; the one shown until now is kept in its slot first. */
 	function showPattern(index:Int) {
 		keepShownPattern();
 		restoreTracks(patterns[index]);
-		chain.moveTo(index);
+		sequence.show(index);
 	}
 
 	/** The shown pattern lives in the tracks while it is edited; its slot takes a copy before anything reads it. */
 	function keepShownPattern() {
-		patterns[chain.shown] = tracksNow();
+		patterns[sequence.shown] = tracksNow();
 	}
 
 	function tracksNow():Pattern {
@@ -428,20 +493,20 @@ class DrumMachine {
 
 	function snapshot():MachineState {
 		final trackStates = [for (track in tracks) track.toState()];
-		final everyPattern:Array<Pattern> = [for (index in 0...Limits.PATTERNS) index == chain.shown ? cast trackStates : patterns[index]];
+		final everyPattern:Array<Pattern> = [for (index in 0...Limits.PATTERNS) index == sequence.shown ? cast trackStates : patterns[index]];
 		return freeze({
 			status: status, playing: playing, code: PatternCode.encode(saved(everyPattern)),
 			tempo: tempo, swing: swing, drive: drive, reverb: reverb, tracks: trackStates,
-			pattern: chain.shown, chain: chain.members.copy(), nextPattern: chain.queued,
-			patternHasSteps: everyPattern.map(Patterns.hasSteps)
+			pattern: sequence.shown, sequence: sequence.patterns.copy(), sequencePlace: sequence.position, nextPattern: sequence.queued,
+			patternHasSteps: everyPattern.map(Patterns.hasSteps), tool: tool, copyFrom: copyFrom
 		});
 	}
 
-	/** What a link keeps: the machine's settings, the eight patterns and the chain. */
+	/** What a link keeps: the machine's settings, the eight patterns and their sequence. */
 	function saved(everyPattern:Array<Pattern>):SavedMachine {
 		return {
 			tempo: tempo, swing: swing, drive: drive, reverb: reverb,
-			patterns: everyPattern, shown: chain.shown, chain: chain.members
+			patterns: everyPattern, shown: sequence.shown, sequence: sequence.patterns
 		};
 	}
 
@@ -449,7 +514,7 @@ class DrumMachine {
 	static function freeze(state:MachineState):MachineState {
 		for (track in state.tracks) js.lib.Object.freeze(js.lib.Object.freeze(track).steps);
 		js.lib.Object.freeze(state.tracks);
-		js.lib.Object.freeze(state.chain);
+		js.lib.Object.freeze(state.sequence);
 		js.lib.Object.freeze(state.patternHasSteps);
 		return js.lib.Object.freeze(state);
 	}
