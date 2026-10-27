@@ -5,6 +5,7 @@ import { PanelContext } from "../context";
 import { useAddress, useHeldText, useMachineState } from "../hooks";
 import { Deck } from "./Deck";
 import { PartSection } from "./PartSection";
+import { ShareButton } from "./ShareButton";
 import { StepKeys } from "./StepKeys";
 
 export function Panel({ machine }: { machine: DrumMachine }) {
@@ -17,7 +18,7 @@ export function Panel({ machine }: { machine: DrumMachine }) {
 	return (
 		<PanelContext.Provider value={{ machine, state, selectedPart, selectPart, showBriefly }}>
 			<main className="dm"><div className="dm-panel">
-				<header className="dm-head"><span className="dm-wordmark">bümbap</span><span className="dm-print">16 step · 8 part · Haxe engine</span></header>
+				<header className="dm-head"><span className="dm-wordmark">bümbap</span><span className="dm-print">16 step · 8 part · Haxe engine</span><ShareButton /></header>
 				<Deck displayText={displayText} /><PartSection /><StepKeys />
 			</div></main>
 		</PanelContext.Provider>

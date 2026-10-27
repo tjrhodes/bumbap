@@ -6,7 +6,7 @@ How each number is made is in `tests/measure/` (one script per measure); the raw
 
 ## In short
 
-- **Size:** the Haxe build ships 3.7 kB of its own on top of the shared engine and Tone.js;
+- **Size:** the Haxe build ships 3.8 kB of its own on top of the shared engine and Tone.js;
   Vue adds 23 kB, Angular 47 kB, React 65 kB. On every page, Tone.js (81 kB) is most of the weight.
 - **Start-up:** Haxe paints the whole panel at 1.9 s on a slow phone; the frameworks take about
   4.7 s, because they draw the panel from JavaScript while Haxe's markup is already in the page.
@@ -44,12 +44,12 @@ How each number is made is in `tests/measure/` (one script per measure); the raw
 
 ## Size (minified and gzipped scripts)
 
-| Build | Page scripts kB | Own share kB (less Tone.js 81.0 and engine 7.8) |
+| Build | Page scripts kB | Own share kB (less Tone.js 81.0 and engine 8.3) |
 | --- | --- | --- |
-| Haxe | 92.5 | 3.7 |
-| Vue | 112.0 | 23.2 |
-| Angular | 135.5 | 46.7 |
-| React | 153.7 | 64.9 |
+| Haxe | 93.0 | 3.8 |
+| Vue | 112.8 | 23.5 |
+| Angular | 136.3 | 47.1 |
+| React | 154.3 | 65.1 |
 
 ## Start-up (slow 4G phone)
 

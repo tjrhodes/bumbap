@@ -25,7 +25,7 @@ part's sixteen steps are shown at a time; a part selector chooses which.
 | Drive | Warm valve-style overdrive on the whole kit: asymmetric tanh soft clip (even harmonics), a low-pass that closes as drive rises, and a trim so the knob changes character more than loudness. |
 | Reverb | A 2.2 s room on the whole kit, after the drive; 100 % is as loud as the dry kit. |
 | Safety | A soft clipper at the end of the chain: the output never passes full scale, however many accents land together. |
-| Share | The whole pattern, including every step's level and nudge, lives in the URL hash. |
+| Share | The whole pattern, including every step's level and nudge, lives in the URL hash. The share button (top right) copies that link, or offers it through the share sheet on a touch screen; in a frame on a page of the same site (the Lab page), the link is to that page. |
 | Start | With no code in the URL, a starter beat with accents and ghost notes is loaded. |
 | Loading | Panel usable at once; Play is disabled until the samples are decoded. |
 
@@ -107,7 +107,11 @@ UI is signed off.
 ```html
 <main class="dm">
   <div class="dm-panel">
-    <header class="dm-head">…wordmark…</header>
+    <header class="dm-head">
+      <span class="dm-wordmark">bümbap</span><span class="dm-print">16 step · 8 part · Haxe engine</span>
+      <span class="dm-print dm-share-note" aria-live="polite">Link copied</span>   <!-- empty when nothing to say -->
+      <button class="dm-share" type="button" aria-label="Share this beat"><svg class="dm-share-icon">…</svg></button>
+    </header>
     <section class="dm-deck" aria-label="Controls">
       <div class="dm-window">
         <svg class="dm-display" aria-hidden="true">…4 digits × 7 .dm-seg, lit ones .is-lit…</svg>

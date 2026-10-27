@@ -12,15 +12,15 @@ export function useMachineState(machine: DrumMachine): MachineState {
 	return useSyncExternalStore(subscribe, snapshot);
 }
 
-/** The display's text: the resting text, unless something was shown briefly in the last moment. */
-export function useHeldText(resting: string): [string, (text: string) => void] {
+/** The resting text, unless something was shown briefly in the last moment (the display's values, the share note). */
+export function useHeldText(resting: string, holdMs = HOLD_MS): [string, (text: string) => void] {
 	const [held, setHeld] = useState<string | null>(null);
 	const timer = useRef<number | undefined>(undefined);
 	const showBriefly = useCallback((text: string) => {
 		setHeld(text);
 		window.clearTimeout(timer.current);
-		timer.current = window.setTimeout(() => setHeld(null), HOLD_MS);
-	}, []);
+		timer.current = window.setTimeout(() => setHeld(null), holdMs);
+	}, [holdMs]);
 	useEffect(() => () => window.clearTimeout(timer.current), []);
 	return [held ?? resting, showBriefly];
 }

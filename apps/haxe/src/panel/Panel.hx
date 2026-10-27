@@ -159,6 +159,7 @@ class Panel {
 		Dom.byId("play").addEventListener("click", () -> machine.togglePlay());
 		Dom.byId("clear").addEventListener("click", () -> machine.clear());
 		Dom.byId("pills").addEventListener("click", onPillsClick);
+		new ShareButton(Dom.byId("share"), Dom.byId("share-note"), machine);
 		document.addEventListener("keydown", onShortcut);
 	}
 

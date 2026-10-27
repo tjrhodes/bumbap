@@ -474,8 +474,23 @@ function onShortcut(event) {
 	panel.machine.togglePlay();
 }
 
+/* ── Sharing ───────────────────────────────────────────────────────────────────────── */
+
+let shareNoteTimer = 0;
+
+/** Shares the link to the beat (see ShareLink in the engine), then says beside the button what happened, for a moment. */
+function shareBeat() {
+	ShareLink.share(panel.machine.getState().code).then((words) => {
+		if (!words) return;
+		element("share-note").textContent = words;
+		clearTimeout(shareNoteTimer);
+		shareNoteTimer = setTimeout(() => (element("share-note").textContent = ""), ShareLink.NOTE_MS);
+	});
+}
+
 function listen() {
 	const machine = panel.machine;
+	element("share").addEventListener("click", shareBeat);
 	element("play").addEventListener("click", () => machine.togglePlay());
 	element("clear").addEventListener("click", () => machine.clear());
 	element("pills").addEventListener("click", onPillsClick);

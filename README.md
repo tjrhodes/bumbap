@@ -17,7 +17,7 @@ Full tables and how each number was measured: [RESULTS.md](RESULTS.md).
 
 | | Haxe | Vue | Angular | React |
 |---|---|---|---|---|
-| Code added on top of Tone.js and the engine (min + gzip) | **3.7 kB** | 23.2 kB | 46.7 kB | 64.9 kB |
+| Code added on top of Tone.js and the engine (min + gzip) | **3.8 kB** | 23.5 kB | 47.1 kB | 65.1 kB |
 | Panel on screen, slow 4G phone | **1.9 s** | 4.8 s | 4.8 s | 4.7 s |
 | Extra script per playhead step, phone | **0.0 ms** | 0.7 ms | 1.5 ms | 2.5 ms |
 | Work per pointer move while dragging, phone | **10.5 ms** | 13.3 ms | 13.1 ms | 13.7 ms |
@@ -32,7 +32,7 @@ Vue was the lightest and needed the least code.
 
 | Folder | What it holds |
 |---|---|
-| `engine/` | The shared engine in Haxe: pattern, timing, sound through Tone.js, sharing codes. 190 unit checks. |
+| `engine/` | The shared engine in Haxe: pattern, timing, sound through Tone.js, sharing codes. 193 unit checks. |
 | `apps/haxe`, `apps/react`, `apps/vue`, `apps/angular` | The four front ends, each with a `NOTES.md` on how building it went. |
 | `shared/` | The one stylesheet every build uses. |
 | `tests/` | The Playwright suite run against every build, and the measuring scripts (`tests/measure/`). |
@@ -54,7 +54,7 @@ script, then the shared test suite against every build.
 ```sh
 cd engine
 npm install            # Tone.js, for the smoke test and the front ends
-haxe test.hxml         # 190 unit checks on Node with a fake Tone.js
+haxe test.hxml         # 193 unit checks on Node with a fake Tone.js
 haxe build.hxml        # → dist/drum-engine.js (ES module); types in drum-engine.d.ts
 cd .. && python3 engine/smoke/run.py   # real Tone.js + samples in headless Chromium
 ```
@@ -120,7 +120,7 @@ cd apps/angular && npm install && npx ng build     # Node 22.22+
 
 ```sh
 cd tests && npm install && npx playwright install chromium
-npx playwright test            # 19 tests against every build that exists
+npx playwright test            # 20 tests against every build that exists
 node measure-sizes.mjs         # minified + gzipped scripts, per build
 node measure/playhead.mjs      # 200 BPM for 30 s: main-thread cost per step, frames, timing
 node measure/gestures.mjs      # cost per pointer move dragging a knob and a key
@@ -135,12 +135,12 @@ Results and what they mean: [RESULTS.md](RESULTS.md).
 
 | Build | Page scripts | UI + framework (less Tone.js and engine) |
 |---|---|---|
-| Haxe | 92.5 kB | 3.7 kB |
-| Vue | 112.0 kB | 23.2 kB |
-| Angular | 135.5 kB | 46.7 kB |
-| React | 153.7 kB | 64.9 kB |
+| Haxe | 93.0 kB | 3.8 kB |
+| Vue | 112.8 kB | 23.5 kB |
+| Angular | 136.3 kB | 47.1 kB |
+| React | 154.3 kB | 65.1 kB |
 
-Tone.js is 81.0 kB and the engine 7.8 kB in every build.
+Tone.js is 81.0 kB and the engine 8.3 kB in every build.
 
 ## On tomrhodes.it
 

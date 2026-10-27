@@ -164,6 +164,15 @@ test.describe("sharing", () => {
 		await expect(second.key(2)).toHaveAttribute("aria-pressed", "true");
 		await expect(second.knob("tempo")).toHaveAttribute("aria-valuenow", "200");
 	});
+
+	test("Share copies the link to the beat as it is now, and says so for a moment", async ({ panel, page }) => {
+		await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+		await panel.key(2).click();
+		await page.getByRole("button", { name: "Share this beat" }).click();
+		await expect(page.locator(".dm-share-note")).toHaveText("Link copied");
+		expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(page.url());
+		await expect(page.locator(".dm-share-note")).toHaveText("", { timeout: 5_000 });
+	});
 });
 
 test.describe("layout", () => {

@@ -3,16 +3,17 @@ import { Component, effect, inject } from "@angular/core";
 import { Deck } from "./deck";
 import { PanelStore } from "./panel-store";
 import { PartSection } from "./part-section";
+import { ShareButton } from "./share-button";
 import { StepKeys } from "./step-keys";
 
 @Component({
 	selector: "bm-panel",
-	imports: [Deck, PartSection, StepKeys],
+	imports: [Deck, PartSection, ShareButton, StepKeys],
 	host: { "(document:keydown)": "onShortcut($event)" },
 	template: `
 		<main class="dm">
 			<div class="dm-panel">
-				<header class="dm-head"><span class="dm-wordmark">bümbap</span><span class="dm-print">16 step · 8 part · Haxe engine</span></header>
+				<header class="dm-head"><span class="dm-wordmark">bümbap</span><span class="dm-print">16 step · 8 part · Haxe engine</span><bm-share></bm-share></header>
 				<section bmDeck></section>
 				<section bmPartSection></section>
 				<section bmStepKeys></section>

@@ -44,8 +44,18 @@ body { background: var(--rock); color: var(--stone); font-family: var(--body); f
 		radial-gradient(circle at calc(100% - 14px) calc(100% - 14px), var(--screw)),
 		linear-gradient(170deg, #1b2136, var(--crevice) 45%, #11141f);
 	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .05), 0 14px 34px rgba(0, 0, 0, .4); }
-.dm-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; padding-inline: 8px; }
-.dm-wordmark { font: 700 1.55rem/1 var(--display); color: var(--lichen); letter-spacing: -.01em; }
+.dm-head { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "mark note share" "print print print";
+	align-items: baseline; gap: 8px 14px; padding-inline: 8px; }
+.dm-wordmark { grid-area: mark; font: 700 1.55rem/1 var(--display); color: var(--lichen); letter-spacing: -.01em; }
+.dm-head > .dm-print:not(.dm-share-note) { grid-area: print; }
+
+/* Share, top right, in the wordmark's lichen and weight; what happened shows beside it, in the panel's lettering, for a moment */
+.dm-share { grid-area: share; align-self: center; display: grid; place-items: center; width: 38px; height: 38px;
+	margin: -8px -9px -8px 0; padding: 0; border: 0; border-radius: 9px; background: none; color: var(--lichen); cursor: pointer; }
+.dm-share:hover { background: rgba(233, 201, 58, .12); }
+.dm-share:focus-visible { outline: 2px solid var(--lichen); outline-offset: 1px; }
+.dm-share-icon { width: 22px; height: 22px; fill: currentColor; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; }
+.dm-share-note { grid-area: note; justify-self: end; }
 
 /* Printed panel lettering: small, condensed, spaced capitals */
 .dm-print { display: flex; align-items: center; gap: 6px; margin: 0; font: 600 .72rem/1 var(--display);
@@ -188,6 +198,7 @@ button:focus-visible, .dm-knob:focus-visible { outline: 2px solid var(--lichen);
 /* ── Wider screens: the deck in a line, a whole bar of keys in one row ── */
 @media (min-width: 760px) {
 	.dm-panel { padding: 32px 36px 26px; }
+	.dm-head { grid-template-columns: auto 1fr auto auto; grid-template-areas: "mark print note share"; }
 	.dm-deck { grid-template-columns: minmax(200px, 250px) repeat(6, auto); justify-content: space-between;
 		align-items: end; column-gap: 20px; grid-template-areas: "window tempo swing drive reverb play clear"; }
 	.dm-strip { justify-content: flex-start; column-gap: 34px; }

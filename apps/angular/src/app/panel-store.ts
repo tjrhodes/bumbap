@@ -1,6 +1,7 @@
 // The panel's state as signals: the machine's snapshot, the selected part, the playhead and the display.
 import { computed, DestroyRef, inject, Injectable, InjectionToken, signal } from "@angular/core";
 import { PanelText, type DrumMachine, type StepState, type TrackState } from "bumbap-engine";
+import { HeldText } from "./held-text";
 
 export const MACHINE = new InjectionToken<DrumMachine>("bümbap machine");
 
@@ -16,9 +17,8 @@ export class PanelStore {
 	readonly selectedTrack = computed<TrackState>(() => this.state().tracks[this.selectedPart()]);
 	/** The step being heard, -1 when stopped. */
 	readonly playhead = signal(-1);
-	private readonly heldText = signal<string | null>(null);
-	readonly displayText = computed(() => this.heldText() ?? PanelText.resting(this.state()));
-	private holdTimer: number | undefined;
+	private readonly heldText = new HeldText(HOLD_MS);
+	readonly displayText = computed(() => this.heldText.text() ?? PanelText.resting(this.state()));
 
 	constructor() {
 		const stopFollowing = [this.machine.subscribe((next) => this.state.set(next)), this.machine.onStep((step) => this.playhead.set(step))];
@@ -27,9 +27,7 @@ export class PanelStore {
 
 	/** Shows a value on the display for a moment, e.g. "S 66"; a newer one restarts the wait. */
 	showBriefly(text: string) {
-		this.heldText.set(text);
-		window.clearTimeout(this.holdTimer);
-		this.holdTimer = window.setTimeout(() => this.heldText.set(null), HOLD_MS);
+		this.heldText.show(text);
 	}
 
 	/** A step of the selected part, read straight from the machine (gestures need the very latest). */

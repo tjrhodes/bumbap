@@ -38,12 +38,12 @@ export function selectedTrack(tools: PanelTools): TrackState {
 }
 
 /** Shows a text, then lets the resting text back after a moment; a newer text restarts the wait. */
-function holdFor(heldText: Ref<string | null>): (text: string) => void {
+export function holdFor(heldText: Ref<string | null>, holdMs = HOLD_MS): (text: string) => void {
 	let timer: number | undefined;
 	return (text) => {
 		heldText.value = text;
 		window.clearTimeout(timer);
-		timer = window.setTimeout(() => (heldText.value = null), HOLD_MS);
+		timer = window.setTimeout(() => (heldText.value = null), holdMs);
 	};
 }
 

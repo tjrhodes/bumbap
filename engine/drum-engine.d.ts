@@ -160,3 +160,16 @@ export declare class DrumMachine {
 	/** Stops, releases audio resources and forgets every listener. */
 	dispose(): void;
 }
+
+/** Sharing a beat as a link: the page the visitor sees, with the pattern's code at its end. */
+export declare const ShareLink: {
+	/** "Share this beat", for the button's label. */
+	readonly LABEL: string;
+	readonly COPIED: string;
+	readonly NOT_COPIED: string;
+	/** How long the panel shows what happened, in milliseconds. */
+	readonly NOTE_MS: number;
+	addressWith(pageAddress: string, code: string): string;
+	/** The share sheet on a touch screen, otherwise the clipboard; gives the words to show ("" for none). Never fails. */
+	share(code: string): Promise<string>;
+};

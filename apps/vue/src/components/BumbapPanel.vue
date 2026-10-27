@@ -5,6 +5,7 @@ import { PanelText, type DrumMachine } from "bumbap-engine";
 import { providePanel } from "../panel";
 import DeckSection from "./DeckSection.vue";
 import PartSection from "./PartSection.vue";
+import ShareButton from "./ShareButton.vue";
 import StepKeys from "./StepKeys.vue";
 
 const props = defineProps<{ machine: DrumMachine }>();
@@ -36,7 +37,7 @@ onUnmounted(() => document.removeEventListener("keydown", onShortcut));
 <template>
 	<main class="dm">
 		<div class="dm-panel">
-			<header class="dm-head"><span class="dm-wordmark">bümbap</span><span class="dm-print">16 step · 8 part · Haxe engine</span></header>
+			<header class="dm-head"><span class="dm-wordmark">bümbap</span><span class="dm-print">16 step · 8 part · Haxe engine</span><ShareButton /></header>
 			<DeckSection :display-text="displayText" />
 			<PartSection />
 			<StepKeys />
