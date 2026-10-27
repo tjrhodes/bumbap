@@ -72,19 +72,24 @@ __STYLE__
 						<div id="dial-1" class="dm-knob dm-knob-808" role="slider" tabindex="0" aria-label="808 knob"><span class="dm-knob-cap"></span></div>
 					</div>
 				</div>
-				<div id="patterns" class="dm-patterns" role="group" aria-label="Patterns">
-					<span class="dm-print dm-dials-label">Pattern</span>
-					<div class="dm-pattern-row">
-						<button type="button" class="dm-pattern" data-pattern="0" aria-pressed="false">1</button>
-						<button type="button" class="dm-pattern" data-pattern="1" aria-pressed="false">2</button>
-						<button type="button" class="dm-pattern" data-pattern="2" aria-pressed="false">3</button>
-						<button type="button" class="dm-pattern" data-pattern="3" aria-pressed="false">4</button>
-						<button type="button" class="dm-pattern" data-pattern="4" aria-pressed="false">5</button>
-						<button type="button" class="dm-pattern" data-pattern="5" aria-pressed="false">6</button>
-						<button type="button" class="dm-pattern" data-pattern="6" aria-pressed="false">7</button>
-						<button type="button" class="dm-pattern" data-pattern="7" aria-pressed="false">8</button>
+				<div id="patterns" class="dm-patterns" role="group" aria-label="Sequence">
+					<div id="sequence-tools" class="dm-sequence-head">
+						<span class="dm-print dm-sequence-title">Sequence</span>
+						<button type="button" class="dm-tool" data-tool="select" aria-pressed="false" aria-label="Select the sequence">Select</button>
+						<button type="button" class="dm-tool" data-tool="copy" aria-pressed="false" aria-label="Copy a pattern">Copy</button>
+						<button type="button" class="dm-tool" data-tool="clear" aria-pressed="false" aria-label="Clear a pattern">Clear</button>
 					</div>
-					<p class="dm-print dm-pattern-hint"><span class="for-mouse">Shift-click to chain · drag to copy</span><span class="for-touch">Hold and tap to chain · drag to copy</span></p>
+					<div class="dm-pattern-row">
+						<button type="button" class="dm-pattern" data-pattern="0" aria-pressed="false"><span class="dm-pattern-number">1</span><span class="dm-pattern-places"></span></button>
+						<button type="button" class="dm-pattern" data-pattern="1" aria-pressed="false"><span class="dm-pattern-number">2</span><span class="dm-pattern-places"></span></button>
+						<button type="button" class="dm-pattern" data-pattern="2" aria-pressed="false"><span class="dm-pattern-number">3</span><span class="dm-pattern-places"></span></button>
+						<button type="button" class="dm-pattern" data-pattern="3" aria-pressed="false"><span class="dm-pattern-number">4</span><span class="dm-pattern-places"></span></button>
+						<button type="button" class="dm-pattern" data-pattern="4" aria-pressed="false"><span class="dm-pattern-number">5</span><span class="dm-pattern-places"></span></button>
+						<button type="button" class="dm-pattern" data-pattern="5" aria-pressed="false"><span class="dm-pattern-number">6</span><span class="dm-pattern-places"></span></button>
+						<button type="button" class="dm-pattern" data-pattern="6" aria-pressed="false"><span class="dm-pattern-number">7</span><span class="dm-pattern-places"></span></button>
+						<button type="button" class="dm-pattern" data-pattern="7" aria-pressed="false"><span class="dm-pattern-number">8</span><span class="dm-pattern-places"></span></button>
+					</div>
+					<p class="dm-print dm-pattern-hint"><span class="for-mouse"></span><span class="for-touch"></span></p>
 				</div>
 			</div>
 			<div id="pills" class="dm-pills" role="group" aria-label="Part"></div>

@@ -475,26 +475,40 @@ function onShortcut(event) {
 	panel.machine.togglePlay();
 }
 
-/* ── Patterns (v2): drawn from each snapshot; the gestures go to the engine's PatternPad ───── */
+/* ── The sequence (v2): drawn from each snapshot; taps go to the engine's PatternPad ───── */
 
 const patternButtons = () => [...document.querySelectorAll(".dm-pattern")];
 
-/** In the chain: half lit (aria-pressed). Playing or shown: fully lit (aria-current). Waiting for the bar: blinking. */
+/** In the sequence: half lit. Playing or shown: fully lit. Waiting for the bar: blinking. With Select on: its places. */
 function drawPatterns(state) {
 	patternButtons().forEach((button, index) => {
-		button.setAttribute("aria-pressed", String(state.chain.includes(index)));
+		button.setAttribute("aria-pressed", String(state.sequence.includes(index)));
 		button.setAttribute("aria-current", String(state.pattern === index));
 		button.setAttribute("aria-label", PanelText.patternLabel(state, index));
-		button.classList.toggle("is-next", state.nextPattern === index);
-		button.classList.toggle("is-used", state.patternHasSteps[index]);
+		button.querySelector(".dm-pattern-places").textContent = PanelText.sequencePlaces(state, index);
+		for (const [name, on] of [["is-next", state.nextPattern === index], ["is-used", state.patternHasSteps[index]], ["is-copy-source", state.copyFrom === index]])
+			button.classList.toggle(name, on);
 	});
+	for (const tool of document.querySelectorAll(".dm-tool")) tool.setAttribute("aria-pressed", String(tool.dataset.tool === state.tool));
+	const hints = PanelText.sequenceHints(state);
+	document.querySelectorAll(".dm-pattern-hint span").forEach((span, index) => (span.textContent = hints[index]));
 }
 
-/** Down and click on the buttons; up anywhere, since a finger dragged onto another button is lifted there. */
+/** A pattern button is a tap for the pad; a tool button turns its tool on or off. */
+function onSequenceClick(pad, event) {
+	const pattern = event.target.closest("[data-pattern]")?.dataset.pattern;
+	if (pattern !== undefined) return pad.click(Number(pattern), event.shiftKey);
+	const tool = event.target.closest("[data-tool]")?.dataset.tool;
+	if (tool) panel.machine.toggleTool(tool);
+}
+
+/** Down and click on the group; up anywhere, since a finger dragged onto another button is lifted there. */
 function listenToPatterns(pad) {
-	const patternOf = (event) => event.target.closest("[data-pattern]")?.dataset.pattern;
-	element("patterns").addEventListener("pointerdown", (event) => patternOf(event) && pad.press(event.pointerId, Number(patternOf(event))));
-	element("patterns").addEventListener("click", (event) => patternOf(event) && pad.click(Number(patternOf(event)), event.shiftKey));
+	element("patterns").addEventListener("pointerdown", (event) => {
+		const pattern = event.target.closest("[data-pattern]")?.dataset.pattern;
+		if (pattern !== undefined) pad.press(event.pointerId, Number(pattern));
+	});
+	element("patterns").addEventListener("click", (event) => onSequenceClick(pad, event));
 	window.addEventListener("pointerup", (event) => pad.release(event.pointerId, PatternPad.patternAt(event.clientX, event.clientY)));
 	window.addEventListener("pointercancel", (event) => pad.release(event.pointerId, PatternPad.NONE));
 }
