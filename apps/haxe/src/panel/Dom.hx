@@ -45,6 +45,11 @@ class Dom {
 		element.setAttribute("aria-pressed", pressed ? "true" : "false");
 	}
 
+	/** Sets an attribute only if it changes, for the same reason as setText: an unchanged write still costs a restyle. */
+	public static function setAttribute(element:Element, name:String, value:String) {
+		if (element.getAttribute(name) != value) element.setAttribute(name, value);
+	}
+
 	static function setAttributes(element:Element, attributes:Null<Dynamic<String>>) {
 		if (attributes == null) return;
 		for (name in Reflect.fields(attributes)) element.setAttribute(name, Reflect.field(attributes, name));

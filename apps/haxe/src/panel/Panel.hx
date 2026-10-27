@@ -34,6 +34,7 @@ class Panel {
 	final display:SevenSegment;
 	final parts:PartButtons;
 	final keys:StepKeys;
+	final patterns:PatternButtons;
 	final knobs:Array<{spec:KnobSpec, knob:Knob}>;
 	var selectedPart = 0;
 
@@ -42,6 +43,7 @@ class Panel {
 		display = new SevenSegment(Dom.byId("display"));
 		parts = new PartButtons(Dom.byId("pills"), machine.getState().tracks);
 		keys = new StepKeys(Dom.byId("keys"), machine, () -> selectedPart, display);
+		patterns = new PatternButtons(Dom.byId("patterns"), machine);
 		knobs = [for (spec in knobSpecs()) {spec: spec, knob: buildKnob(spec)}];
 	}
 
@@ -109,6 +111,7 @@ class Panel {
 		drawPartKnobs(selected);
 		parts.draw(state.tracks, selectedPart);
 		keys.draw(selected);
+		patterns.draw(state);
 		rememberInAddress(state.code);
 	}
 
