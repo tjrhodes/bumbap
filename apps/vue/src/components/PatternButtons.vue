@@ -7,11 +7,7 @@ import { PanelText, PatternPad } from "bumbap-engine";
 import { usePanel } from "../panel";
 
 const PATTERNS = [0, 1, 2, 3, 4, 5, 6, 7];
-const TOOLS = [
-	{ tool: "select", name: "Select", label: "Select the sequence" },
-	{ tool: "copy", name: "Copy", label: "Copy a pattern" },
-	{ tool: "clear", name: "Clear", label: "Clear a pattern" }
-] as const;
+const TOOLS = [{ tool: "select", name: "Select" }, { tool: "copy", name: "Copy" }, { tool: "clear", name: "Clear" }] as const;
 const { machine, state } = usePanel();
 const pad = new PatternPad(machine);
 const hints = computed(() => PanelText.sequenceHints(state.value));
@@ -34,8 +30,8 @@ onUnmounted(() => {
 	<div class="dm-patterns" role="group" aria-label="Sequence">
 		<div class="dm-sequence-head">
 			<span class="dm-print dm-sequence-title">Sequence</span>
-			<button v-for="{ tool, name, label } in TOOLS" :key="tool" type="button" class="dm-tool" :data-tool="tool"
-				:aria-pressed="state.tool === tool" :aria-label="label" @click="machine.toggleTool(tool)">{{ name }}</button>
+			<button v-for="{ tool, name } in TOOLS" :key="tool" type="button" class="dm-tool" :data-tool="tool"
+				:aria-pressed="state.tool === tool" :aria-label="PanelText.toolLabel(state, tool)" @click="machine.toggleTool(tool)">{{ name }}</button>
 		</div>
 		<div class="dm-pattern-row">
 			<button v-for="index in PATTERNS" :key="index" type="button" :data-pattern="index"

@@ -18,7 +18,7 @@ import { PanelStore } from "./panel-store";
 			<span class="dm-print dm-sequence-title">Sequence</span>
 			@for (tool of tools; track tool.tool) {
 				<button type="button" class="dm-tool" [attr.data-tool]="tool.tool" [attr.aria-pressed]="store.state().tool === tool.tool"
-					[attr.aria-label]="tool.label" (click)="store.machine.toggleTool(tool.tool)">{{ tool.name }}</button>
+					[attr.aria-label]="toolLabel(tool.tool)" (click)="store.machine.toggleTool(tool.tool)">{{ tool.name }}</button>
 			}
 		</div>
 		<div class="dm-pattern-row">
@@ -37,11 +37,8 @@ export class PatternButtons {
 	protected readonly store = inject(PanelStore);
 	protected readonly pad = new PatternPad(this.store.machine);
 	protected readonly patterns = [0, 1, 2, 3, 4, 5, 6, 7];
-	protected readonly tools = [
-		{ tool: "select", name: "Select", label: "Select the sequence" },
-		{ tool: "copy", name: "Copy", label: "Copy a pattern" },
-		{ tool: "clear", name: "Clear", label: "Clear a pattern" }
-	] as const;
+	protected readonly tools = [{ tool: "select", name: "Select" }, { tool: "copy", name: "Copy" }, { tool: "clear", name: "Clear" }] as const;
+	protected readonly toolLabel = (tool: "select" | "copy" | "clear") => PanelText.toolLabel(this.store.state(), tool);
 	protected readonly label = (index: number) => PanelText.patternLabel(this.store.state(), index);
 	protected readonly places = (index: number) => PanelText.sequencePlaces(this.store.state(), index);
 	protected readonly hints = computed(() => PanelText.sequenceHints(this.store.state()));

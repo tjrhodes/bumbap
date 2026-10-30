@@ -294,8 +294,13 @@ class DrumMachine {
 		changed();
 	}
 
-	/** The sequence's Select, Copy and Clear buttons: turns one on (and any other off), or off if it was on. */
+	/**
+	 * The sequence's Select, Copy and Clear buttons: turns one on (and any other off), or off if it was on.
+	 * While Select is on, Clear clears the sequence instead: back to just the pattern on the keys, with
+	 * Select still on, so the next tap starts the new sequence.
+	 */
 	public function toggleTool(name:SequenceTool) {
+		if (tool == Select && name == Clear) return clearSequence();
 		tool = tool == name ? Off : name;
 		copyFrom = Sequence.NONE;
 		selectStartsAgain = true;
@@ -409,6 +414,12 @@ class DrumMachine {
 		if (!Patterns.exists(index)) return;
 		bank.restore(index, Patterns.blank());
 		if (index == sounding()) applySounds();
+	}
+
+	function clearSequence() {
+		sequence.replace([edited]);
+		selectStartsAgain = true;
+		changed();
 	}
 
 	/** Select: the first tap starts the sequence afresh, each tap after it adds to the end. */

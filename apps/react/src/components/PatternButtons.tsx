@@ -6,10 +6,8 @@ import { PanelText, PatternPad, type MachineState, type SequenceTool } from "bum
 import { usePanel } from "../context";
 
 const PATTERNS = [0, 1, 2, 3, 4, 5, 6, 7];
-const TOOLS: { tool: Exclude<SequenceTool, "">; name: string; label: string }[] = [
-	{ tool: "select", name: "Select", label: "Select the sequence" },
-	{ tool: "copy", name: "Copy", label: "Copy a pattern" },
-	{ tool: "clear", name: "Clear", label: "Clear a pattern" }
+const TOOLS: { tool: Exclude<SequenceTool, "">; name: string }[] = [
+	{ tool: "select", name: "Select" }, { tool: "copy", name: "Copy" }, { tool: "clear", name: "Clear" }
 ];
 
 export function PatternButtons() {
@@ -32,9 +30,9 @@ function SequenceHead() {
 	return (
 		<div className="dm-sequence-head">
 			<span className="dm-print dm-sequence-title">Sequence</span>
-			{TOOLS.map(({ tool, name, label }) => (
+			{TOOLS.map(({ tool, name }) => (
 				<button key={tool} type="button" className="dm-tool" data-tool={tool} aria-pressed={state.tool === tool}
-					aria-label={label} onClick={() => machine.toggleTool(tool)}>{name}</button>
+					aria-label={PanelText.toolLabel(state, tool)} onClick={() => machine.toggleTool(tool)}>{name}</button>
 			))}
 		</div>
 	);

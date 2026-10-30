@@ -108,7 +108,9 @@ body { background: var(--rock); color: var(--stone); font-family: var(--body); f
 	background: linear-gradient(var(--rubber-light), var(--rubber));
 	box-shadow: 0 2px 0 var(--rubber-shadow), inset 0 1px 0 rgba(255, 255, 255, .6); }
 .dm-tool:active { translate: 0 1px; box-shadow: 0 1px 0 var(--rubber-shadow); }
-.dm-tool[aria-pressed="true"] { background: linear-gradient(#f3e7a8, var(--lichen));
+/* With Select on, Clear lights up too: pressing it then clears the sequence */
+.dm-tool[aria-pressed="true"],
+.dm-tool[data-tool="select"][aria-pressed="true"] ~ .dm-tool[data-tool="clear"] { background: linear-gradient(#f3e7a8, var(--lichen));
 	box-shadow: 0 2px 0 #86721f, 0 0 10px rgba(233, 201, 58, .55), inset 0 1px 0 rgba(255, 255, 255, .6); }
 .dm-tool:focus-visible { outline: 2px solid var(--stone); outline-offset: 2px; }
 .dm-tool:disabled { opacity: .45; cursor: default; translate: none; }

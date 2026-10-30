@@ -491,9 +491,17 @@ function drawPatterns(state) {
 		for (const [name, on] of Object.entries(looks))
 			button.classList.toggle(name, on);
 	});
-	for (const tool of document.querySelectorAll(".dm-tool")) tool.setAttribute("aria-pressed", String(tool.dataset.tool === state.tool));
+	drawTools(state);
 	const hints = PanelText.sequenceHints(state);
 	document.querySelectorAll(".dm-pattern-hint span").forEach((span, index) => (span.textContent = hints[index]));
+}
+
+/** The tool that is on is pressed; each label says what it does now (Clear clears the sequence while Select is on). */
+function drawTools(state) {
+	for (const tool of document.querySelectorAll(".dm-tool[data-tool]")) {
+		tool.setAttribute("aria-pressed", String(tool.dataset.tool === state.tool));
+		tool.setAttribute("aria-label", PanelText.toolLabel(state, tool.dataset.tool));
+	}
 }
 
 /** A pattern button is a tap for the pad; a tool button turns its tool on or off. */

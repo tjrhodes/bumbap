@@ -284,6 +284,22 @@ test.describe("the sequence's tools (v2)", () => {
 		await expect(panel.pattern(3)).toHaveAttribute("aria-pressed", "true");
 	});
 
+	test("with Select on, Clear lights up and clears the sequence", async ({ panel }) => {
+		await panel.tool("select").click();
+		for (const number of [3, 2]) await panel.pattern(number).click();
+		await expect(panel.tool("clear")).toHaveAttribute("aria-label", "Clear the sequence");
+		await expect(panel.tool("clear")).toHaveCSS("box-shadow", /rgba\(233, 201, 58/);
+		await panel.tool("clear").click();
+		await expect(panel.pattern(3)).toHaveAttribute("aria-pressed", "false");
+		await expect(panel.pattern(1)).toHaveAttribute("aria-pressed", "true");
+		await expect(panel.tool("select")).toHaveAttribute("aria-pressed", "true");
+		await panel.pattern(6).click();
+		await expect(panel.pattern(1)).toHaveAttribute("aria-pressed", "false");
+		await expect(panel.pattern(6).locator(".dm-pattern-places")).toHaveText("1");
+		await panel.tool("select").click();
+		await expect(panel.tool("clear")).toHaveAttribute("aria-label", "Clear a pattern");
+	});
+
 	test("Copy: the first tap picks a pattern, the second copies it there", async ({ panel }) => {
 		await panel.tool("copy").click();
 		await panel.pattern(1).click();

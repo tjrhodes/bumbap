@@ -40,7 +40,8 @@ class PatternTests {
 			test("Select: taps set the sequence in their order, repeats allowed, and show their places", selecting),
 			test("Copy: the first tap picks, the second copies there, then Copy turns off", copyingWithTheTool),
 			test("Clear: a tap blanks that pattern, part sounds too, then Clear turns off", clearingWithTheTool),
-			test("a tool turns off when pressed again, and another one takes its place", toolsTakeTurns)
+			test("a tool turns off when pressed again, and another one takes its place", toolsTakeTurns),
+			test("with Select on, Clear clears the sequence back to the pattern on the keys", clearingTheSequence)
 		];
 	}
 
@@ -201,6 +202,18 @@ class PatternTests {
 		Check.equal('${machine.getState().tool} ${machine.getState().copyFrom}', "clear -1", "Clear replaces Copy, forgetting its pick");
 		machine.toggleTool(Clear);
 		Check.equal(Std.string(machine.getState().tool), "", "pressed again: off");
+	}
+
+	static function clearingTheSequence() {
+		final machine = newMachine().machine;
+		machine.editPattern(3);
+		machine.toggleTool(Select);
+		for (pattern in [2, 0, 2]) machine.tapPattern(pattern, false);
+		machine.toggleTool(Clear);
+		Check.equal('${machine.getState().sequence} ${machine.getState().tool}', "[3] select", "just the pattern on the keys; Select stays on");
+		Check.equal(PanelText.toolLabel(machine.getState(), Clear), "Clear the sequence", "and Clear says so");
+		machine.tapPattern(5, false);
+		Check.equal(Std.string(machine.getState().sequence), "[5]", "the next tap starts the new sequence");
 	}
 
 	// ── Playing ───────────────────────────────────────────────────────

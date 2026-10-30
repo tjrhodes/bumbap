@@ -76,10 +76,20 @@ class PanelText {
 	/** The line under the pattern buttons: what a tap does now, for a mouse and for a touch screen. */
 	public static function sequenceHints(state:MachineState):Array<String> {
 		return switch (state.tool) {
-			case Select: both("Tap patterns in the order they play · Select again when done");
+			case Select: both("Tap patterns in play order · Clear starts again · Select when done");
 			case Copy: both(state.copyFrom < 0 ? "Tap the pattern to copy" : 'Now tap where pattern ${state.copyFrom + 1} goes');
 			case Clear: both("Tap the pattern to clear");
 			case Off: ["Tap to edit · shift-click to add to the sequence · drag to copy", "Tap to edit · hold one, tap others to sequence · drag to copy"];
+		}
+	}
+
+	/** What each of the sequence's buttons does now, for screen readers: Clear clears the sequence while Select is on. */
+	public static function toolLabel(state:MachineState, tool:SequenceTool):String {
+		return switch (tool) {
+			case Select: "Select the sequence";
+			case Copy: "Copy a pattern";
+			case Clear: state.tool == Select ? "Clear the sequence" : "Clear a pattern";
+			case Off: "";
 		}
 	}
 

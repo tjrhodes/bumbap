@@ -124,6 +124,8 @@ export declare const PanelText: {
 	patternLabel(state: MachineState, pattern: number): string;
 	/** With Select on, a pattern's places in the sequence, from 1 ("1 3"); otherwise "". */
 	sequencePlaces(state: MachineState, pattern: number): string;
+	/** The sequence buttons' labels: "Select the sequence", "Copy a pattern", and "Clear a pattern" (with Select on, "Clear the sequence"). */
+	toolLabel(state: MachineState, tool: Exclude<SequenceTool, "">): string;
 	/** What a tap on a pattern does now: [for a mouse, for a touch screen]. */
 	sequenceHints(state: MachineState): readonly [string, string];
 };
@@ -220,7 +222,7 @@ export declare class DrumMachine {
 	copyPattern(from: number, to: number): void;
 	/** Makes a pattern blank: no steps, every part as it starts. */
 	clearPattern(index: number): void;
-	/** Turns one of the sequence's buttons on (any other off), or off if it was on. */
+	/** Turns one of the sequence's buttons on (any other off), or off if it was on; with Select on, "clear" clears the sequence. */
 	toggleTool(tool: Exclude<SequenceTool, "">): void;
 	/** A tap on a pattern button, read by the tool that is on (none: edit it; with Shift, add to or take out of the sequence). */
 	tapPattern(index: number, shift: boolean): void;

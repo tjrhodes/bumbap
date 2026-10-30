@@ -35,9 +35,15 @@ class PatternButtons {
 
 	public function draw(state:MachineState) {
 		for (index in 0...buttons.length) drawButton(buttons[index], index, state);
-		for (tool in tools) Dom.setAttribute(tool, "aria-pressed", Std.string(tool.dataset.tool == state.tool));
+		for (tool in tools) drawTool(tool, state);
 		final words = PanelText.sequenceHints(state);
 		for (index in 0...hints.length) Dom.setText(hints[index], words[index]);
+	}
+
+	/** Pressed when it is the tool that is on; its label says what it does now (Clear clears the sequence while Select is on). */
+	function drawTool(tool:Element, state:MachineState) {
+		Dom.setAttribute(tool, "aria-pressed", Std.string(tool.dataset.tool == state.tool));
+		Dom.setAttribute(tool, "aria-label", PanelText.toolLabel(state, cast tool.dataset.tool));
 	}
 
 	function drawButton(button:Element, index:Int, state:MachineState) {
