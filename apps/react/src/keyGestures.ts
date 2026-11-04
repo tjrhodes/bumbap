@@ -21,6 +21,11 @@ export interface KeyGestures {
 	arrow: (event: KeyboardEvent, index: number) => void;
 }
 
+/**
+ * The three things a key needs to handle: a press (which may become a drag), a click (a tap, unless it was the
+ * end of a drag) and arrow keys. `wasDrag` is a ref, not a plain variable: React runs a component's function
+ * again on every render, which would reset a plain variable, while a ref keeps its value between renders.
+ */
 export function useKeyGestures(): KeyGestures {
 	const tools = usePanel();
 	const wasDrag = useRef(false);
@@ -34,6 +39,10 @@ export function useKeyGestures(): KeyGestures {
 	};
 }
 
+/**
+ * The step as the machine has it now, read fresh each time, so a gesture starts from the real value and not
+ * from an older render's snapshot.
+ */
 function selectedStep(tools: PanelTools, index: number): StepState {
 	return tools.machine.getState().tracks[tools.selectedPart].steps[index];
 }
@@ -61,11 +70,16 @@ function startDrag(tools: PanelTools, down: PointerEvent, index: number, wasDrag
 	});
 }
 
+/**
+ * Which way is the drag going? Below a few pixels it might still be a tap, so nothing yet; after that, mostly
+ * up or down means level, mostly sideways means nudge.
+ */
 function chooseAxis(rise: number, across: number): Axis | null {
 	if (Math.max(Math.abs(rise), Math.abs(across)) < DRAG_THRESHOLD_PX) return null;
 	return Math.abs(rise) >= Math.abs(across) ? "level" : "nudge";
 }
 
+/** How much the level changes for each pixel dragged, so a 140-pixel drag covers the whole range. */
 function levelPerPixel(): number {
 	const { velocity } = DrumMachine.limits;
 	return (velocity.max - velocity.min) / LEVEL_TRAVEL_PX;

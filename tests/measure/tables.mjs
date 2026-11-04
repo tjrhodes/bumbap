@@ -15,6 +15,7 @@ const shown = (cell) => {
 	return (Math.abs(cell) < 0.05 ? 0 : cell).toFixed(1);
 };
 
+/** A Markdown table from a list of headings and rows of cells. */
 function table(headings, rows) {
 	const line = (cells) => `| ${cells.map(shown).join(" | ")} |`;
 	return [line(headings), line(headings.map(() => "---")), ...rows.map(line)].join("\n");
@@ -31,6 +32,7 @@ function playheadTable(device) {
 	return table(["Build", "Main thread ms/step", "over baseline", "Script ms/step", "over baseline", "Frames dropped (30 s)", "Steps within a frame of 75 ms", "Worst step error ms"], rows);
 }
 
+/** Dragging: main-thread and script time per move, for a knob and a key, on one device. */
 function gestureTable(device) {
 	const { results } = read("gestures");
 	const rows = Object.entries(results).map(([build, { [device]: drags }]) => [
@@ -39,6 +41,7 @@ function gestureTable(device) {
 	return table(["Build", "Knob: main thread ms/move", "Knob: script ms/move", "Key: main thread ms/move", "Key: script ms/move"], rows);
 }
 
+/** Start-up: when Play was usable, the Lighthouse score and its timings, and the page weight. */
 function startupTable() {
 	const { results } = read("startup");
 	const rows = Object.entries(results).map(([build, run]) => [
@@ -47,6 +50,7 @@ function startupTable() {
 	return table(["Build", "Play usable after ms", "Lighthouse score", "First paint ms", "Largest paint ms", "Blocking ms", "Script boot ms", "Page weight kB"], rows);
 }
 
+/** Code: lines and files of UI code, clean build time, and how big each install is. */
 function codeTable() {
 	const rows = Object.entries(read("code")).map(([build, figures]) => [
 		NAMES[build], figures.uiCodeLines, figures.uiFiles, figures.buildSeconds, figures.installMB, figures.topLevelPackages

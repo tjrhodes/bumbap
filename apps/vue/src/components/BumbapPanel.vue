@@ -9,7 +9,12 @@ import ShareButton from "./ShareButton.vue";
 import StepKeys from "./StepKeys.vue";
 
 const props = defineProps<{ machine: DrumMachine }>();
+/** Starts following the machine's snapshots and hands the tools to every component below this one. */
 const tools = providePanel(props.machine);
+/**
+ * What the display shows: a value being changed if there is one, else the resting text (the tempo). `computed`
+ * works it out again only when one of the two changes.
+ */
 const displayText = computed(() => tools.heldText.value ?? PanelText.resting(tools.state.value));
 
 /** Remembers the pattern in the address; some frames refuse, and then it simply is not remembered there. */
@@ -27,6 +32,10 @@ function onShortcut(event: KeyboardEvent) {
 	props.machine.togglePlay();
 }
 
+/**
+ * Once the panel is on the page: download the sounds and listen for keyboard shortcuts. The shortcut listener
+ * is removed when the panel goes away, so it can't fire on a panel that no longer exists.
+ */
 onMounted(() => {
 	props.machine.load();
 	document.addEventListener("keydown", onShortcut);

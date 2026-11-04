@@ -52,6 +52,10 @@ class ShareLink {
 		return window.matchMedia("(pointer: coarse)").matches;
 	}
 
+	/**
+	 * Puts the link on the clipboard and says how it went. Some browsers have no clipboard for pages, or refuse
+	 * it inside a frame, so either way this ends with words to show and never with an error.
+	 */
 	static function copy(address:String):Promise<String> {
 		if (navigator.clipboard == null) return Promise.resolve(NOT_COPIED);
 		return navigator.clipboard.writeText(address).then(_ -> COPIED, _ -> NOT_COPIED);

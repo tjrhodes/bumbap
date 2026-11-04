@@ -37,6 +37,10 @@ function create(tag, className, attributes = {}) {
 	return made;
 }
 
+/**
+ * An SVG element (for the LED display). SVG must be made in the SVG namespace, or the browser treats it as an
+ * unknown HTML tag and draws nothing.
+ */
 function createSvg(tag, attributes) {
 	const made = document.createElementNS("http://www.w3.org/2000/svg", tag);
 	for (const [name, value] of Object.entries(attributes)) made.setAttribute(name, value);
@@ -167,6 +171,10 @@ function followKnobDrag(event, knob, range, turnTo) {
 	trackPointer(knob, event, (move) => turnTo(start.value + (start.y - move.clientY + move.clientX - start.x) * unitsPerPixel));
 }
 
+/**
+ * The keys sliders use everywhere: arrows move by one, Page Up and Down by ten, Home and End go to the ends.
+ * Other keys are left alone, so Tab still moves on.
+ */
 function onKnobKey(event, knob, range, turnTo) {
 	if (event.key === "Home") turnTo(range.min);
 	else if (event.key === "End") turnTo(range.max);
@@ -226,6 +234,10 @@ const KNOBS = [
 /** The display letter of each knob that has one. */
 const KNOB_LETTERS = { swing: "S", drive: "d", reverb: "r", level: "L", pitch: "P", length: "E" };
 
+/**
+ * Brings every knob in the KNOBS list to life. Turning one sets its value on the machine and then shows the new
+ * value on the display for a moment, if that knob has something to show.
+ */
 function buildKnobs() {
 	for (const knob of KNOBS) {
 		const show = knob.show ?? (KNOB_LETTERS[knob.id] && lettered(KNOB_LETTERS[knob.id], knob.read));
@@ -250,12 +262,14 @@ function buildPills(tracks) {
 	element("pills").append(...panel.pills.map((pill, index) => wrapPill(pill, panel.mutes[index])));
 }
 
+/** A part's mute tab, labelled "Mute Kick" and so on for screen readers, as on screen it just says M. */
 function buildMute(track, index) {
 	const mute = create("button", "dm-tab dm-mute", { "aria-pressed": "false", "aria-label": `Mute ${track.name}`, "data-mute": index });
 	mute.textContent = "M";
 	return mute;
 }
 
+/** Keeps a mute tab and its pill together, so the tab always sits above its own part. */
 function wrapPill(pill, mute) {
 	const wrap = create("div", "dm-pill-wrap");
 	wrap.append(mute, pill);
@@ -303,6 +317,10 @@ function draw(state) {
 	try { history.replaceState(null, "", `#${state.code}`); } catch { /* some frames refuse it; nothing is lost */ }
 }
 
+/**
+ * The top row: Play is enabled only once the sounds have loaded, and lights up while playing. Download waits
+ * for the sounds too, and for any render already going. Paste waits until something has been copied.
+ */
 function drawTransport(state) {
 	const play = element("play");
 	play.disabled = state.status !== "ready";
@@ -315,6 +333,10 @@ function drawTransport(state) {
 	showResting(restingText(state));
 }
 
+/**
+ * Points every knob at its value, names the part knobs after the selected part ("Snare level"), and fills the
+ * 808 slots with that part's own knobs.
+ */
 function drawKnobs(state, selected) {
 	for (const knob of KNOBS) setKnob(element(knob.id), knob.read(state));
 	for (const name of ["level", "pitch", "length"]) element(name).setAttribute("aria-label", `${selected.name} ${name}`);
@@ -332,6 +354,7 @@ function drawDialSlot(slot, selected) {
 	knob.tabIndex = name ? 0 : -1;
 }
 
+/** Lights the pill of the part on the keys, and shows which parts are muted, on both the pill and its tab. */
 function drawParts(tracks, selected) {
 	tracks.forEach((track, index) => {
 		panel.pills[index].setAttribute("aria-pressed", String(track === selected));
@@ -355,6 +378,7 @@ function drawKeys(selected) {
 	});
 }
 
+/** A step's flip tab: pressed while the step plays backwards, and labelled for screen readers. */
 function drawFlip(flip, name, index, reversed) {
 	flip.setAttribute("aria-pressed", String(reversed));
 	flip.setAttribute("aria-label", `Play ${name} step ${index + 1} backwards`);
@@ -399,12 +423,20 @@ const STEP_AXES = {
 
 const selectedStep = (index) => selectedTrack(panel.machine.getState()).steps[index];
 
+/**
+ * Changes a step's level or nudge, then shows the new value on the display ("u 70", "n -3"). The value shown is
+ * read back from the machine, so it's what it really took, in range.
+ */
 function adjustStep(index, axisName, value) {
 	const axis = STEP_AXES[axisName];
 	axis.set(index, value);
 	showBriefly(labelled(axis.letter, axis.read(selectedStep(index))));
 }
 
+/**
+ * A finger or mouse goes down on a key. Where it started and how the step was are noted, then the pointer is
+ * followed until it lets go. Whether this was a tap or a drag isn't known yet; `followKeyDrag` decides.
+ */
 function startKeyGesture(event) {
 	const key = event.target.closest(".dm-key");
 	if (!key) return;
@@ -537,6 +569,10 @@ function shareBeat() {
 	});
 }
 
+/**
+ * Connects every button to what it does. Most just call the machine; the machine then sends a new snapshot, and
+ * `draw` shows the result. Nothing on screen is changed directly in response to a click.
+ */
 function listen() {
 	const machine = panel.machine;
 	element("share").addEventListener("click", shareBeat);
@@ -555,6 +591,11 @@ function listen() {
 
 /* ── Start ───────────────────────────────────────────────────────────────────────── */
 
+/**
+ * Where the page starts. Sample requests are answered from inside the page (this file opens straight from disk,
+ * with no server). Then the machine is built, the panel's pieces are made and drawn once, the panel subscribes
+ * to snapshots and steps, and the sounds start loading.
+ */
 function start() {
 	serveEmbeddedSamples();
 	panel.machine = new DrumMachine({ tone: Tone, samplesUrl: SAMPLES_FOLDER });

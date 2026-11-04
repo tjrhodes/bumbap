@@ -16,6 +16,10 @@ class Patterns {
 		}];
 	}
 
+	/**
+	 * Does any part of this pattern have at least one step on? The pattern buttons use this to show which
+	 * patterns have something in them.
+	 */
 	public static function hasSteps(pattern:Pattern):Bool {
 		return Lambda.exists(pattern, track -> Lambda.exists(track.steps, step -> step.on));
 	}

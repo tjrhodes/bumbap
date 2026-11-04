@@ -11,12 +11,19 @@ class PartButtons {
 	final pills:Array<Element>;
 	final mutes:Array<Element>;
 
+	/**
+	 * Makes a pill and a mute tab for every part, from the first snapshot's parts, and puts each pair in the
+	 * page.
+	 */
 	public function new(container:Element, tracks:Array<TrackState>) {
 		pills = [for (index in 0...tracks.length) buildPill(tracks[index], index)];
 		mutes = [for (index in 0...tracks.length) buildMute(tracks[index], index)];
 		for (index in 0...tracks.length) container.append(wrap(mutes[index], pills[index]));
 	}
 
+	/**
+	 * Lights the pill of the part on the keys, and shows which parts are muted, on both the pill and its tab.
+	 */
 	public function draw(tracks:Array<TrackState>, selectedIndex:Int) {
 		for (index in 0...tracks.length) {
 			Dom.setPressed(pills[index], index == selectedIndex);
@@ -35,6 +42,7 @@ class PartButtons {
 		}
 	}
 
+	/** A part's pill: an LED and the part's name. `data-part` tells a click which part it was. */
 	static function buildPill(track:TrackState, index:Int):Element {
 		final pill = Dom.create("button", "dm-pill", {"aria-pressed": "false", "data-part": Std.string(index)});
 		final led = Dom.create("span", "dm-led");
@@ -43,12 +51,14 @@ class PartButtons {
 		return pill;
 	}
 
+	/** A part's mute tab, labelled "Mute Kick" and so on for screen readers, as on screen it just says M. */
 	static function buildMute(track:TrackState, index:Int):Element {
 		final mute = Dom.create("button", "dm-tab dm-mute", {"aria-pressed": "false", "aria-label": 'Mute ${track.name}', "data-mute": Std.string(index)});
 		mute.textContent = "M";
 		return mute;
 	}
 
+	/** Keeps a mute tab and its pill together, so the tab always sits above its own part. */
 	static function wrap(mute:Element, pill:Element):Element {
 		final wrapper = Dom.create("div", "dm-pill-wrap");
 		wrapper.append(mute, pill);

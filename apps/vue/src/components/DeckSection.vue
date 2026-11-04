@@ -6,6 +6,10 @@ import KnobUnit from "./KnobUnit.vue";
 import SevenSegment from "./SevenSegment.vue";
 
 defineProps<{ displayText: string }>();
+/**
+ * The machine, for the buttons to call, and the snapshot, for the template to draw from. The template never
+ * changes the snapshot; every click calls the machine, and the next snapshot shows the result.
+ */
 const { machine, state } = usePanel();
 const { limits } = DrumMachine;
 </script>

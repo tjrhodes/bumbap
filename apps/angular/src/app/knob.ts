@@ -20,6 +20,11 @@ const KEY_STEPS: Record<string, number> = { ArrowUp: 1, ArrowRight: 1, ArrowDown
 		"(pointerdown)": "drag($event)", "(keydown)": "key($event)", "(wheel)": "scroll($event)", "(dblclick)": "turnTo(range().initial)"
 	}
 })
+/**
+ * A knob is a component whose element is the `div` itself (the `div[bmKnob]` selector), so the page has no
+ * extra wrapper. Its attributes are bound in `host`; its inputs come from the parent, and turning it sends a
+ * `turn` output back up, so the parent decides what a turn means.
+ */
 export class Knob {
 	readonly knobId = input.required<string>();
 	readonly label = input.required<string>();
@@ -40,10 +45,15 @@ export class Knob {
 		return `${share * SWEEP_DEGREES - SWEEP_DEGREES / 2}deg`;
 	});
 
+	/**
+	 * The value to turn from: the machine's very latest if the parent gave a way to read it, else the one
+	 * drawn.
+	 */
 	private current(): number {
 		return this.latest()?.() ?? this.value();
 	}
 
+	/** Every gesture ends here: the value is rounded and kept in range, then sent to the parent. */
 	protected turnTo(next: number) {
 		this.turn.emit(this.range().clamp(next));
 	}
@@ -56,6 +66,10 @@ export class Knob {
 			this.turnTo(startValue + (down.clientY - move.clientY + move.clientX - down.clientX) * unitsPerPixel));
 	}
 
+	/**
+	 * The keys sliders use everywhere: arrows move by one, Page Up and Down by ten, Home and End go to the
+	 * ends. Other keys are left alone, so Tab still moves on.
+	 */
 	protected key(event: KeyboardEvent) {
 		if (event.key === "Home") this.turnTo(this.range().min);
 		else if (event.key === "End") this.turnTo(this.range().max);

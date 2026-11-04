@@ -9,6 +9,10 @@ import { PatternButtons } from "./PatternButtons";
 /** The 808 group has room for the most knobs any part has. */
 const DIAL_SLOTS = [0, 1];
 
+/**
+ * The middle section: the selected part's knobs, its 808 knobs, the pattern buttons, and under them the eight
+ * part buttons.
+ */
 export function PartSection() {
 	return (
 		<section className="dm-part" aria-label="Part">
@@ -23,6 +27,10 @@ export function PartSection() {
 	);
 }
 
+/**
+ * Level, Pitch and Length for the selected part. Their labels name the part ("Snare level"), so screen readers
+ * know which part a knob belongs to.
+ */
 function PartKnobs() {
 	const tools = usePanel();
 	const { machine, selectedPart } = tools;
@@ -38,6 +46,7 @@ function PartKnobs() {
 	);
 }
 
+/** The 808 knobs group: always two slots, filled with however many knobs the selected part really has. */
 function DialGroup() {
 	return (
 		<div className="dm-dials">

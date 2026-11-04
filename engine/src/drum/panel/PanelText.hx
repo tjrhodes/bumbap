@@ -97,6 +97,7 @@ class PanelText {
 		return [hint, hint];
 	}
 
+	/** What a screen reader says for a step's flip button: "Play Kick step 3 backwards". */
 	public static function flipLabel(trackName:String, stepIndex:Int):String {
 		return 'Play $trackName step ${stepIndex + 1} backwards';
 	}

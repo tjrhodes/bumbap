@@ -19,6 +19,10 @@ class Silence {
 		return (lastAudible + 1) / sampleRate;
 	}
 
+	/**
+	 * The loudest point of the recording, so "silent" can mean "very quiet compared with this drum", whatever
+	 * its own level.
+	 */
 	static function peak(samples:Float32Array):Float {
 		var loudest = 0.0;
 		for (index in 0...samples.length) loudest = Math.max(loudest, Math.abs(samples[index]));

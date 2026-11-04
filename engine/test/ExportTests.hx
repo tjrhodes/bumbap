@@ -13,6 +13,7 @@ class ExportTests {
 	static inline final KICK = 0;
 	static inline final SNARE = 1;
 
+	/** Every test in this file, in the order they run. */
 	public static function all():Array<Check.Test> {
 		return [
 			test("Copy takes a part's steps; Paste puts them into any part of any pattern", copyAndPasteSteps),
@@ -81,6 +82,7 @@ class ExportTests {
 		}).then(_ -> Check.isTrue(setup.machine.getState().playing, "Play works again"));
 	}
 
+	/** A fresh machine on a fresh fake Tone, so no test can leak into the next. */
 	static function newMachine() {
 		final tone = new FakeTone();
 		return {tone: tone, machine: new DrumMachine({tone: tone.api, samplesUrl: "/samples/"})};

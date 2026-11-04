@@ -13,12 +13,18 @@ export interface PanelTools {
 
 export const PanelContext = createContext<PanelTools | null>(null);
 
+/**
+ * Any part of the panel calls this to get the machine, the latest snapshot and the shared helpers. React
+ * "context" passes them down to every component without handing them from parent to child by hand. Calling it
+ * outside the panel is a mistake, so it says so loudly.
+ */
 export function usePanel(): PanelTools {
 	const tools = useContext(PanelContext);
 	if (!tools) throw new Error("usePanel must be used inside <Panel>");
 	return tools;
 }
 
+/** The part whose steps are on the keys right now. */
 export function selectedTrack(tools: PanelTools): TrackState {
 	return tools.state.tracks[tools.selectedPart];
 }

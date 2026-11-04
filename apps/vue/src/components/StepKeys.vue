@@ -9,12 +9,22 @@ import { selectedTrack, usePanel, usePlayhead } from "../panel";
 const STEPS_PER_BEAT = 4;
 const BEATS = [0, 1, 2, 3];
 const tools = usePanel();
+/**
+ * The step being heard. It changes up to 13 times a second, and because only this component reads it, only the
+ * keys redraw on each step.
+ */
 const currentStep = usePlayhead(tools.machine);
 const gestures = keyGestures(tools);
 const track = computed(() => selectedTrack(tools));
 
+/** The four step numbers of one beat, so the template can group the keys by beat. */
 const stepsOfBeat = (beat: number) => Array.from({ length: STEPS_PER_BEAT }, (_, offset) => beat * STEPS_PER_BEAT + offset);
+/** A step shows as reversed only while it plays; a step that's off isn't drawn flipped. */
 const isReversed = (step: StepState) => step.on && step.reversed;
+/**
+ * The key's level and nudge as CSS custom properties: the stylesheet turns them into the height of the glow and
+ * the slant of the key.
+ */
 const keyStyle = (step: StepState) => ({ "--level": step.velocity / 100, "--nudge": step.nudge / DrumMachine.limits.nudge.max });
 </script>
 

@@ -62,6 +62,7 @@ def matching_brace_line(lines, start):
 
 
 def function_name(line):
+    """The function's name on its first line, for the report; 'anonymous' if it has none."""
     match = re.search(r"function\s+(\w+)|(\w+)\s*\(", line)
     return (match.group(1) or match.group(2)) if match else "anonymous"
 
@@ -84,6 +85,7 @@ def too_long(file):
 
 
 def main(paths):
+    """Checks every file under the paths, prints what is too long, and fails the build if anything is."""
     problems = [problem for file in source_files(paths) for problem in too_long(file)]
     for problem in problems:
         print(problem)

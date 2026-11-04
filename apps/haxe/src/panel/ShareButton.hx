@@ -13,6 +13,10 @@ class ShareButton {
 	final note:Element;
 	var noteTimer:Null<Timer>;
 
+	/**
+	 * Wires the button up: a click shares the beat as it is at that moment, then shows a note saying what
+	 * happened.
+	 */
 	public function new(button:Element, note:Element, machine:DrumMachine) {
 		this.note = note;
 		button.addEventListener("click", () -> ShareLink.share(machine.getState().code).then(showNote));

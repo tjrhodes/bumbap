@@ -19,6 +19,10 @@ export class ShareButton {
 	protected readonly note = new HeldText(ShareLink.NOTE_MS);
 	protected readonly label = ShareLink.LABEL;
 
+	/**
+	 * Shares the beat as it is right now, then shows a note saying what happened, unless there's nothing to say
+	 * (the share sheet speaks for itself).
+	 */
 	protected async share() {
 		const words = await ShareLink.share(this.store.state().code);
 		if (words) this.note.show(words);

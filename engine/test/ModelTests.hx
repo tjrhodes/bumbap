@@ -18,6 +18,7 @@ import drum.audio.Silence;
 
 /** The pure parts of the engine: numbers, rows, timing, loudness, the overdrive curve and the URL code. */
 class ModelTests {
+	/** Every test in this file, in the order they run. */
 	public static function all():Array<Check.Test> {
 		return [
 			test("a range rounds and clamps whatever a UI sends", rangeClamps),

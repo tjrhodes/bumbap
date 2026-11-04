@@ -43,6 +43,10 @@ class MasterChain {
 	var drivePercent = Limits.DRIVE.initial;
 	var reverbPercent = Limits.REVERB.initial;
 
+	/**
+	 * Builds the chain in the drawing above and plugs its pieces together. Drive and reverb both start at 0, so
+	 * the chain starts out passing the sound straight through.
+	 */
 	public function new(tone:ToneApi) {
 		headroom = ToneNodes.create(tone.Volume, -Saturation.HEADROOM_DB);
 		overdrive = shaper(tone, null, "2x"); // starts at drive 0: no curve at all, so the browser does no work
@@ -62,6 +66,11 @@ class MasterChain {
 		return reverb.ready;
 	}
 
+	/**
+	 * Turns the drive knob: a new overdrive curve, plus the tone filter and level trim that go with it, so more
+	 * drive sounds warmer and not just louder. The same value twice does nothing, because making a curve isn't
+	 * free.
+	 */
 	public function setDrive(percent:Int) {
 		if (percent == drivePercent) return;
 		drivePercent = percent;
@@ -93,11 +102,16 @@ class MasterChain {
 		overdrive.oversample = percent == 0 ? "none" : "2x";
 	}
 
+	/**
+	 * Turns the reverb knob by sending more or less of the kit into the room. The dry kit is never turned down,
+	 * so the beat stays clear.
+	 */
 	public function setReverb(percent:Int) {
 		reverbPercent = percent;
 		reverbSend.gain.value = MOST_REVERB_SEND * percent / 100;
 	}
 
+	/** Frees every piece of the chain when the machine is thrown away. */
 	public function dispose() {
 		final everyNode:Array<ToneNode> = [headroom, overdrive, toneFilter, trim, reverbSend, reverb, clipper];
 		for (node in everyNode) node.dispose();
@@ -115,6 +129,10 @@ class MasterChain {
 		return made;
 	}
 
+	/**
+	 * How much to turn the level down for this much drive. Overdrive makes the sound louder, and the trim takes
+	 * that back so turning the knob changes the character, not the volume.
+	 */
 	static function trimDecibels(drivePercent:Int):Float {
 		return MIX_LEVEL_DB + Saturation.trimDecibels(drivePercent);
 	}

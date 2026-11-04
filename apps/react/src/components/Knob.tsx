@@ -21,6 +21,10 @@ export interface KnobProps {
 	disabled?: boolean;
 }
 
+/**
+ * `latest` always holds the newest value, so a drag or the wheel that began several renders ago still turns
+ * from where the knob is now and not from where it was when the gesture started.
+ */
 export function Knob({ id, label, range, value, onTurn, variant = "", disabled = false }: KnobProps) {
 	const element = useRef<HTMLDivElement>(null);
 	const latest = useRef(value);
@@ -53,6 +57,10 @@ function followDrag(down: PointerEvent, startValue: number, range: Range, turnTo
 		turnTo(startValue + (down.clientY - move.clientY + move.clientX - down.clientX) * unitsPerPixel));
 }
 
+/**
+ * The keys sliders use everywhere: arrows move by one, Page Up and Down by ten, Home and End go to the ends.
+ * Other keys are left alone, so Tab still moves on.
+ */
 function onKnobKey(event: KeyboardEvent, value: number, range: Range, turnTo: (value: number) => void) {
 	if (event.key === "Home") turnTo(range.min);
 	else if (event.key === "End") turnTo(range.max);

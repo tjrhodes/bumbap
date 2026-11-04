@@ -24,6 +24,10 @@ import { StepKeys } from "./step-keys";
 export class Panel {
 	private readonly store = inject(PanelStore);
 
+	/**
+	 * Downloads the sounds as soon as the panel exists. The `effect` runs again whenever the snapshot's link
+	 * code changes, keeping the address up to date, so a reload or a bookmark brings the beat back.
+	 */
 	constructor() {
 		this.store.machine.load();
 		effect(() => rememberInAddress(this.store.state().code));

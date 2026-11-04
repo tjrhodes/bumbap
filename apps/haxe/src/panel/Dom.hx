@@ -20,6 +20,10 @@ class Dom {
 		return made;
 	}
 
+	/**
+	 * An SVG element (for the LED display). SVG elements must be made in the SVG namespace, or the browser
+	 * treats them as unknown HTML tags and draws nothing.
+	 */
 	public static function createSvg(tag:String, attributes:Dynamic<String>):Element {
 		final made:Element = cast document.createElementNS(SVG_NAMESPACE, tag);
 		setAttributes(made, attributes);
@@ -41,6 +45,10 @@ class Dom {
 		if (element.textContent != text) element.textContent = text;
 	}
 
+	/**
+	 * Marks a toggle button as on or off. `aria-pressed` tells screen readers, and the stylesheet uses the same
+	 * attribute for the lit look, so one attribute does both jobs.
+	 */
 	public static function setPressed(element:Element, pressed:Bool) {
 		element.setAttribute("aria-pressed", pressed ? "true" : "false");
 	}
@@ -50,6 +58,9 @@ class Dom {
 		if (element.getAttribute(name) != value) element.setAttribute(name, value);
 	}
 
+	/**
+	 * Copies every name and value from a little object onto the element, so `create` can take them all at once.
+	 */
 	static function setAttributes(element:Element, attributes:Null<Dynamic<String>>) {
 		if (attributes == null) return;
 		for (name in Reflect.fields(attributes)) element.setAttribute(name, Reflect.field(attributes, name));

@@ -7,6 +7,10 @@ import KnobControl from "./KnobControl.vue";
 
 const props = defineProps<{ slotIndex: number }>();
 const tools = usePanel();
+/**
+ * The selected part, its knob's name in this slot (none if the part has no knob there) and where that knob
+ * points. Each is `computed`, so it follows the snapshot and the selected part by itself.
+ */
 const track = computed(() => selectedTrack(tools));
 const name = computed(() => track.value.dialNames[props.slotIndex]);
 const position = computed(() => track.value.dials[props.slotIndex] ?? DrumMachine.limits.dial.initial);

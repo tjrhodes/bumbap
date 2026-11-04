@@ -12,6 +12,7 @@ class PatternTests {
 	static inline final SNARE = 1;
 	static inline final STEPS_IN_A_BAR = 16;
 
+	/** Every test in this file, in the order they run. */
 	public static function all():Array<Check.Test> {
 		return sequenceTests().concat(machineTests()).concat(toolTests()).concat(playingTests());
 	}
@@ -283,15 +284,21 @@ class PatternTests {
 
 	// ── Helpers ───────────────────────────────────────────────────────
 
+	/** A fresh machine on a fresh fake Tone, so no test can leak into the next. */
 	static function newMachine() {
 		final tone = new FakeTone();
 		return {tone: tone, machine: new DrumMachine({tone: tone.api, samplesUrl: "/samples/"})};
 	}
 
+	/** Loads the samples and presses Play, as a user would. */
 	static function playing(setup:{tone:FakeTone, machine:DrumMachine}):Promise<Any> {
 		return setup.machine.load().then(_ -> setup.machine.play());
 	}
 
+	/**
+	 * Waits one turn of the event loop, so the fake downloads (which finish straight away) have been dealt
+	 * with.
+	 */
 	static function afterDownloads():Promise<Any> {
 		return new Promise((resolve, _) -> haxe.Timer.delay(() -> resolve(null), 0));
 	}

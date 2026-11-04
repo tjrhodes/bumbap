@@ -27,6 +27,13 @@ typedef BouncePlan = {
 class Bounce {
 	static inline final PASSES_SCHEDULED = 3;
 
+	/**
+	 * Makes the loop. Tone's Offline mode builds a pretend studio that plays into memory instead of the
+	 * speakers, and much faster than real time. Inside it the master chain and a sample bank are built again,
+	 * given the recordings already downloaded, and every hit is scheduled. Waiting for the reverb to be ready
+	 * before the render starts matters: it works out its room first, and starting sooner would leave the start
+	 * of the loop dry.
+	 */
 	public static function render(tone:ToneApi, plan:BouncePlan, recordings:SampleBank):Promise<Array<Float32Array>> {
 		final passSeconds = barSeconds(plan) * plan.bars.length;
 		return tone.Offline(_ -> {
@@ -40,10 +47,12 @@ class Bounce {
 		}, 2 * passSeconds).then(sound -> secondPass(sound, passSeconds));
 	}
 
+	/** How long one bar lasts at this tempo: sixteen sixteenth notes. */
 	static function barSeconds(plan:BouncePlan):Float {
 		return Limits.STEPS * Timing.sixteenthSeconds(plan.tempo);
 	}
 
+	/** Schedules every bar of every pass, one after another, each at the time it starts. */
 	static function scheduleEveryPass(bank:SampleBank, plan:BouncePlan, passSeconds:Float) {
 		for (pass in 0...PASSES_SCHEDULED)
 			for (bar in 0...plan.bars.length) scheduleBar(bank, plan, plan.bars[bar], pass * passSeconds + bar * barSeconds(plan));
@@ -59,6 +68,10 @@ class Bounce {
 		}
 	}
 
+	/**
+	 * One part on one step: if it plays and isn't muted, it is scheduled at its time, nudge and all. Its fader
+	 * level goes into the hit itself, because each bar can come from a pattern with different levels.
+	 */
 	static function scheduleHit(bank:SampleBank, part:TrackState, step:Int, stepStart:Float, stepSeconds:Float, tempo:Int) {
 		final hit = part.steps[step];
 		if (!hit.on || part.muted) return;

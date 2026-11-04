@@ -17,7 +17,13 @@ export interface PanelTools {
 
 const PANEL: InjectionKey<PanelTools> = Symbol("bümbap panel");
 
-/** Called once, by the panel: follows the machine's snapshots and provides the tools to every component. */
+/**
+ * Called once, by the panel: follows the machine's snapshots and provides the tools to every component.
+ *
+ * Vue keeps track of which parts of the page read which refs. When the subscription puts a new snapshot in
+ * `state`, Vue redraws just the bits that used it. `onUnmounted` stops the subscription when the panel goes
+ * away.
+ */
 export function providePanel(machine: DrumMachine): PanelTools {
 	const state = shallowRef(machine.getState());
 	onUnmounted(machine.subscribe((next) => (state.value = next)));
@@ -27,12 +33,17 @@ export function providePanel(machine: DrumMachine): PanelTools {
 	return tools;
 }
 
+/**
+ * Any component below the panel calls this to get the machine, the snapshot and the shared helpers, which the
+ * panel "provided" once. Calling it outside the panel is a mistake, so it says so loudly.
+ */
 export function usePanel(): PanelTools {
 	const tools = inject(PANEL);
 	if (!tools) throw new Error("usePanel must be used inside the bümbap panel");
 	return tools;
 }
 
+/** The part whose steps are on the keys right now. */
 export function selectedTrack(tools: PanelTools): TrackState {
 	return tools.state.value.tracks[tools.selectedPart.value];
 }

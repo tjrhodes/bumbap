@@ -14,7 +14,13 @@ const NUDGE_PX_PER_TICK = 3;
 type Axis = "level" | "nudge";
 const ARROWS: Record<string, [Axis, number]> = { ArrowUp: ["level", 5], ArrowDown: ["level", -5], ArrowRight: ["nudge", 1], ArrowLeft: ["nudge", -1] };
 
-/** The gestures of one set of keys; `wasDrag` stops the click that ends a drag from switching the step. */
+/**
+ * The gestures of one set of keys; `wasDrag` stops the click that ends a drag from switching the step.
+ *
+ * A plain object is enough to remember it here: a Vue component's setup runs once, so this is made once per set
+ * of keys and lives as long as they do. (React runs its components again on every render, which is why the
+ * React build needs `useRef` for the same thing.)
+ */
 export function keyGestures(tools: PanelTools) {
 	const wasDrag = { current: false };
 	return {
@@ -27,6 +33,7 @@ export function keyGestures(tools: PanelTools) {
 	};
 }
 
+/** The step as the machine has it now, read fresh each time, so a gesture always starts from the real value. */
 function selectedStep(tools: PanelTools, index: number): StepState {
 	return tools.machine.getState().tracks[tools.selectedPart.value].steps[index];
 }
@@ -55,11 +62,16 @@ function startDrag(tools: PanelTools, down: PointerEvent, index: number, wasDrag
 	});
 }
 
+/**
+ * Which way is the drag going? Below a few pixels it might still be a tap, so nothing yet; after that, mostly
+ * up or down means level, mostly sideways means nudge.
+ */
 function chooseAxis(rise: number, across: number): Axis | null {
 	if (Math.max(Math.abs(rise), Math.abs(across)) < DRAG_THRESHOLD_PX) return null;
 	return Math.abs(rise) >= Math.abs(across) ? "level" : "nudge";
 }
 
+/** How much the level changes for each pixel dragged, so a 140-pixel drag covers the whole range. */
 function levelPerPixel(): number {
 	const { velocity } = DrumMachine.limits;
 	return (velocity.max - velocity.min) / LEVEL_TRAVEL_PX;

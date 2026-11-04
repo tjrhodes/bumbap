@@ -7,6 +7,10 @@ const props = withDefaults(defineProps<{ id: string; label: string; range: Range
 	{ variant: "", disabled: false });
 const emit = defineEmits<{ turn: [value: number] }>();
 
+/**
+ * Every gesture ends here. The value is rounded and kept in range, then sent up to the parent as a "turn"
+ * event. The knob doesn't set anything itself: it only says how far it was turned, and the parent decides.
+ */
 function turnTo(next: number) {
 	emit("turn", props.range.clamp(next));
 }

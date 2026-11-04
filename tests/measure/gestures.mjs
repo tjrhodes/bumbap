@@ -30,6 +30,10 @@ function countChanges([selector, index, attribute]) {
 	new MutationObserver((changes) => window.bumbapChanges += changes.length).observe(target, { attributeFilter: [attribute] });
 }
 
+/**
+ * Drags one control up and down with the mouse, the same moves every time, so every build gets exactly the same
+ * work.
+ */
 async function dragBackAndForth(page, target) {
 	const element = page.locator(target.selector).nth(target.index);
 	await element.scrollIntoViewIfNeeded();   // on a phone the keys start below the fold
@@ -41,6 +45,11 @@ async function dragBackAndForth(page, target) {
 	await page.mouse.up();
 }
 
+/**
+ * One measured drag: opens the build, waits for it to settle, then reads how much time the browser's main
+ * thread spent during the drag and divides it by the moves. It also counts how often the value on screen
+ * changed.
+ */
 async function dragOnce(browser, build, device, targetName) {
 	const { page, devtools } = await openBuild(browser, build, device);
 	const target = TARGETS[targetName];
@@ -54,6 +63,10 @@ async function dragOnce(browser, build, device, targetName) {
 	return { perMoveMs: timeEach(before, after, MOVES), valueChanges: changes, moves: MOVES };
 }
 
+/**
+ * Several drags of the same thing; the middle one by main-thread time is kept, so one noisy run can't decide
+ * the result.
+ */
 async function drag(browser, build, device, targetName) {
 	const runs = [];
 	for (let run = 0; run < RUNS; run++) runs.push(await dragOnce(browser, build, device, targetName));
@@ -62,6 +75,10 @@ async function drag(browser, build, device, targetName) {
 	return { ...middle, allRunsBusyMs: runs.map((each) => each.perMoveMs.busy), medianOfRuns: median(runs.map((each) => each.perMoveMs.busy)) };
 }
 
+/**
+ * Every build, on desktop and on a slowed-down phone, dragging a knob and a key. The server and browser are
+ * shut down even if something fails, so a broken run doesn't leave them running.
+ */
 async function measureAll(builds) {
 	const server = await startServer();
 	const browser = await launchBrowser();

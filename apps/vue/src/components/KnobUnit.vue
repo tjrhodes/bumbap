@@ -8,6 +8,10 @@ const props = defineProps<{ id: string; name: string; label: string; range: Rang
 	set: (value: number) => void; unitClass?: string }>();
 const { machine, state, showBriefly } = usePanel();
 
+/**
+ * The knob was turned: set the value on the machine, then show it on the display ("S 66") if this knob has a
+ * display letter. The value shown is read back from the machine, so it is the one the machine really took.
+ */
 function onTurn(value: number) {
 	props.set(value);
 	const letter = PanelText.KNOB_LETTERS[props.id];

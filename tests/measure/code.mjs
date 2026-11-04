@@ -56,6 +56,10 @@ function cleanBuildSeconds(app) {
 	return (performance.now() - started) / 1000;
 }
 
+/**
+ * One front end's figures: how many files and lines of its own UI code, how long a clean build takes (the
+ * middle of a few runs), and how much its install pulls in.
+ */
 function measure(app) {
 	const files = uiSource(app);
 	const buildSeconds = round(median(Array.from({ length: BUILD_RUNS }, () => cleanBuildSeconds(app))));

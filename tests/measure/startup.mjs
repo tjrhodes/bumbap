@@ -30,12 +30,14 @@ const AUDITS = {
 	totalBytes: "total-byte-weight"
 };
 
+/** Picks out the numbers we compare from a Lighthouse report: its score and a handful of timings. */
 function summarise(report) {
 	const reading = { score: Math.round(report.categories.performance.score * 100) };
 	for (const [name, audit] of Object.entries(AUDITS)) reading[name] = round(report.audits[audit].numericValue);
 	return reading;
 }
 
+/** One Lighthouse run on a fresh, headless Chrome, as a phone on a slow connection would load the page. */
 async function auditOnce(url) {
 	const chrome = await chromeLauncher.launch({ chromePath: chromium.executablePath(), chromeFlags: ["--headless=new", "--no-sandbox"] });
 	try {
@@ -60,6 +62,7 @@ async function playableOnce(browser, build) {
 	return round(playableMs);
 }
 
+/** How soon Play can be pressed, as the middle of several runs. */
 async function playable(build) {
 	const browser = await launchBrowser();
 	const runs = [];
@@ -68,6 +71,7 @@ async function playable(build) {
 	return { playableMs: median(runs), allRunsPlayableMs: runs };
 }
 
+/** A build's start-up figures: the middle of several Lighthouse runs, plus when Play became usable. */
 async function audit(build) {
 	const runs = [];
 	for (let run = 0; run < RUNS; run++) runs.push(await auditOnce(urlOf(build)));
@@ -77,6 +81,7 @@ async function audit(build) {
 	return { ...middle, allRunsScores: runs.map((each) => each.score), ...ready };
 }
 
+/** Every build in turn; the server is stopped even if something fails. */
 async function measureAll(builds) {
 	const server = await startServer();
 	const results = {};

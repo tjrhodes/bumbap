@@ -22,6 +22,10 @@ class Loudness {
 		return 20 * Math.log(percent / 100) / Math.log(10);
 	}
 
+	/**
+	 * Decibels into a plain volume multiplier: 0 dB is 1 (unchanged), every 6 dB up is roughly double, every 6
+	 * dB down roughly half.
+	 */
 	public static function decibelsToGain(decibels:Float):Float {
 		return Math.pow(10, decibels / 20);
 	}

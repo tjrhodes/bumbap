@@ -9,6 +9,10 @@ import { useKeyGestures, type KeyGestures } from "../keyGestures";
 const STEPS_PER_BEAT = 4;
 const BEATS = [0, 1, 2, 3];
 
+/**
+ * The steps section. It is the one component that uses the playhead, which changes up to 13 times a second, so
+ * only the keys redraw on each step and not the whole panel.
+ */
 export function StepKeys() {
 	const tools = usePanel();
 	const currentStep = usePlayhead(tools.machine);
@@ -36,6 +40,7 @@ function StepsHead() {
 	);
 }
 
+/** Four keys grouped as one beat, so they can be spaced like a real drum machine's. */
 function Beat({ beat, currentStep, gestures }: { beat: number; currentStep: number; gestures: KeyGestures }) {
 	const indexes = Array.from({ length: STEPS_PER_BEAT }, (_, offset) => beat * STEPS_PER_BEAT + offset);
 	return (

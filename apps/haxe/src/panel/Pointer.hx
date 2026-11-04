@@ -5,6 +5,11 @@ import js.html.PointerEvent;
 
 /** Follows one pointer from press to release; the element keeps it even if it wanders off. */
 class Pointer {
+	/**
+	 * "Pointer capture" tells the browser that every move belongs to this element until the press ends, even
+	 * outside it, so a knob keeps turning when your finger slides off it. When the press ends, the listeners
+	 * take themselves away again.
+	 */
 	public static function track(target:Element, down:PointerEvent, onMove:PointerEvent->Void) {
 		target.setPointerCapture(down.pointerId);
 		final move = (event:js.html.Event) -> onMove(cast event);

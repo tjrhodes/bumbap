@@ -15,14 +15,23 @@ class StepRow {
 	/** The velocity behind each written hit. */
 	static final VELOCITY_OF = ["X" => 100, NORMAL => Limits.VELOCITY.initial, "o" => 50];
 
+	/** Reads a written row, one character per step, into sixteen steps. A short row is padded with rests. */
 	public static function parse(row:String):Array<StepSettings> {
 		return [for (step in 0...Limits.STEPS) stepFor(row.charAt(step))];
 	}
 
+	/**
+	 * The other way round: writes sixteen steps as a row, so a test can say what it expects in a form people
+	 * can read.
+	 */
 	public static function print(steps:Array<StepSettings>):String {
 		return [for (step in steps) step.on ? symbolFor(step.velocity) : REST].join("");
 	}
 
+	/**
+	 * One character into one step. Anything that isn't a hit symbol (a dot, a space, a missing character) is a
+	 * rest.
+	 */
 	static function stepFor(symbol:String):StepSettings {
 		final velocity = VELOCITY_OF[symbol];
 		return velocity == null ? Step.REST : Step.hit(velocity, Limits.NUDGE.initial);

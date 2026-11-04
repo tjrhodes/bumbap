@@ -4,6 +4,10 @@ import { usePanel } from "../context";
 import { KnobUnit } from "./KnobUnit";
 import { SevenSegment } from "./SevenSegment";
 
+/**
+ * The top section: the display and the machine-wide knobs and buttons. Each knob is told how to read its value
+ * from a snapshot and how to set it, so one KnobUnit component serves all four.
+ */
 export function Deck({ displayText }: { displayText: string }) {
 	const { machine } = usePanel();
 	const { limits } = DrumMachine;
@@ -21,6 +25,10 @@ export function Deck({ displayText }: { displayText: string }) {
 	);
 }
 
+/**
+ * The LED display and the status line under it ("Ready", "Playing"). `role="status"` makes screen readers
+ * announce it when it changes.
+ */
 function DisplayWindow({ text }: { text: string }) {
 	const { state } = usePanel();
 	return (
@@ -55,6 +63,7 @@ function DownloadButton() {
 	);
 }
 
+/** Clears every step of the pattern on the keys (the mix and the knobs stay as they are). */
 function ClearButton() {
 	const { machine } = usePanel();
 	return (

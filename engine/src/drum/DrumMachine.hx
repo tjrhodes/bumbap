@@ -89,6 +89,12 @@ class DrumMachine {
 	/** A loop is being rendered for download. */
 	var exporting = false;
 
+	/**
+	 * Builds the machine, wiring it up like a little studio. The sound goes from the sample bank (the eight
+	 * recorded drums), through the master chain (drive and reverb), to the speakers. The clock counts the steps
+	 * and calls back twice for each one: once a moment early, to schedule the sound, and once when it is heard,
+	 * to move the playhead. The first snapshot is made last, so the UI has something to draw straight away.
+	 */
 	public function new(options:MachineOptions) {
 		tone = options.tone;
 		Latency.preferSmoothPlayback(tone);
@@ -145,6 +151,10 @@ class DrumMachine {
 		});
 	}
 
+	/**
+	 * Stops the clock, so no more steps are scheduled. Hits already sounding are left to ring out, like lifting
+	 * your hands off a real drum machine. Doing nothing when already stopped means a double press is harmless.
+	 */
 	public function stop() {
 		if (!playing) return;
 		playing = false;
@@ -153,6 +163,10 @@ class DrumMachine {
 		changed();
 	}
 
+	/**
+	 * The Play button: starts when stopped, stops when playing. It always gives back a promise, so a front end
+	 * can treat both cases the same way.
+	 */
 	public function togglePlay():Promise<Void> {
 		if (!playing) return play();
 		stop();
@@ -204,6 +218,11 @@ class DrumMachine {
 
 	// ── Editing the mix and the whole machine ─────────────────────────
 
+	/**
+	 * A part's fader, 0–100 %. The number is always saved in the pattern on the keys. The sound only changes
+	 * straight away if that pattern is the one being heard; otherwise the new level waits for that pattern's
+	 * turn.
+	 */
 	public function setVolume(trackIndex:Int, percent:Float) {
 		editTrack(trackIndex, track -> {
 			track.setVolume(percent);
@@ -239,11 +258,19 @@ class DrumMachine {
 		editTrack(trackIndex, track -> track.toggleMute());
 	}
 
+	/**
+	 * How fast the beat goes, in beats per minute. Out-of-range numbers are pulled back into range, so a typing
+	 * slip cannot break the clock.
+	 */
 	public function setTempo(beatsPerMinute:Float) {
 		applyTempo(beatsPerMinute);
 		changed();
 	}
 
+	/**
+	 * Swing pushes every second sixteenth note a little late, which turns a stiff, robotic beat into one that
+	 * grooves. 50 % is perfectly straight.
+	 */
 	public function setSwing(percent:Float) {
 		applySwing(percent);
 		changed();
@@ -366,7 +393,11 @@ class DrumMachine {
 
 	// ── Inside ─────────────────────────────────────────────────────────
 
-	/** The clock asks for a step to be heard: each unmuted track that plays on it, at its velocity, nudge and direction. */
+	/**
+	 * The clock calls this a moment before a step is due, with the exact time it should sound. Each part of the
+	 * pattern being heard that has a hit on this step, and is not muted, is scheduled for that time (moved by
+	 * its nudge). Scheduling ahead like this keeps the timing tight even when the computer is busy drawing.
+	 */
 	function soundStep(step:Int, audioTime:Float) {
 		if (step == 0) moveOnAtTheBar();
 		final stepSeconds = Timing.stepSeconds(step, swing, Timing.sixteenthSeconds(tempo));
@@ -393,8 +424,10 @@ class DrumMachine {
 	}
 
 	/**
-	 * A step is being heard: a new pattern playing is published with its first step, then the playhead moves.
-	 * The keys show the playhead only when they show the pattern playing; otherwise they hear -1, as if stopped.
+	 * The clock calls this when a step is actually heard, which is when the screen should move. If a new
+	 * pattern took over at this bar, the UI is told now and not when it was scheduled, so the buttons change in
+	 * time with the music. Then the playhead moves, but only on the keys if they show the pattern playing;
+	 * otherwise they get -1, as if stopped, so a pattern being edited does not show another pattern's playhead.
 	 */
 	function stepHeard(step:Int) {
 		if (step == 0 && newPatternToShow) {
@@ -404,18 +437,30 @@ class DrumMachine {
 		stepListeners.tell(edited == sequence.playing ? step : StepClock.NO_STEP);
 	}
 
+	/**
+	 * Copies one pattern onto another without telling the UI, so the public methods can tell it once. If the
+	 * copy lands on the pattern being heard, its sounds are set up again, so you hear the change at once.
+	 */
 	function copy(from:Int, to:Int) {
 		if (!Patterns.exists(from) || !Patterns.exists(to) || from == to) return;
 		bank.copy(from, to);
 		if (to == sounding()) applySounds();
 	}
 
+	/**
+	 * Wipes a pattern back to how a new one starts: no steps, every part at its first settings. As with `copy`,
+	 * the UI is told by whoever called this.
+	 */
 	function blank(index:Int) {
 		if (!Patterns.exists(index)) return;
 		bank.restore(index, Patterns.blank());
 		if (index == sounding()) applySounds();
 	}
 
+	/**
+	 * Clear while Select is on: the sequence shrinks back to just the pattern on the keys, and the next tap
+	 * starts building a new one.
+	 */
 	function clearSequence() {
 		sequence.replace([edited]);
 		selectStartsAgain = true;
@@ -444,6 +489,7 @@ class DrumMachine {
 		return playing ? sequence.playing : sequence.patterns[0];
 	}
 
+	/** The eight parts of the pattern being heard, because the clock and the mixer need to work with those. */
 	function soundingTracks():Array<Track> {
 		return bank.tracks(sounding());
 	}
@@ -459,6 +505,10 @@ class DrumMachine {
 		return bank.everySampleName().map(samples.preload);
 	}
 
+	/**
+	 * Asks the sample bank to switch this part to the recording its 808 knobs point at. Recordings are files
+	 * that have to download first, so this gives back a promise that finishes when the new sound is ready.
+	 */
 	function useChosenSample(track:Track):Promise<Void> {
 		return samples.useSample(track.voice.id, track.sampleName());
 	}
@@ -474,26 +524,33 @@ class DrumMachine {
 
 	// The apply… functions change one setting without publishing, so loadCode publishes once.
 
+	/** Keeps the tempo in range, remembers it, and hands it to the clock. */
 	function applyTempo(beatsPerMinute:Float) {
 		tempo = Limits.TEMPO.clamp(beatsPerMinute);
 		clock.setTempo(tempo);
 	}
 
+	/**
+	 * Keeps the swing in range, remembers it, and hands it to the clock, which delays every second step by it.
+	 */
 	function applySwing(percent:Float) {
 		swing = Limits.SWING.clamp(percent);
 		clock.setSwing(swing);
 	}
 
+	/** Keeps the drive in range, remembers it, and hands it to the master chain's overdrive. */
 	function applyDrive(percent:Float) {
 		drive = Limits.DRIVE.clamp(percent);
 		master.setDrive(drive);
 	}
 
+	/** Keeps the reverb in range, remembers it, and hands it to the master chain's reverb. */
 	function applyReverb(percent:Float) {
 		reverb = Limits.REVERB.clamp(percent);
 		master.setReverb(reverb);
 	}
 
+	/** Sets each drum's playback level from the faders of the pattern being heard. */
 	function applyVolumesToSamples() {
 		for (track in soundingTracks()) samples.setVolume(track.voice.id, track.volume);
 	}
@@ -509,26 +566,44 @@ class DrumMachine {
 		master.applyAgain();
 	}
 
+	/**
+	 * Everything the WAV export needs, written down like a recipe: the tempo, swing and effects, plus one bar
+	 * for each place in the sequence, in playing order.
+	 */
 	function bouncePlan():BouncePlan {
 		return {tempo: tempo, swing: swing, drive: drive, reverb: reverb, bars: [for (index in sequence.patterns) bank.snapshot(index)]};
 	}
 
+	/** Remembers whether a WAV is being made and tells the UI, which shows "Rendering the loop" meanwhile. */
 	function setExporting(now:Bool) {
 		exporting = now;
 		changed();
 	}
 
+	/**
+	 * Loading, Ready or Failed: remembers it and tells the UI, so the Play button can be enabled or explain why
+	 * not.
+	 */
 	function setStatus(newStatus:LoadStatus) {
 		status = newStatus;
 		changed();
 	}
 
-	/** Every edit ends here: build the next snapshot and tell the listeners. */
+	/**
+	 * Every edit ends here. A new snapshot is made and handed to everyone listening. Snapshots are only made
+	 * when something changes, so a front end can tell "nothing changed" by checking it got the same object
+	 * back.
+	 */
 	function changed() {
 		state = snapshot();
 		stateListeners.tell(state);
 	}
 
+	/**
+	 * Writes down everything the UI needs to draw, in one plain object: the playing state, the knobs, the
+	 * pattern on the keys, the sequence and its buttons, and the link code for sharing. A front end never asks
+	 * the machine lots of questions; it just redraws from the latest snapshot.
+	 */
 	function snapshot():MachineState {
 		final everyPattern = bank.snapshots();
 		return freeze({
@@ -553,7 +628,11 @@ class DrumMachine {
 		};
 	}
 
-	/** Frozen all the way down (steps are frozen when made), so a front end cannot change a snapshot by accident. */
+	/**
+	 * Freezes the snapshot all the way down, so nothing can change it afterwards. Steps are frozen when they
+	 * are made. If a front end tried to change a snapshot by mistake, JavaScript would refuse, instead of the
+	 * screen quietly going out of step with the sound.
+	 */
 	static function freeze(state:MachineState):MachineState {
 		for (track in state.tracks) js.lib.Object.freeze(js.lib.Object.freeze(track).steps);
 		js.lib.Object.freeze(state.tracks);

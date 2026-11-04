@@ -58,6 +58,11 @@ class PatternCode {
 	static final packedAlready = new WeakMap<String>(); // keyed by the pattern itself
 	static var blankPacked:Null<String>;
 
+	/**
+	 * Turns the whole machine into one short line of text for the end of a link. First come the settings, which
+	 * pattern is on the keys and the sequence; then the eight patterns, each packed on its own. A blank pattern
+	 * is written as nothing at all, so unused ones cost one dash.
+	 */
 	public static function encode(saved:SavedMachine):String {
 		final settings = [saved.tempo, saved.swing, saved.drive, saved.reverb].map(Std.string);
 		final header = [VERSION].concat(settings).concat([numbered([saved.shown]), numbered(saved.sequence)]);
@@ -65,7 +70,13 @@ class PatternCode {
 		return [header.join(SEPARATOR)].concat(patterns).join(PATTERN_SEPARATOR);
 	}
 
-	/** Returns null for anything that is not a valid code for this kit. */
+	/**
+	 * Returns null for anything that is not a valid code for this kit.
+	 *
+	 * A link can come from anywhere, so it is treated like a stranger: lower-cased first (some apps change the
+	 * case of links), then checked piece by piece. Any piece that doesn't fit means the whole code is refused,
+	 * never half loaded. Links from bümbap 1 start with "5." and are read the old way.
+	 */
 	public static function decode(code:Null<String>):Null<SavedMachine> {
 		if (code == null) return null;
 		final lower = code.toLowerCase();
@@ -84,11 +95,20 @@ class PatternCode {
 		return patterns.map(index -> Std.string(index + 1)).join("");
 	}
 
+	/**
+	 * Is this pattern exactly as a new one starts? The blank pattern is packed once and kept, and each pattern
+	 * is compared with it as text, which is quicker and simpler than comparing every setting.
+	 */
 	static function isBlank(pattern:Pattern):Bool {
 		blankPacked ??= encodePattern(Patterns.blank());
 		return pack(pattern) == blankPacked;
 	}
 
+	/**
+	 * A pattern's code, made only once. Snapshots never change, so the snapshot itself can be the key of the
+	 * cache: the same pattern object always gives the same text. A WeakMap is used so that old snapshots can
+	 * still be thrown away when nobody needs them.
+	 */
 	static function pack(pattern:Pattern):String {
 		if (!packedAlready.has(pattern)) packedAlready.set(pattern, encodePattern(pattern));
 		return packedAlready.get(pattern);
@@ -116,6 +136,7 @@ class PatternCode {
 		return StringTools.hex(mask, MASK_DIGITS) + hits.join("");
 	}
 
+	/** One playing step as four characters: two hex digits of velocity, a nudge digit and a direction digit. */
 	static function encodeHit(hit:StepSettings):String {
 		final nudgeDigit = NUDGE_DIGITS.charAt(hit.nudge - Limits.NUDGE.min);
 		return StringTools.hex(hit.velocity, VELOCITY_DIGITS) + nudgeDigit + (hit.reversed ? "1" : "0");
@@ -139,6 +160,10 @@ class PatternCode {
 		return machine(shape, [pattern].concat([for (_ in 1...Limits.PATTERNS) Patterns.blank()]), 0, [0]);
 	}
 
+	/**
+	 * A bümbap 2 link. The front part (settings, the pattern on the keys and the sequence) has to match
+	 * exactly, and then there must be eight patterns after it, each blank or well formed.
+	 */
 	static function decodeEveryPattern(code:String):Null<SavedMachine> {
 		final parts = code.split(PATTERN_SEPARATOR);
 		final header = new EReg('^$VERSION\\.$SETTINGS\\.($PATTERN_DIGITS)\\.($PATTERN_DIGITS{1,${Sequence.MOST}})$$', "");
@@ -217,6 +242,10 @@ class PatternCode {
 		return new EReg('^[0-9a-f]{$MASK_DIGITS}([0-9a-f]{$VELOCITY_DIGITS}[$NUDGE_DIGITS][01])*$', "");
 	}
 
+	/**
+	 * Reads the `index`th hit out of a row: two hex digits of velocity, a nudge digit and a direction digit.
+	 * `Step.hit` checks the numbers again, so even a strange value can't get out of range.
+	 */
 	static function decodeHit(hits:String, index:Int):StepSettings {
 		final hit = hits.substr(index * HIT_DIGITS, HIT_DIGITS);
 		final velocity = Std.parseInt("0x" + hit.substr(0, VELOCITY_DIGITS));

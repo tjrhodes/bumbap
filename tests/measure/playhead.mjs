@@ -36,6 +36,7 @@ function evenness(lit) {
 	return { averageMs: round(errors.reduce((a, b) => a + b, 0) / errors.length, 2), worstMs: round(Math.max(...errors)), withinAFrame: round(withinAFrame * 100) };
 }
 
+/** The fastest tempo, so the playhead moves as often as it ever does: the hardest case for each build. */
 async function setTempoTo200(page) {
 	await page.locator("#tempo").focus();
 	await page.keyboard.press("End");
@@ -65,6 +66,10 @@ async function listen(browser, build, device) {
 	return { ...middle, allRunsBusyMs: runs.map((each) => each.perStepMs.busy) };
 }
 
+/**
+ * Every build, on desktop and on a slowed-down phone, listened to while it plays. The server and browser are
+ * shut down even if something fails.
+ */
 async function measureAll(builds) {
 	const server = await startServer();
 	const browser = await launchBrowser();

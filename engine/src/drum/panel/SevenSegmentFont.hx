@@ -34,6 +34,10 @@ class SevenSegmentFont {
 		return padded.substr(padded.length - DIGITS).split("");
 	}
 
+	/**
+	 * Is this bar of the display lit for this character? Each character is listed with the letters of its lit
+	 * segments ("1" is "bc"); anything not in the list shows blank.
+	 */
 	public static function isLit(character:String, segment:String):Bool {
 		return (LIT[character] ?? "").indexOf(segment) >= 0;
 	}

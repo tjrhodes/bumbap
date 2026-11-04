@@ -10,6 +10,11 @@ const TOOLS: { tool: Exclude<SequenceTool, "">; name: string }[] = [
 	{ tool: "select", name: "Select" }, { tool: "copy", name: "Copy" }, { tool: "clear", name: "Clear" }
 ];
 
+/**
+ * The sequence block: its title and tools, the eight pattern buttons and the hint line. The PatternPad (the
+ * engine's gesture logic) is made with `useMemo`, so the same pad lives for as long as the panel does; made in
+ * the function body, it would be new on every render and forget a press halfway through a gesture.
+ */
 export function PatternButtons() {
 	const { machine, state } = usePanel();
 	const pad = useMemo(() => new PatternPad(machine), [machine]);
@@ -25,6 +30,7 @@ export function PatternButtons() {
 	);
 }
 
+/** The "Sequence" title and its Select, Copy and Clear buttons. A button looks pressed while its tool is on. */
 function SequenceHead() {
 	const { machine, state } = usePanel();
 	return (
@@ -38,6 +44,10 @@ function SequenceHead() {
 	);
 }
 
+/**
+ * One pattern button. Its looks are all worked out from the snapshot: classes for lit, playing, next, used and
+ * copy source, and ARIA attributes for in the sequence and on the keys. Presses and clicks go to the pad.
+ */
 function PatternButton({ index, state, pad }: { index: number; state: MachineState; pad: PatternPad }) {
 	const classes = ["dm-pattern", state.patternHasSteps[index] && "is-used", state.playingPattern === index && "is-playing",
 		state.nextPattern === index && "is-next", state.copyFrom === index && "is-copy-source"];
@@ -56,7 +66,12 @@ function PatternHint() {
 	return <p className="dm-print dm-pattern-hint"><span className="for-mouse">{forMouse}</span><span className="for-touch">{forTouch}</span></p>;
 }
 
-/** A finger dragged onto another button is lifted there, so lifting is heard from the whole window. */
+/**
+ * A finger dragged onto another button is lifted there, so lifting is heard from the whole window.
+ *
+ * The effect returns a clean-up function, which React calls when the panel goes away, so the window stops
+ * listening and nothing is left behind.
+ */
 function useReleaseAnywhere(pad: PatternPad) {
 	useEffect(() => {
 		const release = (event: PointerEvent) => pad.release(event.pointerId, PatternPad.patternAt(event.clientX, event.clientY));

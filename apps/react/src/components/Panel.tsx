@@ -8,6 +8,12 @@ import { PartSection } from "./PartSection";
 import { ShareButton } from "./ShareButton";
 import { StepKeys } from "./StepKeys";
 
+/**
+ * The whole panel. In React the screen is a function of the data: this function runs again whenever the
+ * snapshot, the selected part or the display text changes, describes what the panel should look like, and React
+ * changes only the bits of the page that differ. Everything the parts below need goes into the context, so they
+ * can pick it up without it being passed down through every layer.
+ */
 export function Panel({ machine }: { machine: DrumMachine }) {
 	const state = useMachineState(machine);
 	const [selectedPart, selectPart] = useState(0);

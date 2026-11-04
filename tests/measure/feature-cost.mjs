@@ -28,12 +28,17 @@ function linesChanged(paths) {
 	return { added: sum(counts, 0), removed: sum(counts, 1), files: counts.length };
 }
 
+/** Code shipped at version 1 (read from git at that commit) and now, plus how much the engine grew. */
 function sizes() {
 	const before = JSON.parse(git("show", `${VERSION_1}:tests/measure/results/size.json`));
 	const now = JSON.parse(readFileSync(new URL("results/size.json", import.meta.url), "utf8"));
 	return { before: before.results, now: now.results, engineKB: round(now.sharedKB.engine - before.sharedKB.engine) };
 }
 
+/**
+ * What version 2 cost each front end: lines added and removed in its own code, and kilobytes added to what it
+ * ships. The shared parts (engine, tests, stylesheet) are counted once, as every build gets them.
+ */
 function measure() {
 	const { before, now, engineKB } = sizes();
 	const builds = Object.fromEntries(Object.entries(FRONT_ENDS).map(([build, paths]) =>

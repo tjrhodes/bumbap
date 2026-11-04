@@ -35,6 +35,10 @@ async function pageTotals(tone) {
 	};
 }
 
+/**
+ * How much each build sends over the network, gzipped as a real host would. Tone.js and the engine are the same
+ * for every build, so they're measured once and taken away, leaving each build's own UI and framework.
+ */
 async function measure() {
 	const tone = gzipped(await minified({ code: 'import * as Tone from "tone"; window.Tone = Tone;' }));
 	const engine = gzipped(await minified({ file: `${REPO}engine/dist/drum-engine.js` }));

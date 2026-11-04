@@ -20,6 +20,10 @@ class Track {
 	final steps:Array<StepSettings>;
 	final dials:Array<Int>;
 
+	/**
+	 * A new part starts with its voice's starter row (the beat you hear the first time) and every 808 knob at
+	 * its starting position.
+	 */
 	public function new(voice:Voice) {
 		this.voice = voice;
 		steps = StepRow.parse(voice.starterRow);
@@ -31,6 +35,7 @@ class Track {
 		return Kit.sampleName(voice, dials);
 	}
 
+	/** One step's settings: whether it plays, how hard, how early or late, and which way round. */
 	public function stepAt(step:Int):StepSettings {
 		return steps[step];
 	}
@@ -70,6 +75,7 @@ class Track {
 		for (step in 0...Limits.STEPS) steps[step] = Step.REST;
 	}
 
+	/** The part's fader, kept between 0 and 100, so a bad value from a link or a gesture can't get through. */
 	public function setVolume(percent:Float) {
 		volume = Limits.VOLUME.clamp(percent);
 	}
@@ -78,10 +84,12 @@ class Track {
 		muted = !muted;
 	}
 
+	/** Tunes the part up or down, kept within an octave either way. */
 	public function setPitch(semitones:Float) {
 		pitch = Limits.PITCH.clamp(semitones);
 	}
 
+	/** How much of the sound plays before it fades, kept between 5 and 100 %. */
 	public function setLength(percent:Float) {
 		length = Limits.LENGTH.clamp(percent);
 	}
@@ -117,7 +125,11 @@ class Track {
 		};
 	}
 
-	/** Out-of-range steps are ignored, so a stray gesture can never corrupt the row. */
+	/**
+	 * Every step edit goes through here. `change` gets the old step and gives back the new one. Steps are never
+	 * changed in place; a new one replaces the old, which is what keeps old snapshots true. A step number off
+	 * the end of the row is ignored, so a stray gesture can never break the row.
+	 */
 	function editStep(step:Int, change:StepSettings->StepSettings) {
 		if (step >= 0 && step < Limits.STEPS) steps[step] = change(steps[step]);
 	}

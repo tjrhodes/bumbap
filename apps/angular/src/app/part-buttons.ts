@@ -20,6 +20,7 @@ export class PartButtons {
 	/** In the order of the parts: viewChildren follows the template's order. */
 	private readonly glows = viewChildren<ElementRef<HTMLElement>>("glow");
 
+	/** Flashes the LEDs on every step from now on, and stops when the buttons are destroyed. */
 	constructor() {
 		const stop = this.store.machine.onStep((step) => this.flashPartsPlaying(step));
 		inject(DestroyRef).onDestroy(stop);

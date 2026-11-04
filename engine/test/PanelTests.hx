@@ -7,6 +7,7 @@ import drum.panel.ShareLink;
 
 /** The words and the display font every front end shares. */
 class PanelTests {
+	/** Every test in this file, in the order they run. */
 	public static function all():Array<Check.Test> {
 		return [
 			test("the display right-aligns four characters", displayCharacters),
@@ -106,11 +107,13 @@ class PanelTests {
 
 	static var padMachine:DrumMachine;
 
+	/** A fresh machine for the PatternPad tests, kept so `machineState` can read it. */
 	static function machineWithPad():DrumMachine {
 		padMachine = new DrumMachine({tone: new FakeTone().api, samplesUrl: "/"});
 		return padMachine;
 	}
 
+	/** The pad tests' machine's latest snapshot. */
 	static function machineState() {
 		return padMachine.getState();
 	}

@@ -52,10 +52,12 @@ class Kit {
 		return voice.sampleCode + [for (dial in 0...voice.dials.length) DIAL_DIGITS[positions[dial]]].join("");
 	}
 
+	/** A small helper that keeps the list of voices above short enough to read as a table. */
 	static function voice(id:String, name:String, sampleCode:String, dials:Array<DialSpec>, starterRow:String):Voice {
 		return {id: id, name: name, sampleCode: sampleCode, dials: dials, starterRow: starterRow};
 	}
 
+	/** The same for one 808 knob: its label and where it starts. */
 	static function dial(name:String, initial:Int):DialSpec {
 		return {name: name, initial: initial};
 	}

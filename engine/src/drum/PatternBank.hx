@@ -18,6 +18,7 @@ class PatternBank {
 		for (index in 1...Limits.PATTERNS) restore(index, Patterns.blank());
 	}
 
+	/** The live, editable parts of one pattern. Only the machine edits these; the UI gets snapshots instead. */
 	public function tracks(index:Int):Array<Track> {
 		return patterns[index];
 	}
@@ -33,6 +34,7 @@ class PatternBank {
 		return kept[index];
 	}
 
+	/** All eight patterns as snapshots, for the share link and to see which patterns have any steps. */
 	public function snapshots():Array<Pattern> {
 		return [for (index in 0...Limits.PATTERNS) cast snapshot(index)];
 	}
@@ -43,6 +45,10 @@ class PatternBank {
 		changed(index);
 	}
 
+	/**
+	 * Copies a pattern by taking a snapshot of it and loading that into the other one. It's the same path a
+	 * shared link takes, so a copy is checked just as carefully.
+	 */
 	public function copy(from:Int, to:Int) {
 		restore(to, cast snapshot(from));
 	}

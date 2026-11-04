@@ -34,6 +34,10 @@ import { SevenSegment } from "./seven-segment";
 		</div>
 	`
 })
+/**
+ * The top section. Angular templates can only call what the component offers, so the little arrow functions
+ * below give the template each knob's way of reading its value and of setting it.
+ */
 export class Deck {
 	protected readonly store = inject(PanelStore);
 	protected readonly machine = this.store.machine;

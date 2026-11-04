@@ -18,5 +18,6 @@ import { SevenSegmentFont } from "bumbap-engine";
 export class SevenSegment {
 	protected readonly font = SevenSegmentFont;
 	readonly text = input.required<string>();
+	/** The four characters to draw, worked out again only when the text changes. */
 	protected readonly characters = computed(() => SevenSegmentFont.characters(this.text()));
 }

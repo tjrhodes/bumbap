@@ -23,8 +23,17 @@ export class KnobUnit {
 	readonly set = input.required<(value: number) => void>();
 	readonly unitClass = input("");
 
+	/**
+	 * How to read this knob's very latest value from the machine, for a gesture that comes before the next
+	 * redraw.
+	 */
 	protected readonly latest = () => this.read()(this.store.machine.getState());
 
+	/**
+	 * The knob was turned: set the value on the machine, then show it on the display ("S 66") if this knob has
+	 * a display letter. The value shown is read back from the machine, so it is the one the machine really
+	 * took.
+	 */
 	protected onTurn(value: number) {
 		this.set()(value);
 		const letter = PanelText.KNOB_LETTERS[this.knobId()];

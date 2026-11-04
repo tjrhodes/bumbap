@@ -39,6 +39,11 @@ class Panel {
 	final knobs:Array<{spec:KnobSpec, knob:Knob}>;
 	var selectedPart = 0;
 
+	/**
+	 * Finds the panel's pieces in the page by their ids and gives each a small helper object to look after it:
+	 * the display, the part buttons, the step keys, the pattern buttons and the knobs. Nothing is drawn yet;
+	 * that happens in `start`.
+	 */
 	public function new(machine:DrumMachine) {
 		this.machine = machine;
 		display = new SevenSegment(Dom.byId("display"));
@@ -48,6 +53,10 @@ class Panel {
 		knobs = [for (spec in knobSpecs()) {spec: spec, knob: buildKnob(spec)}];
 	}
 
+	/**
+	 * Draws the machine once, then subscribes: every snapshot redraws the panel and every step moves the
+	 * playhead. After that it starts listening for input and asks the machine to download its sounds.
+	 */
 	public function start() {
 		draw(machine.getState());
 		machine.subscribe(draw);
@@ -56,6 +65,7 @@ class Panel {
 		machine.load();
 	}
 
+	/** The part whose steps are on the keys right now, picked by the part buttons. */
 	function selectedTrack(state:MachineState):TrackState {
 		return state.tracks[selectedPart];
 	}
@@ -94,6 +104,10 @@ class Panel {
 		};
 	}
 
+	/**
+	 * Makes a knob from its spec. Turning it sets the value on the machine, and then shows the new value on the
+	 * display for a moment, so you can see the number while you turn.
+	 */
 	function buildKnob(spec:KnobSpec):Knob {
 		return new Knob(Dom.byId(spec.id), spec.range, value -> {
 			spec.set(value);
@@ -116,6 +130,11 @@ class Panel {
 		rememberInAddress(state.code);
 	}
 
+	/**
+	 * The top row: Play is enabled only once the sounds have loaded, and lights up while playing. Download
+	 * waits for the sounds too, and for any render already going. Paste waits until something has been copied.
+	 * The status line and the display show what the machine is doing.
+	 */
 	function drawTransport(state:MachineState) {
 		final play = Dom.byId("play");
 		(cast play : js.html.ButtonElement).disabled = state.status != Ready;
@@ -128,6 +147,10 @@ class Panel {
 		display.showResting(PanelText.resting(state));
 	}
 
+	/**
+	 * The part knobs say which part they belong to ("Snare level"), so a screen reader is clear; and each 808
+	 * slot shows that part's own knob, or none.
+	 */
 	function drawPartKnobs(selected:TrackState) {
 		for (name in ["level", "pitch", "length"]) Dom.byId(name).setAttribute("aria-label", '${selected.name} $name');
 		for (slot in 0...Kit.MOST_DIALS) drawDialSlot(slot, selected);
@@ -154,6 +177,11 @@ class Panel {
 
 	// ── The playhead ──────────────────────────────────────────────────
 
+	/**
+	 * The playhead moves on the step keys, and each part button flashes when its part hits, like LEDs on
+	 * hardware. This runs up to 13 times a second, so it only touches those few things and never redraws the
+	 * whole panel.
+	 */
 	function movePlayhead(step:Int) {
 		keys.movePlayhead(step);
 		if (step >= 0) parts.flash(step, machine.getState().tracks);
@@ -161,6 +189,10 @@ class Panel {
 
 	// ── Input ─────────────────────────────────────────────────────────
 
+	/**
+	 * Connects every button to what it does. Most just call the machine; the machine then sends a new snapshot,
+	 * and `draw` shows the result. The panel never changes the screen directly in response to a click.
+	 */
 	function listen() {
 		Dom.byId("play").addEventListener("click", () -> machine.togglePlay());
 		Dom.byId("clear").addEventListener("click", () -> machine.clear());
@@ -172,6 +204,10 @@ class Panel {
 		document.addEventListener("keydown", onShortcut);
 	}
 
+	/**
+	 * Shows another part's steps on the keys. Which part is shown belongs to the panel, not the machine (sound
+	 * doesn't depend on it), so the panel redraws itself here instead of waiting for a snapshot.
+	 */
 	function selectPart(index:Int) {
 		selectedPart = index;
 		draw(machine.getState());

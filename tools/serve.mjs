@@ -35,6 +35,10 @@ function compressedIfWanted(request, body, type) {
 	return isText && accepted ? { body: gzipSync(body), encoding: { "content-encoding": "gzip" } } : { body, encoding: {} };
 }
 
+/**
+ * Answers one request with the file it asks for (or "Not found"), compressed when the browser accepts it. `no-
+ * cache` makes sure a new build is always the one served.
+ */
 async function respond(request, response) {
 	const file = await fileFor(request.url);
 	const found = file && (await readFile(file).catch(() => null));

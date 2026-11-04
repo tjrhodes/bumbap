@@ -10,6 +10,10 @@ class Listeners<T> {
 
 	public function new() {}
 
+	/**
+	 * Adds a listener and gives back a little function that removes it again. Whoever subscribed keeps that
+	 * function and calls it when they are done, so nobody needs to remember which listener was theirs.
+	 */
 	public function add(listener:T->Void):() -> Void {
 		waiting.push(listener);
 		return () -> {
@@ -22,6 +26,7 @@ class Listeners<T> {
 		for (listener in waiting.copy()) listener(news);
 	}
 
+	/** Drops every listener at once, when the machine is thrown away. */
 	public function forgetAll() {
 		waiting.resize(0);
 	}

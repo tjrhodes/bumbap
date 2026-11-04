@@ -9,7 +9,12 @@ import { usePanel } from "../panel";
 const PATTERNS = [0, 1, 2, 3, 4, 5, 6, 7];
 const TOOLS = [{ tool: "select", name: "Select" }, { tool: "copy", name: "Copy" }, { tool: "clear", name: "Clear" }] as const;
 const { machine, state } = usePanel();
+/**
+ * The engine's gesture logic for the pattern buttons. A component's setup runs once in Vue, so this one pad
+ * lasts as long as the buttons.
+ */
 const pad = new PatternPad(machine);
+/** The hint line for a mouse and for a touch screen, worked out again only when the snapshot changes. */
 const hints = computed(() => PanelText.sequenceHints(state.value));
 
 /** A finger dragged onto another button is lifted there, so lifting is heard from the whole window. */

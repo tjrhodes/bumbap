@@ -11,6 +11,10 @@ class Main {
 	/** The shared kit sits at the repo root, beside apps/ (dist is apps/haxe/dist). */
 	static inline final SAMPLES_URL = "../../../samples/";
 
+	/**
+	 * Where the program starts. It builds one machine, loads the beat from the address if a shared link brought
+	 * one, and hands the machine to the panel, which draws it and listens for clicks from then on.
+	 */
 	static function main() {
 		final tone:ToneApi = js.Syntax.code("Tone"); // the global from the Tone.js script in index.html
 		final machine = new DrumMachine({tone: tone, samplesUrl: SAMPLES_URL});

@@ -3,6 +3,10 @@ import { useEffect, useRef } from "react";
 import type { TrackState } from "bumbap-engine";
 import { usePanel } from "../context";
 
+/**
+ * The row of eight part buttons. Each glow element is collected in `glows` as it is drawn, so `useFlashOnHits`
+ * can blink them directly, without a re-render on every step.
+ */
 export function PartButtons() {
 	const { state } = usePanel();
 	const glows = useFlashOnHits();
@@ -15,6 +19,10 @@ export function PartButtons() {
 	);
 }
 
+/**
+ * One part: its mute tab above, its pill below. The pill is pressed when its part is on the keys, and dims when
+ * muted.
+ */
 function PartButton({ track, index, glowRef }: { track: TrackState; index: number; glowRef: (glow: HTMLSpanElement | null) => void }) {
 	const { machine, selectedPart, selectPart } = usePanel();
 	return (

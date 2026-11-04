@@ -33,6 +33,10 @@ import { PanelStore } from "./panel-store";
 		<p class="dm-print dm-pattern-hint"><span class="for-mouse">{{ hints()[0] }}</span><span class="for-touch">{{ hints()[1] }}</span></p>
 	`
 })
+/**
+ * The template draws everything from the store's snapshot; the small arrow functions below give the template
+ * the engine's words for each button. The pad (the engine's gesture logic) is made once with the component.
+ */
 export class PatternButtons {
 	protected readonly store = inject(PanelStore);
 	protected readonly pad = new PatternPad(this.store.machine);
@@ -43,10 +47,15 @@ export class PatternButtons {
 	protected readonly places = (index: number) => PanelText.sequencePlaces(this.store.state(), index);
 	protected readonly hints = computed(() => PanelText.sequenceHints(this.store.state()));
 
+	/**
+	 * A finger or mouse button came up somewhere: the pad works out whether that finished a drag onto another
+	 * pattern.
+	 */
 	protected release(event: PointerEvent) {
 		this.pad.release(event.pointerId, PatternPad.patternAt(event.clientX, event.clientY));
 	}
 
+	/** The browser took the press away (a scroll began, say): the pad forgets it without copying anything. */
 	protected cancel(event: PointerEvent) {
 		this.pad.release(event.pointerId, PatternPad.NONE);
 	}

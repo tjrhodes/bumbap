@@ -26,6 +26,10 @@ import { PatternButtons } from "./pattern-buttons";
 		<div bmPartButtons></div>
 	`
 })
+/**
+ * The middle section. As in the Deck, the arrow functions below give the template each knob's reading and
+ * setting; they always use the part selected right now.
+ */
 export class PartSection {
 	private readonly store = inject(PanelStore);
 	private readonly machine = this.store.machine;

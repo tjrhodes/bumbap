@@ -24,6 +24,11 @@ class PatternButtons {
 	final pad:PatternPad;
 	final machine:DrumMachine;
 
+	/**
+	 * Finds the eight pattern buttons, the three tool buttons and the hint line in the page. The gestures (tap,
+	 * shift-click, hold, drag) are worked out by the engine's PatternPad, which every front end shares, so this
+	 * class only passes events on to it.
+	 */
 	public function new(group:Element, machine:DrumMachine) {
 		this.machine = machine;
 		buttons = [for (button in group.querySelectorAll(".dm-pattern")) cast button];
@@ -33,6 +38,10 @@ class PatternButtons {
 		listen(group);
 	}
 
+	/**
+	 * Redraws every pattern button and tool button from the snapshot, and the hint line saying what a tap does
+	 * now.
+	 */
 	public function draw(state:MachineState) {
 		for (index in 0...buttons.length) drawButton(buttons[index], index, state);
 		for (tool in tools) drawTool(tool, state);
@@ -46,6 +55,12 @@ class PatternButtons {
 		Dom.setAttribute(tool, "aria-label", PanelText.toolLabel(state, cast tool.dataset.tool));
 	}
 
+	/**
+	 * One pattern button's looks, each one a single attribute or class the stylesheet turns into light: half
+	 * lit if it's in the sequence, a ring if it's on the keys, fully lit while playing, blinking if it comes
+	 * next, brighter numbers if it has steps, marked if it's being copied. With Select on, it also shows its
+	 * places in the sequence.
+	 */
 	function drawButton(button:Element, index:Int, state:MachineState) {
 		Dom.setAttribute(button, "aria-pressed", Std.string(state.sequence.contains(index)));
 		Dom.setAttribute(button, "aria-current", Std.string(state.pattern == index));

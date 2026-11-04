@@ -36,7 +36,7 @@ def serve_repo():
 
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *args):
-        pass
+        """Says nothing: a log line for every file would bury the results."""
 
 
 def play_two_bars(page):
@@ -68,6 +68,7 @@ def check(report):
 
 
 def main():
+    """Serves the repo, plays two bars in a real Chromium, and prints each check with a tick or a cross."""
     server = serve_repo()
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(args=CHROMIUM_FLAGS)

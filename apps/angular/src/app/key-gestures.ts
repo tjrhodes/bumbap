@@ -14,12 +14,19 @@ const NUDGE_PX_PER_TICK = 3;
 type Axis = "level" | "nudge";
 const ARROWS: Record<string, [Axis, number]> = { ArrowUp: ["level", 5], ArrowDown: ["level", -5], ArrowRight: ["nudge", 1], ArrowLeft: ["nudge", -1] };
 
+/**
+ * The step keys' gestures. It is a plain class and not a component, and it remembers between events with an
+ * ordinary field, because one object is made per set of keys and lives as long as they do.
+ */
 export class KeyGestures {
 	/** Stops the click that ends a drag from switching the step. */
 	private wasDrag = false;
 
 	constructor(private readonly store: PanelStore) {}
 
+	/**
+	 * A click switches its step on or off, unless the press was a drag: then the click that ends it is ignored.
+	 */
 	click(index: number) {
 		if (!this.wasDrag) this.store.machine.toggleStep(this.store.selectedPart(), index);
 		this.wasDrag = false;
@@ -59,11 +66,16 @@ export class KeyGestures {
 	}
 }
 
+/**
+ * Which way is the drag going? Below a few pixels it might still be a tap, so nothing yet; after that, mostly
+ * up or down means level, mostly sideways means nudge.
+ */
 function chooseAxis(rise: number, across: number): Axis | null {
 	if (Math.max(Math.abs(rise), Math.abs(across)) < DRAG_THRESHOLD_PX) return null;
 	return Math.abs(rise) >= Math.abs(across) ? "level" : "nudge";
 }
 
+/** How much the level changes for each pixel dragged, so a 140-pixel drag covers the whole range. */
 function levelPerPixel(): number {
 	const { velocity } = DrumMachine.limits;
 	return (velocity.max - velocity.min) / LEVEL_TRAVEL_PX;

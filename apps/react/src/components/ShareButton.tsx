@@ -3,6 +3,10 @@ import { ShareLink } from "bumbap-engine";
 import { usePanel } from "../context";
 import { useHeldText } from "../hooks";
 
+/**
+ * The share button and the little note beside it. The note uses the same held-text hook as the display, so it
+ * shows what happened ("Link copied") for a moment and then clears itself.
+ */
 export function ShareButton() {
 	const { state } = usePanel();
 	const [note, showNote] = useHeldText("", ShareLink.NOTE_MS);

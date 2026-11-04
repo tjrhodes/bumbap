@@ -20,6 +20,10 @@ class Step {
 		return hit(Limits.VELOCITY.initial, Limits.NUDGE.initial);
 	}
 
+	/**
+	 * Builds the step and freezes it, so nothing can change it later. Because steps can't change, the same step
+	 * can safely sit in many snapshots and copies at once.
+	 */
 	static function frozen(on:Bool, velocity:Int, nudge:Int, reversed:Bool):StepSettings {
 		final step:StepSettings = {on: on, velocity: velocity, nudge: nudge, reversed: reversed};
 		return js.lib.Object.freeze(step);

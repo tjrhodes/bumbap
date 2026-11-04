@@ -20,6 +20,7 @@ def embedded_samples():
 
 
 def main():
+    """Fills the template's four gaps with the stylesheet, the engine, the samples and the app, and writes the page."""
     page = (HERE / "template.html").read_text()
     engine = (REPO / "engine/dist/drum-engine.haxe.js").read_text()
     app = (HERE / "app.js").read_text()

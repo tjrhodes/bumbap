@@ -20,16 +20,29 @@ class LoopFile {
 	/** Long enough for the browser to have started saving the file before its address is let go. */
 	static inline final RELEASE_AFTER_MS = 10000;
 
+	/**
+	 * What the Download button does. The name is worked out first, from the sequence as it is when the button
+	 * is pressed; then the machine renders the loop, and the file is handed to the browser to save. If the
+	 * render fails, the reason goes to the console and nothing is saved.
+	 */
 	public static function download(machine:DrumMachine):Promise<Void> {
 		final name = fileName(machine.getState());
 		return machine.exportLoop().then(file -> save(file, name), error -> js.Browser.console.error("The loop could not be rendered", error));
 	}
 
+	/**
+	 * A name that says what's in the file, so a folder of loops stays easy to sort: "bumbap-120bpm-4bars.wav".
+	 */
 	public static function fileName(state:MachineState):String {
 		final bars = state.sequence.length;
 		return 'bumbap-${state.tempo}bpm-$bars${bars == 1 ? "bar" : "bars"}.wav';
 	}
 
+	/**
+	 * Browsers have no "save this file" command for a page to call, so this does what a download link would: it
+	 * gives the file a temporary address, makes an invisible link to it, and clicks it. The address is released
+	 * a little later, once the browser has started saving.
+	 */
 	static function save(file:Blob, name:String) {
 		final link:AnchorElement = cast document.createElement("a");
 		link.href = URL.createObjectURL(file);

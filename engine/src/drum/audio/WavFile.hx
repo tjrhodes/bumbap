@@ -38,6 +38,10 @@ class WavFile {
 		file.setUint32(40, dataBytes, true);
 	}
 
+	/**
+	 * Writes a short word ("RIFF", "data") into the file one letter at a time; a WAV header marks its sections
+	 * with these.
+	 */
 	static function writeText(file:DataView, at:Int, text:String) {
 		for (index in 0...text.length) file.setUint8(at + index, text.charCodeAt(index));
 	}

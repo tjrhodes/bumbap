@@ -22,6 +22,10 @@ export class DialSlot {
 	protected readonly label = computed(() => PanelText.dialLabel(this.store.selectedTrack(), this.slot()));
 	protected readonly position = computed(() => this.store.selectedTrack().dials[this.slot()] ?? this.range.initial);
 
+	/**
+	 * How to read this knob's very latest position from the machine, for a gesture that comes before the next
+	 * redraw.
+	 */
 	protected readonly latest = () => this.store.machine.getState().tracks[this.store.selectedPart()].dials[this.slot()] ?? this.range.initial;
 
 	/** Picks another recording, and shows its 808 setting (e.g. "2510") while the knob turns. */

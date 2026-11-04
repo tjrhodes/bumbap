@@ -22,6 +22,10 @@ class Knob {
 	final range:Range;
 	final turnTo:Float->Void;
 
+	/**
+	 * Makes a knob from its element. Every way of turning it ends in `turnTo`, which rounds and clamps the
+	 * value before telling the panel, so a knob can never ask for something out of range.
+	 */
 	public function new(element:Element, range:Range, onTurn:Int->Void) {
 		this.element = element;
 		this.range = range;
@@ -38,10 +42,15 @@ class Knob {
 		element.style.setProperty("--turn", '${share * SWEEP_DEGREES - SWEEP_DEGREES / 2}deg');
 	}
 
+	/** The value the knob shows now, read back from its `aria-valuenow`, which is where `show` writes it. */
 	function value():Int {
 		return Std.parseInt(element.getAttribute("aria-valuenow"));
 	}
 
+	/**
+	 * Four ways to turn a knob: drag, scroll wheel, keys, and double-click to reset. The wheel listener isn't
+	 * passive, so it can stop the page scrolling while the mouse is over a knob.
+	 */
 	function listen() {
 		element.addEventListener("pointerdown", (event:PointerEvent) -> followDrag(event));
 		element.addEventListener("wheel", (event:WheelEvent) -> {
@@ -59,6 +68,10 @@ class Knob {
 		Pointer.track(element, down, move -> turnTo(startValue + (down.clientY - move.clientY + move.clientX - down.clientX) * unitsPerPixel));
 	}
 
+	/**
+	 * The keys sliders use everywhere: arrows move by one, Page Up and Down by ten, Home and End go to the
+	 * ends. Other keys are left alone, so Tab still moves on.
+	 */
 	function onKey(event:KeyboardEvent) {
 		if (event.key == "Home") turnTo(range.min);
 		else if (event.key == "End") turnTo(range.max);

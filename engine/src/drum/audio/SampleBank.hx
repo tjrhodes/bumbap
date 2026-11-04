@@ -52,6 +52,10 @@ class SampleBank {
 	final wanted = new Map<String, String>();
 	final everyLoaded:Array<LoadedSample> = [];
 
+	/**
+	 * Gives every drum its own volume fader, plugged into `output` (the master chain), like the channel strips
+	 * on a mixing desk. No recordings are downloaded yet; that waits until a part needs one.
+	 */
 	public function new(tone:ToneApi, voices:Array<Voice>, folderUrl:String, output:ToneNode) {
 		this.tone = tone;
 		this.folderUrl = folderUrl;
@@ -106,6 +110,12 @@ class SampleBank {
 		for (name => sample in other.decoded) decoded[name] = sample;
 	}
 
+	/**
+	 * Plays one hit. HitShape first works out where in the recording to start, when to stop and how to fade,
+	 * which depends on the pitch, the length knob and the direction. Then a brand-new player is made for just
+	 * this hit. If the recording hasn't arrived yet, the hit is simply skipped: a missing note is better than a
+	 * late one.
+	 */
 	function playSample(voiceId:String, sample:Null<LoadedSample>, hit:HitRequest) {
 		if (sample == null) return;
 		final plan = hit.reversed
@@ -115,10 +125,17 @@ class SampleBank {
 		source.start(hit.startTime + plan.startDelay, plan.offset, plan.stopAfter ?? js.Lib.undefined, hit.gain);
 	}
 
+	/**
+	 * Moves one drum's fader. Faders are percent on screen, but the audio works in decibels, so it is
+	 * converted.
+	 */
 	public function setVolume(voiceId:String, percent:Int) {
 		faders[voiceId].volume.value = Loudness.volumeDecibels(percent);
 	}
 
+	/**
+	 * Frees every recording and fader, so the browser can reclaim the memory when the machine is thrown away.
+	 */
 	public function dispose() {
 		for (sample in everyLoaded) {
 			sample.forwards.dispose();

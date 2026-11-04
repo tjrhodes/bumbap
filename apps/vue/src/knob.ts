@@ -24,6 +24,10 @@ export function followDrag(down: PointerEvent, startValue: number, range: Range,
 		turnTo(startValue + (down.clientY - move.clientY + move.clientX - down.clientX) * unitsPerPixel));
 }
 
+/**
+ * The keys sliders use everywhere: arrows move by one, Page Up and Down by ten, Home and End go to the ends.
+ * Other keys are left alone, so Tab still moves on.
+ */
 export function onKnobKey(event: KeyboardEvent, value: number, range: Range, turnTo: Turn) {
 	if (event.key === "Home") turnTo(range.min);
 	else if (event.key === "End") turnTo(range.max);

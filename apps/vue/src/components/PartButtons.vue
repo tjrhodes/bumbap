@@ -6,6 +6,10 @@ import { usePanel } from "../panel";
 const { machine, state, selectedPart } = usePanel();
 /** Each part's LED glow, by part number (refs gathered by v-for alone do not promise the list's order). */
 const glows: (Element | null)[] = [];
+/**
+ * Makes the little function Vue calls with each glow element as it is drawn, so it is stored under its own part
+ * number.
+ */
 const keepGlow = (index: number) => (glow: unknown) => void (glows[index] = glow as Element | null);
 
 /**
@@ -19,6 +23,10 @@ function flashPartsPlaying(step: number) {
 		if (hit.on && !track.muted) glows[index]?.animate([{ opacity: Math.max(0.3, hit.velocity / 100) }, { opacity: 0 }], { duration: 260, easing: "ease-out" });
 	});
 }
+/**
+ * Flashes on every step from now on; `onStep` gives back the function that stops it, and Vue calls that when
+ * the buttons go away.
+ */
 onUnmounted(machine.onStep(flashPartsPlaying));
 </script>
 

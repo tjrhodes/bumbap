@@ -28,6 +28,10 @@ class StepClock {
 	var upcomingStep = 0;
 	var running = false;
 
+	/**
+	 * Asks Tone's transport (its musical clock) to call `onSixteenth` on every sixteenth note, for as long as
+	 * the machine exists. Whether anything is heard is decided by `running`, so starting and stopping is cheap.
+	 */
 	public function new(tone:ToneApi, soundStep:(step:Int, audioTime:Float) -> Void, showStep:(step:Int) -> Void) {
 		this.tone = tone;
 		transport = tone.getTransport();
@@ -37,10 +41,12 @@ class StepClock {
 		repeatId = transport.scheduleRepeat(onSixteenth, "16n");
 	}
 
+	/** Changes the transport's tempo; the next sixteenth comes at the new speed. */
 	public function setTempo(beatsPerMinute:Int) {
 		transport.bpm.value = beatsPerMinute;
 	}
 
+	/** Remembers the swing; it is applied to each step as it is scheduled. */
 	public function setSwing(percent:Int) {
 		swing = percent;
 	}
@@ -64,6 +70,7 @@ class StepClock {
 		showStep(NO_STEP);
 	}
 
+	/** Stops and takes the sixteenth-note callback away from the transport for good. */
 	public function dispose() {
 		stop();
 		transport.clear(repeatId);

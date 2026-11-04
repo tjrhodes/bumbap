@@ -43,10 +43,12 @@ export class StepKeys {
 	protected readonly beats = [0, 1, 2, 3];
 	protected readonly furthestNudge = DrumMachine.limits.nudge.max;
 
+	/** The four step numbers of one beat, so the template can group the keys by beat. */
 	protected stepsOf(beat: number): number[] {
 		return Array.from({ length: STEPS_PER_BEAT }, (_, offset) => beat * STEPS_PER_BEAT + offset);
 	}
 
+	/** A step shows as reversed only while it plays; a step that's off isn't drawn flipped. */
 	protected isReversed(step: StepState): boolean {
 		return step.on && step.reversed;
 	}

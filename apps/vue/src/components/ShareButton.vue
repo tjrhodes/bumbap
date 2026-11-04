@@ -8,6 +8,10 @@ const { state } = usePanel();
 const note = ref<string | null>(null);
 const showNote = holdFor(note, ShareLink.NOTE_MS);
 
+/**
+ * Shares the beat as it is right now, then shows a note saying what happened, unless there's nothing to say
+ * (the share sheet speaks for itself).
+ */
 async function share() {
 	const words = await ShareLink.share(state.value.code);
 	if (words) showNote(words);

@@ -13,6 +13,7 @@ class MachineTests {
 	static inline final CLAP = 2;
 	static inline final RIM = 7;
 
+	/** Every test in this file, in the order they run. */
 	public static function all():Array<Check.Test> {
 		return withoutSound().concat(masterChain()).concat(stepEdits()).concat(withSound()).concat(soundControls()).concat(sharingAndTidying());
 	}
@@ -496,6 +497,7 @@ class MachineTests {
 		return new Promise((resolve, _) -> haxe.Timer.delay(() -> resolve(null), 0));
 	}
 
+	/** A fresh machine on a fresh fake Tone, so no test can leak into the next. */
 	static function newMachine() {
 		final tone = new FakeTone();
 		return {tone: tone, machine: new DrumMachine({tone: tone.api, samplesUrl: "/samples/"})};

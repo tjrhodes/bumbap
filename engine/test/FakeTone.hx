@@ -60,6 +60,10 @@ class FakeTone {
 		Context: FakeContext
 	};
 
+	/**
+	 * Becomes the fake in use (so every fake node made from now on reports here), and builds the pretend Tone
+	 * module the engine is given: the fake classes plus the fake functions.
+	 */
 	public function new() {
 		current = this;
 		api = cast js.lib.Object.assign({}, FAKE_CLASSES, clockAndContext());
@@ -117,6 +121,10 @@ class FakeTone {
 		return [for (node in nodes) if (node.kind == kind) node][0];
 	}
 
+	/**
+	 * A pretend transport (Tone's musical clock). It keeps the engine's per-sixteenth callback so the test can
+	 * call it with `sixteenth`; nothing ticks by itself.
+	 */
 	function transport():ToneTransport {
 		return {
 			bpm: bpm,
@@ -130,6 +138,10 @@ class FakeTone {
 		};
 	}
 
+	/**
+	 * A pretend Tone.Draw: playhead updates wait in a list until the test calls `nextFrame`, as if the screen
+	 * had just been redrawn.
+	 */
 	function draw():ToneDraw {
 		return {
 			schedule: (update, audioTime) -> {
@@ -162,6 +174,7 @@ class FakeNode {
 		FakeTone.current.nodes.push(this);
 	}
 
+	/** Remembers what this node is plugged into, so a test can follow the chain. */
 	public function connect(destination:FakeNode):FakeNode {
 		output = destination;
 		return this;
@@ -177,10 +190,12 @@ class FakeNode {
 		return this;
 	}
 
+	/** The speakers: there are none, so nothing happens. */
 	public function toDestination():FakeNode {
 		return this;
 	}
 
+	/** Notes that the engine freed this node, so a test can check nothing was left behind. */
 	public function dispose() {
 		disposed = true;
 	}
@@ -240,6 +255,7 @@ class FakeSource extends FakeNode {
 		super("Source", sample);
 	}
 
+	/** Instead of making sound, a fake source writes down everything about the hit, for a test to read. */
 	public function start(audioTime:Float, offset:Float, duration:Dynamic, gain:Float) {
 		FakeTone.current.hits.push({
 			voice: options.name, audioTime: audioTime, gain: gain, into: output, sample: options,
@@ -279,10 +295,12 @@ class FakeSample {
 		return FakeTone.current.finishLoad(url, this);
 	}
 
+	/** The sound's values, as the engine reads them to find where the sound ends. */
 	public function toArray(channel:Int):js.lib.Float32Array {
 		return new js.lib.Float32Array(values);
 	}
 
+	/** A cut of the sound between two times, as Tone's buffers do. */
 	public function slice(start:Float, end:Float):FakeSample {
 		return new FakeSample(name, values.slice(Math.round(start * RATE), Math.round(end * RATE)));
 	}

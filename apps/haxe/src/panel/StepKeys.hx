@@ -51,6 +51,11 @@ class StepKeys {
 	var currentStep = -1;
 	var suppressClick = false;
 
+	/**
+	 * Sets up the two ways a drag can change a step (level and nudge), then makes the sixteen keys and starts
+	 * listening. `selectedPart` is a function and not a number, so the keys always edit whichever part is
+	 * selected at the moment of the gesture.
+	 */
 	public function new(container:Element, machine:DrumMachine, selectedPart:() -> Int, display:SevenSegment) {
 		this.machine = machine;
 		this.selectedPart = selectedPart;
@@ -89,6 +94,10 @@ class StepKeys {
 
 	// ── Building ──────────────────────────────────────────────────────
 
+	/**
+	 * Makes the keys in groups of four, one group per beat, so they can be spaced like a real drum machine's
+	 * and the eye finds the beat at once. Each step gets a flip tab above its key.
+	 */
 	function build(container:Element, stepCount:Int) {
 		var beatStart = 0;
 		while (beatStart < stepCount) {
@@ -99,6 +108,7 @@ class StepKeys {
 		}
 	}
 
+	/** A step's flip tab, which plays it backwards; it remembers which step it is in `data-flip`. */
 	function buildFlip(step:Int):Element {
 		final flip = Dom.create("button", "dm-tab dm-flip", {"aria-pressed": "false", "data-flip": Std.string(step)});
 		flip.append(Dom.create("span", "dm-flip-icon"));
@@ -118,22 +128,37 @@ class StepKeys {
 
 	// ── Gestures ──────────────────────────────────────────────────────
 
+	/**
+	 * One listener on the whole row instead of one per key (event delegation): each event says which key it
+	 * came from, so sixteen keys share three listeners.
+	 */
 	function listen(container:Element) {
 		container.addEventListener("pointerdown", startGesture);
 		container.addEventListener("click", onClick);
 		container.addEventListener("keydown", onArrow);
 	}
 
+	/**
+	 * The step as the machine has it now, read fresh each time, so a gesture always starts from the real value.
+	 */
 	function selectedStep(index:Int):StepSettings {
 		return machine.getState().tracks[selectedPart()].steps[index];
 	}
 
+	/**
+	 * Changes a step's level or nudge, then shows the new value on the display ("u 70", "n -3") so you can see
+	 * it while you drag. The value shown is read back from the machine, so it's what it really took, in range.
+	 */
 	function adjust(index:Int, axisName:String, value:Float) {
 		final axis = axes[axisName];
 		axis.set(index, value);
 		display.showBriefly(PanelText.labelled(axis.letter, axis.read(selectedStep(index))));
 	}
 
+	/**
+	 * A finger or mouse goes down on a key. Where it started and how the step was are noted, then the pointer
+	 * is followed until it lets go. Whether this was a tap or a drag isn't known yet; `followDrag` decides.
+	 */
 	function startGesture(down:PointerEvent) {
 		final key = (cast down.target : Element).closest(".dm-key");
 		if (key == null) return;
@@ -155,6 +180,10 @@ class StepKeys {
 		else adjust(index, "nudge", gesture.from.nudge + across / NUDGE_PX_PER_TICK);
 	}
 
+	/**
+	 * Which way is the drag going? Below a few pixels it might still be a tap, so nothing yet; after that,
+	 * mostly up or down means level, mostly sideways means nudge.
+	 */
 	static function chooseAxis(rise:Float, across:Float):Null<String> {
 		if (Math.max(Math.abs(rise), Math.abs(across)) < DRAG_THRESHOLD_PX) return null;
 		return Math.abs(rise) >= Math.abs(across) ? "level" : "nudge";
